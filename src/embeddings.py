@@ -10,5 +10,5 @@ class MiniLMStrategy(EmbeddingStrategy):
             model_name="all-MiniLM-L6-v2"
         )
 
-# Futuramente, você apenas adicionaria aqui:
+# Later you can add another provider here:
 # class BGEStrategy(EmbeddingStrategy): ...

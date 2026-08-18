@@ -1,88 +1,102 @@
-## 🗺️ Roadmap de Desenvolvimento
+## Development Roadmap
 
-O desenvolvimento deste projeto está estruturado de forma incremental. Começamos estabelecendo a base de dados determinística e avançamos até a orquestração autônoma dos agentes e análises topológicas de sinergia.
+This project is built incrementally: first a deterministic local data layer, then autonomous agent orchestration, then optional topological synergy analysis.
 
-### 📍 Épico 1: Fundação de Dados e Inventário (Data Ingestion)
-O objetivo desta fase é criar a infraestrutura local para ler as cartas e as regras do jogo.
-- [x] **Integração com Scryfall:** Script para baixar e processar o *Bulk Data* (JSON) do Scryfall, extraindo `Oracle Text`, `Mana Value`, `Color Identity` e `Legalities`.
-- [x] **Parser de Inventário:** Criar o módulo que lê a coleção pessoal (arquivos `.csv` do ManaBox/Moxfield).
-- [x] **Banco de Dados Relacional:** Implementar SQLite (ou DuckDB) para rastrear o estado da coleção (quais cartas estão livres, quais estão alocadas em decks).
-- [x] **Validador de Regras Base:** Funções determinísticas em Python para checar identidade de cor de comandantes e restrição de Singleton.
+### Epic 1: Data Foundation and Inventory
 
-### 📍 Épico 2: Pipeline RAG e Espaço Vetorial (Embeddings)
-Aqui, o sistema ganha a capacidade de entender as cartas semanticamente, indo além da busca por palavras-chave.
-- [x] **Geração de Embeddings:** Utilizar `sentence-transformers` (HuggingFace) para converter o *Oracle Text* das cartas em vetores densos.
-- [x] **Setup do ChromaDB/FAISS:** Armazenar os embeddings das cartas do Scryfall e criar partições específicas para o inventário local.
-- [x] **Busca Semântica (Retrieval):** Implementar a função que recebe uma query (ex: "proteger comandante de remoção global") e retorna as N cartas mais relevantes usando similaridade de cosseno.
-- [x] **Filtragem Híbrida:** Combinar a busca vetorial (RAG) com filtros estritos do banco SQL (ex: *retornar similares, mas apenas se Color Identity == Izzet e Inventário > 0*).
+Local infrastructure to read cards and game rules.
 
-### 📍 Épico 3: Orquestração Multi-Agente (LangGraph / CrewAI)
-A inteligência principal do sistema. Aqui os agentes ganham "ferramentas" para interagir com a base construída nos épicos anteriores.
-- [x] **Configuração do LLM:** Integrar a API do Gemini (ou modelo local) como motor de raciocínio.
-- [x] **Desenvolvimento das *Tools*:** Encapsular as funções do Épico 1 e 2 no formato de ferramentas do LangChain (`@tool`).
-- [ ] **Agente Gestor de Inventário:** Implementar o agente responsável por checar disponibilidade e "mover" cartas entre decks.
-- [x] **Agente Arquiteto (RAG):** Implementar o agente focado em descobrir sinergias e consultar as regras no vector DB.
-- [ ] **Agente Supervisor:** Implementar o orquestrador que avalia a curva de mana, recebe os inputs dos outros agentes e formata a lista final com 100 cartas.
-- [ ] **Fluxo de Decisão (Graph):** Desenhar e rodar o grafo de execução conectando os três agentes de forma cíclica ou hierárquica.
+- [x] **Scryfall integration:** Download and process Scryfall bulk data (JSON), extracting Oracle Text, Mana Value, Color Identity, and Legalities.
+- [x] **Inventory parser:** Module that reads a personal collection (ManaBox/Moxfield-style lists).
+- [x] **Relational database:** SQLite tracks collection state (which cards are free, which are allocated to decks).
+- [x] **Base rules validator:** Deterministic Python checks for commander color identity and the singleton restriction.
 
-### 📍 Épico 4: Interface e Usabilidade (Deploy Local)
-Facilitar o uso do sistema para não precisar rodar tudo via terminal durante a montagem física dos decks.
-- [ ] **CLI Interativa ou Streamlit:** Criar uma interface básica em Python para interagir com o chat dos agentes.
-- [ ] **Visualização de Curva de Mana e Stats:** Gerar gráficos simples (`matplotlib` ou nativos do Streamlit) para o *output* do deck.
-- [ ] **Exportação de Decklists:** Função para gerar um arquivo final formatado pronto para importar de volta no Moxfield.
+### Epic 2: RAG Pipeline and Vector Space
 
-### 🔬 Épico 5: Funcionalidades Avançadas (Pesquisa e Otimização)
-*Stretch goals* focados em otimizações matemáticas mais densas do deckbuilding.
-- [ ] **Análise Topológica de Sinergias (TDA):** Aplicar métricas topológicas sobre o espaço de embeddings para identificar "ilhas" isoladas no deck (cartas que não têm sinergia com o resto) ou redundâncias.
-- [ ] **Algoritmo de *Cuts* (Cortes de Deck):** Otimizar o agente para, dada uma lista de 110 cartas, calcular matematicamente os 10 piores *slots* considerando redundância vetorial e peso na curva de mana.
+The system understands cards semantically, beyond keyword search.
 
+- [x] **Embedding generation:** Use `sentence-transformers` (HuggingFace) to turn Oracle Text into dense vectors.
+- [x] **ChromaDB/FAISS setup:** Store Scryfall card embeddings and create partitions for the local inventory.
+- [x] **Semantic retrieval:** Given a query (e.g. "protect commander from board wipes"), return the N most relevant cards by cosine similarity.
+- [x] **Hybrid filtering:** Combine vector search (RAG) with strict SQL filters (e.g. similar cards only if Color Identity == Izzet and inventory > 0).
 
----
+### Epic 3: Multi-Agent Orchestration (LangGraph / CrewAI)
 
-## 🛠️ Guia de Utilização e Arquitetura do Projeto
+The core intelligence. Agents get tools to interact with the data layer from the previous epics.
 
-O **ManaGraph** é um sistema inteligente de *deckbuilding* e busca semântica para Magic: The Gathering, estruturado com uma arquitetura modular orientada a dados (RAG) e orquestração multi-agente.
+- [x] **LLM configuration:** Gemini (or a local model) as the reasoning engine.
+- [x] **Tools:** Wrap Epic 1 and 2 functions as LangChain `@tool`s.
+- [x] **Inventory manager agent:** Check availability and move cards between decks.
+- [x] **Architect agent (RAG):** Discover synergies and query rules in the vector DB.
+- [x] **Supervisor agent:** Review the other agents' output and decide whether to approve or send work back.
+- [x] **Decision graph:** Cyclic graph connecting Architect → Inventory → Supervisor.
 
-### 📂 Estrutura de Diretórios
+### Epic 4: Interface and Usability (Local Deploy)
 
-*   `data/`: Armazena os bancos locais (`managraph.db` para o SQLite com inventário e regras estruturadas, e `chroma_db/` para o banco vetorial).
-*   `notebooks/`: Contém cadernos interativos de análise exploratória de dados (ex: redução de dimensionalidade com UMAP e Plotly).
-*   `src/`: Contém o código-fonte principal do sistema:
-    *   `scryfall_download.py`: Importação e parsing dos dados oficiais do Scryfall.
-    *   `import_inventory.py`: Gestão da sua coleção física de cartas.
-    *   `embeddings.py`: Padrão *Strategy* para provedores de vetores (agnóstico a modelos).
-    *   `vectorize_cards.py`: Processamento e indexação em lotes para o ChromaDB.
-    *   `hybrid_search.py`: Motor de busca combinando similaridade vetorial e filtros relacionais (SQLite).
-    *   `llm_factory.py`: Fábrica modular para troca de provedores de LLM via variáveis de ambiente.
-    *   `tools.py`: Encapsulamento das buscas em ferramentas (`@tool`) para agentes de IA.
-    *   `architect_agent.py`: O Agente Arquiteto orquestrado via LangGraph.
-    *   `main_agent.py`: Script de execução e testes dos agentes.
+Make the system usable without running everything from a terminal while physically assembling decks.
+
+- [ ] **Interactive CLI or Streamlit:** Basic Python UI to chat with the agents.
+- [ ] **Mana curve and stats:** Simple charts (`matplotlib` or native Streamlit) for the deck output.
+- [ ] **Decklist export:** Produce a file ready to import back into Moxfield.
+
+### Epic 5: Advanced Features (Research and Optimization)
+
+Stretch goals for denser mathematical deckbuilding.
+
+- [ ] **Topological synergy analysis (TDA):** Topological metrics on the embedding space to find isolated "islands" (cards with no synergy) or redundancy.
+- [ ] **Cut algorithm:** Given a list of 110 cards, mathematically pick the 10 worst slots using vector redundancy and mana-curve weight.
 
 ---
 
-### 🚀 Como Executar o Projeto
+## Usage Guide and Architecture
 
-1. **Configuração do Ambiente:**
-   Certifique-se de preencher o arquivo `.env` na raiz do projeto com a sua chave de API e provedor desejado (ex: Google Gemini):
-   ```env
-   LLM_PROVIDER=google
-   LLM_MODEL=gemini-2.5-flash
-   GOOGLE_API_KEY=sua_chave_aqui
-   ```
+**ManaGraph** is a local Magic: The Gathering deckbuilding and semantic search system, built as a modular data-oriented (RAG) architecture with multi-agent orchestration.
 
-2. **Instalação de Dependências:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+### Directory Structure
 
-3. **Geração de Base Vetorial**
-Caso precise reindexar as cartas do Magic a partir do banco relacional:
-   ```bash
-   python src/vectorize_cards.py
-   ```
+- `data/`: Local stores (`managraph.db` for SQLite inventory and structured rules, `chroma_db/` for the vector index).
+- `notebooks/`: Exploratory analysis notebooks (e.g. UMAP + Plotly dimensionality reduction).
+- `src/`: Main source code:
+  - `scryfall_download.py`: Import and parse official Scryfall data.
+  - `import_inventory.py`: Load a physical card collection.
+  - `inventory.py`: Check availability and move cards between the free pool and decks.
+  - `embeddings.py`: Strategy pattern for embedding providers (model-agnostic).
+  - `vectorize_cards.py`: Batch indexing into ChromaDB.
+  - `hybrid_search.py`: Search engine combining vector similarity and SQLite filters.
+  - `rules_validator.py`: Deterministic Commander color identity and singleton checks.
+  - `llm_factory.py`: Swap LLM providers via environment variables.
+  - `tools.py`: LangChain `@tool` wrappers for the agents.
+  - `architect_agent.py`: Architect agent (synergy search).
+  - `inventory_agent.py`: Inventory manager agent.
+  - `supervisor_agent.py`: Supervisor that approves or rejects proposals.
+  - `main_agent.py`: LangGraph execution graph and demo entry point.
 
-4. **Executando o Agente Arquiteto:**
-Para testar as consultas inteligentes de sinergia e inventário:
-    ```bash
-    python src/main_agent.py   
-    ```
+---
+
+### How to Run
+
+1. **Environment:** Fill in the `.env` file at the project root with your API key and provider (e.g. Google Gemini):
+
+```env
+LLM_PROVIDER=google
+LLM_MODEL=gemini-2.5-flash
+GOOGLE_API_KEY=your_key_here
+```
+
+2. **Dependencies:**
+
+```bash
+pip install -r requirements.txt
+```
+
+3. **Vector index** (reindex Magic cards from the relational database if needed):
+
+```bash
+python src/vectorize_cards.py
+```
+
+4. **Run the multi-agent loop** (synergy search + inventory + supervisor):
+
+```bash
+python src/main_agent.py
+```

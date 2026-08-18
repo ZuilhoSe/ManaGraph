@@ -1,19 +1,19 @@
-# Configurações e Chaves
+# Config and secrets
 .env
 .env.local
 
-# Python Cache
+# Python cache
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# Jupyter Notebooks (opcional, se não quiser subir checkpoints)
+# Jupyter notebooks (optional, skip checkpoints)
 .ipynb_checkpoints/
 .vscode/
 .idea/
 
-# Arquivos de log e logs do SO
+# Logs and OS files
 *.log
 .DS_Store
 Thumbs.db

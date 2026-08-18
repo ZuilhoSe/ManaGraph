@@ -1,7 +1,7 @@
 import json
 from langchain.tools import tool
 from hybrid_search import RAGSearcher
-from inventory import consultar_carta, listar_inventario, mover_carta, FREE_POOL
+from inventory import get_card, list_inventory, move_card, FREE_POOL
 from rules_validator import CommanderValidator
 
 searcher = RAGSearcher()
@@ -14,127 +14,127 @@ def _format_allocations(allocations: dict) -> str:
 
 
 @tool
-def buscar_cartas_no_banco(query: str, cores: list, apenas_inventario: bool = True, limite: int = 5):
+def search_cards(query: str, colors: list, owned_only: bool = True, limit: int = 5):
     """
-    Busca cartas de Magic: The Gathering em uma base de dados vetorial e filtra com SQLite.
-    
+    Search Magic: The Gathering cards in the vector index and filter with SQLite.
+
     Args:
-        query (str): Descrição semântica do efeito da carta.
-        cores (list): Identidade de cor permitida (ex: ["R", "U"]).
-        apenas_inventario (bool): True para buscar apenas no inventário, False para o catálogo geral.
-        limite (int): Número máximo de cartas a retornar.
+        query: Semantic description of the card effect.
+        colors: Allowed color identity, e.g. ["R", "U"].
+        owned_only: True to search only owned cards, False for the full catalog.
+        limit: Maximum number of cards to return.
     """
-    resultados = searcher.buscar_cartas(
+    results = searcher.search_cards(
         query=query,
-        cores_permitidas=cores,
-        apenas_inventario=apenas_inventario,
-        limite=limite
+        allowed_colors=colors,
+        owned_only=owned_only,
+        limit=limit
     )
-        
-    if not resultados:
-        return "Nenhuma carta encontrada com esses critérios."
-            
-    formato = ""
-    for r in resultados:
-        formato += f"Nome: {r['nome']}\nTexto: {r['texto']}\nPossui: {r['quantidade']}\n"
-        if r.get("alocacao"):
-            formato += f"Alocacao: {_format_allocations(r['alocacao'])}\n"
-        formato += "\n"
-    return formato
+
+    if not results:
+        return "No cards found with those criteria."
+
+    formatted = ""
+    for result in results:
+        formatted += f"Name: {result['name']}\nText: {result['text']}\nOwned: {result['quantity']}\n"
+        if result.get("allocation"):
+            formatted += f"Allocation: {_format_allocations(result['allocation'])}\n"
+        formatted += "\n"
+    return formatted
 
 
 @tool
-def consultar_inventario(card_name: str) -> str:
+def lookup_inventory(card_name: str) -> str:
     """Look up one owned card: total copies and where they are allocated (free pool vs decks)."""
-    carta = consultar_carta(card_name)
-    if not carta:
+    card = get_card(card_name)
+    if not card:
         return f"'{card_name}' is not in the inventory."
     return (
-        f"Nome: {carta['card_name']}\n"
-        f"Total: {carta['total_quantity']}\n"
-        f"Livres ({FREE_POOL}): {carta['livre']}\n"
-        f"Alocacao: {_format_allocations(carta['allocations'])}"
+        f"Name: {card['card_name']}\n"
+        f"Total: {card['total_quantity']}\n"
+        f"Available ({FREE_POOL}): {card['available']}\n"
+        f"Allocation: {_format_allocations(card['allocations'])}"
     )
 
 
 @tool
-def listar_cartas_do_inventario(localizacao: str = "") -> str:
+def list_inventory_cards(location: str = "") -> str:
     """
     List cards in the physical collection.
-    Leave localizacao empty to list everything.
-    Use 'pool_livre' for the free pool or a deck key such as 'deck_krenko'.
+    Leave location empty to list everything.
+    Use 'free_pool' for the unallocated pool or a deck key such as 'deck_krenko'.
     """
-    local = localizacao.strip() or None
-    cartas = listar_inventario(local)
-    if not cartas:
-        alvo = local or "inventory"
-        return f"No cards found in '{alvo}'."
+    loc = location.strip() or None
+    cards = list_inventory(loc)
+    if not cards:
+        target = loc or "inventory"
+        return f"No cards found in '{target}'."
 
-    linhas = []
-    for carta in cartas:
-        if local:
-            linhas.append(
-                f"- {carta['card_name']}: {carta['quantidade']} in {carta['localizacao']}"
+    lines = []
+    for card in cards:
+        if loc:
+            lines.append(
+                f"- {card['card_name']}: {card['quantity']} in {card['location']}"
             )
         else:
-            linhas.append(
-                f"- {carta['card_name']}: total {carta['total_quantity']} "
-                f"[{_format_allocations(carta['allocations'])}]"
+            lines.append(
+                f"- {card['card_name']}: total {card['total_quantity']} "
+                f"[{_format_allocations(card['allocations'])}]"
             )
-    return "\n".join(linhas)
+    return "\n".join(lines)
 
 
 @tool
-def mover_carta_inventario(card_name: str, origem: str, destino: str, quantidade: int = 1) -> str:
+def move_inventory_card(card_name: str, source: str, destination: str, quantity: int = 1) -> str:
     """
     Move copies of an owned card from one location to another.
-    Typical locations: 'pool_livre' (free pool) and deck keys like 'deck_krenko'.
+    Typical locations: 'free_pool' and deck keys like 'deck_krenko'.
     Only call this when the user explicitly asked to allocate, add, or remove cards from a deck.
     """
-    resultado = mover_carta(card_name, origem, destino, quantidade)
-    if not resultado.get("ok"):
-        return f"MOVE FAILED: {resultado.get('erro')}"
+    result = move_card(card_name, source, destination, quantity)
+    if not result.get("ok"):
+        return f"MOVE FAILED: {result.get('error')}"
     return (
-        f"Moved {resultado['moved']}x {resultado['card_name']} "
-        f"from '{resultado['from']}' to '{resultado['to']}'.\n"
-        f"Alocacao agora: {_format_allocations(resultado['allocations'])}"
+        f"Moved {result['moved']}x {result['card_name']} "
+        f"from '{result['from']}' to '{result['to']}'.\n"
+        f"Allocation now: {_format_allocations(result['allocations'])}"
     )
 
 
 @tool
-def validar_regras_commander(comandante: str, cartas_json: str) -> str:
+def validate_commander_rules(commander: str, cards_json: str) -> str:
     """
     Deterministically validate Commander color identity and singleton rules.
 
     Args:
-        comandante: Commander card name, e.g. "Krenko, Mob Boss".
-        cartas_json: JSON object of card name -> quantity, e.g. '{"Sol Ring": 1, "Mountain": 35}'.
+        commander: Commander card name, e.g. "Krenko, Mob Boss".
+        cards_json: JSON object of card name -> quantity, e.g. '{"Sol Ring": 1, "Mountain": 35}'.
     """
     try:
-        deck_list = json.loads(cartas_json)
+        deck_list = json.loads(cards_json)
         if not isinstance(deck_list, dict):
-            return "cartas_json must be a JSON object of card name -> quantity."
+            return "cards_json must be a JSON object of card name -> quantity."
     except json.JSONDecodeError as exc:
-        return f"Invalid JSON for cartas_json: {exc}"
+        return f"Invalid JSON for cards_json: {exc}"
 
-    validador = CommanderValidator()
+    validator = CommanderValidator()
     try:
-        relatorio = validador.validate_deck(comandante, deck_list)
+        report = validator.validate_deck(commander, deck_list)
     finally:
-        validador.fechar_conexao()
+        validator.close()
 
-    if "erro" in relatorio:
-        return relatorio["erro"]
+    if "error" in report:
+        return report["error"]
 
-    linhas = [
-        f"Comandante: {relatorio['comandante']}",
-        f"Identidade: {relatorio['identidade_comandante']}",
-        f"Valido: {'SIM' if relatorio['valido'] else 'NAO'}",
+    lines = [
+        f"Commander: {report['commander']}",
+        f"Identity: {report['commander_identity']}",
+        f"Valid: {'YES' if report['valid'] else 'NO'}",
     ]
-    if relatorio.get("erros_de_cor"):
-        linhas.append("Erros de cor: " + "; ".join(relatorio["erros_de_cor"]))
-    if relatorio.get("erros_de_singleton"):
-        linhas.append("Erros de singleton: " + "; ".join(relatorio["erros_de_singleton"]))
-    if relatorio.get("cartas_desconhecidas"):
-        linhas.append("Cartas desconhecidas: " + ", ".join(relatorio["cartas_desconhecidas"]))
-    return "\n".join(linhas)
+    if report.get("color_errors"):
+        lines.append("Color errors: " + "; ".join(report["color_errors"]))
+    if report.get("singleton_errors"):
+        lines.append("Singleton errors: " + "; ".join(report["singleton_errors"]))
+    if report.get("unknown_cards"):
+        lines.append("Unknown cards: " + ", ".join(report["unknown_cards"]))
+    return "\n".join(lines)

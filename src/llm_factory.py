@@ -18,4 +18,4 @@ class LLMFactory:
             return ChatAnthropic(model=model_name, anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"))
         
         else:
-            raise ValueError(f"Provedor de LLM '{provider}' não suportado.")
+            raise ValueError(f"LLM provider '{provider}' is not supported.")

@@ -7,13 +7,36 @@ BASE_DIR = os.path.dirname(SCRIPT_DIR)
 DATA_DIR = os.path.join(BASE_DIR, "data")
 DB_NAME = os.path.join(DATA_DIR, "managraph.db")
 
-FREE_POOL = "pool_livre"
+FREE_POOL = "free_pool"
+_LEGACY_FREE_POOL = "pool_livre"
+_did_migrate = False
 
 
 def _connect():
+    global _did_migrate
     conn = sqlite3.connect(DB_NAME)
     conn.row_factory = sqlite3.Row
+    if not _did_migrate:
+        _migrate_free_pool_key(conn)
+        _did_migrate = True
     return conn
+
+
+def _migrate_free_pool_key(conn):
+    try:
+        rows = conn.execute("SELECT card_name, allocations FROM inventory").fetchall()
+    except sqlite3.OperationalError:
+        return
+    for row in rows:
+        allocations = json.loads(row["allocations"] or "{}")
+        if _LEGACY_FREE_POOL not in allocations:
+            continue
+        allocations[FREE_POOL] = allocations.get(FREE_POOL, 0) + allocations.pop(_LEGACY_FREE_POOL)
+        conn.execute(
+            "UPDATE inventory SET allocations = ? WHERE card_name = ?",
+            (json.dumps(allocations), row["card_name"]),
+        )
+    conn.commit()
 
 
 def _clean_allocations(allocations: dict) -> dict:
@@ -24,7 +47,7 @@ def _clean_allocations(allocations: dict) -> dict:
     return cleaned
 
 
-def consultar_carta(card_name: str) -> dict | None:
+def get_card(card_name: str) -> dict | None:
     conn = _connect()
     try:
         row = conn.execute(
@@ -42,52 +65,52 @@ def consultar_carta(card_name: str) -> dict | None:
             "card_name": row["card_name"],
             "total_quantity": row["total_quantity"],
             "allocations": allocations,
-            "livre": allocations.get(FREE_POOL, 0),
+            "available": allocations.get(FREE_POOL, 0),
         }
     finally:
         conn.close()
 
 
-def listar_inventario(localizacao: str | None = None) -> list[dict]:
+def list_inventory(location: str | None = None) -> list[dict]:
     conn = _connect()
     try:
         rows = conn.execute(
             "SELECT card_name, total_quantity, allocations FROM inventory ORDER BY card_name"
         ).fetchall()
-        resultados = []
+        results = []
         for row in rows:
             allocations = json.loads(row["allocations"] or "{}")
-            if localizacao:
-                qty = allocations.get(localizacao, 0)
+            if location:
+                qty = allocations.get(location, 0)
                 if qty <= 0:
                     continue
-                resultados.append(
+                results.append(
                     {
                         "card_name": row["card_name"],
-                        "quantidade": qty,
-                        "localizacao": localizacao,
+                        "quantity": qty,
+                        "location": location,
                         "allocations": allocations,
                     }
                 )
             else:
-                resultados.append(
+                results.append(
                     {
                         "card_name": row["card_name"],
                         "total_quantity": row["total_quantity"],
                         "allocations": allocations,
-                        "livre": allocations.get(FREE_POOL, 0),
+                        "available": allocations.get(FREE_POOL, 0),
                     }
                 )
-        return resultados
+        return results
     finally:
         conn.close()
 
 
-def mover_carta(card_name: str, origem: str, destino: str, quantidade: int = 1) -> dict:
-    if quantidade <= 0:
-        return {"ok": False, "erro": "quantidade must be a positive integer"}
-    if origem == destino:
-        return {"ok": False, "erro": "origem and destino must be different locations"}
+def move_card(card_name: str, source: str, destination: str, quantity: int = 1) -> dict:
+    if quantity <= 0:
+        return {"ok": False, "error": "quantity must be a positive integer"}
+    if source == destination:
+        return {"ok": False, "error": "source and destination must be different locations"}
 
     conn = _connect()
     try:
@@ -100,23 +123,23 @@ def mover_carta(card_name: str, origem: str, destino: str, quantidade: int = 1) 
             (card_name,),
         ).fetchone()
         if not row:
-            return {"ok": False, "erro": f"'{card_name}' is not in the inventory"}
+            return {"ok": False, "error": f"'{card_name}' is not in the inventory"}
 
         canonical_name = row["card_name"]
         allocations = json.loads(row["allocations"] or "{}")
-        disponivel = allocations.get(origem, 0)
-        if disponivel < quantidade:
+        available = allocations.get(source, 0)
+        if available < quantity:
             return {
                 "ok": False,
-                "erro": (
-                    f"Only {disponivel} cop{'y' if disponivel == 1 else 'ies'} of "
-                    f"'{canonical_name}' in '{origem}'"
+                "error": (
+                    f"Only {available} cop{'y' if available == 1 else 'ies'} of "
+                    f"'{canonical_name}' in '{source}'"
                 ),
                 "allocations": allocations,
             }
 
-        allocations[origem] = disponivel - quantidade
-        allocations[destino] = allocations.get(destino, 0) + quantidade
+        allocations[source] = available - quantity
+        allocations[destination] = allocations.get(destination, 0) + quantity
         allocations = _clean_allocations(allocations)
         total = sum(allocations.values())
 
@@ -132,9 +155,9 @@ def mover_carta(card_name: str, origem: str, destino: str, quantidade: int = 1) 
         return {
             "ok": True,
             "card_name": canonical_name,
-            "moved": quantidade,
-            "from": origem,
-            "to": destino,
+            "moved": quantity,
+            "from": source,
+            "to": destination,
             "allocations": allocations,
             "total_quantity": total,
         }
