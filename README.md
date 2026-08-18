@@ -18,10 +18,10 @@ Aqui, o sistema ganha a capacidade de entender as cartas semanticamente, indo al
 
 ### 📍 Épico 3: Orquestração Multi-Agente (LangGraph / CrewAI)
 A inteligência principal do sistema. Aqui os agentes ganham "ferramentas" para interagir com a base construída nos épicos anteriores.
-- [ ] **Configuração do LLM:** Integrar a API do Gemini (ou modelo local) como motor de raciocínio.
-- [ ] **Desenvolvimento das *Tools*:** Encapsular as funções do Épico 1 e 2 no formato de ferramentas do LangChain (`@tool`).
+- [x] **Configuração do LLM:** Integrar a API do Gemini (ou modelo local) como motor de raciocínio.
+- [x] **Desenvolvimento das *Tools*:** Encapsular as funções do Épico 1 e 2 no formato de ferramentas do LangChain (`@tool`).
 - [ ] **Agente Gestor de Inventário:** Implementar o agente responsável por checar disponibilidade e "mover" cartas entre decks.
-- [ ] **Agente Arquiteto (RAG):** Implementar o agente focado em descobrir sinergias e consultar as regras no vector DB.
+- [x] **Agente Arquiteto (RAG):** Implementar o agente focado em descobrir sinergias e consultar as regras no vector DB.
 - [ ] **Agente Supervisor:** Implementar o orquestrador que avalia a curva de mana, recebe os inputs dos outros agentes e formata a lista final com 100 cartas.
 - [ ] **Fluxo de Decisão (Graph):** Desenhar e rodar o grafo de execução conectando os três agentes de forma cíclica ou hierárquica.
 

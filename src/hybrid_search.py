@@ -29,7 +29,7 @@ class RAGSearcher:
         self.conn = sqlite3.connect(DB_NAME)
         self.cursor = self.conn.cursor()
 
-    def buscar_cartas(self, query, cores_permitidas, apenas_inventario=True, limite=5):
+    def buscar_cartas(self, query, cores_permitidas, apenas_inventario=False, limite=5):
         print(f"\nBuscando por: '{query}'")
         print(f"Filtros -> Cores: {cores_permitidas} | Apenas na Coleção: {apenas_inventario}")
         
@@ -49,44 +49,52 @@ class RAGSearcher:
 
         cores_permitidas_set = set(cores_permitidas)
 
-        # 2. FILTRAGEM SQL E REGRAS:
-        for i in range(len(ids)):
-            nome = metadados[i]["name"]
-            
-            # Filtro A: Identidade de Cor
-            cor_carta_str = metadados[i].get("color_identity", "[]")
-            cor_carta = set(json.loads(cor_carta_str))
-            
-            if not cor_carta.issubset(cores_permitidas_set):
-                continue # Corta a carta se não servir pro deck
+        # 2. ABRIR CONEXÃO LOCAL (Thread-safe para o LangGraph)
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+
+        try:
+            # 3. FILTRAGEM SQL E REGRAS:
+            for i in range(len(ids)):
+                nome = metadados[i]["name"]
                 
-            # Filtro B: Você tem a carta?
-            qtd_total = 0
-            onde_esta = {}
-            
-            if apenas_inventario:
-                self.cursor.execute("SELECT total_quantity, allocations FROM inventory WHERE card_name = ?", (nome,))
-                row = self.cursor.fetchone()
+                # Filtro A: Identidade de Cor
+                cor_carta_str = metadados[i].get("color_identity", "[]")
+                cor_carta = set(json.loads(cor_carta_str))
                 
-                if not row or row[0] <= 0:
-                    continue # Corta a carta se você não tem nenhuma
+                if not cor_carta.issubset(cores_permitidas_set):
+                    continue # Corta a carta se não servir pro deck
                     
-                qtd_total = row[0]
-                onde_esta = json.loads(row[1])
-            
-            # Passou no pente fino! Adiciona aos resultados:
-            cartas_encontradas.append({
-                "nome": nome,
-                "texto": documentos[i],
-                "distancia": distancias[i],
-                "quantidade": qtd_total,
-                "alocacao": onde_esta
-            })
-            
-            # Para a busca quando acharmos o número de cartas que você pediu
-            if len(cartas_encontradas) == limite:
-                break
+                # Filtro B: Você tem a carta?
+                qtd_total = 0
+                onde_esta = {}
                 
+                if apenas_inventario:
+                    cursor.execute("SELECT total_quantity, allocations FROM inventory WHERE card_name = ?", (nome,))
+                    row = cursor.fetchone()
+                    
+                    if not row or row[0] <= 0:
+                        continue # Corta a carta se você não tem nenhuma
+                        
+                    qtd_total = row[0]
+                    onde_esta = json.loads(row[1])
+                
+                # Passou no pente fino! Adiciona aos resultados:
+                cartas_encontradas.append({
+                    "nome": nome,
+                    "texto": documentos[i],
+                    "distancia": distancias[i],
+                    "quantidade": qtd_total,
+                    "alocacao": onde_esta
+                })
+                
+                # Para a busca quando acharmos o número de cartas que você pediu
+                if len(cartas_encontradas) == limite:
+                    break
+        finally:
+            # Garante que a conexão do SQLite será sempre fechada, mesmo se ocorrer um erro
+            conn.close()
+            
         return cartas_encontradas
 
     def fechar(self):
