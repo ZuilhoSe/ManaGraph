@@ -26,7 +26,6 @@
 1 Goblin Cohort
 1 Goblin Glory Chaser
 1 Goblin Goliath
-1 Goblin Instigator
 1 Goblin Lackey
 1 Goblin Lyre
 1 Goblin Masons
@@ -43,11 +42,12 @@
 1 Ib Halfheart, Goblin Tactician
 1 Illuminated Folio
 1 Jester's Scepter
-1 Jeweled Amulet
 1 Krenko's Enforcer
 1 Krenko, Tin Street Kingpin
 1 Kumano Faces Kakkazan // Etching of Kumano
 1 Lowland Oaf
+1 Merchant of the Vale // Haggle
+1 Mimic
 1 Misty Mountains Raider
 1 Mogg War Marshal
 1 Moggcatcher
