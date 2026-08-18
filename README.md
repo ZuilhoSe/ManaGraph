@@ -13,8 +13,8 @@ O objetivo desta fase é criar a infraestrutura local para ler as cartas e as re
 Aqui, o sistema ganha a capacidade de entender as cartas semanticamente, indo além da busca por palavras-chave.
 - [x] **Geração de Embeddings:** Utilizar `sentence-transformers` (HuggingFace) para converter o *Oracle Text* das cartas em vetores densos.
 - [x] **Setup do ChromaDB/FAISS:** Armazenar os embeddings das cartas do Scryfall e criar partições específicas para o inventário local.
-- [ ] **Busca Semântica (Retrieval):** Implementar a função que recebe uma query (ex: "proteger comandante de remoção global") e retorna as N cartas mais relevantes usando similaridade de cosseno.
-- [ ] **Filtragem Híbrida:** Combinar a busca vetorial (RAG) com filtros estritos do banco SQL (ex: *retornar similares, mas apenas se Color Identity == Izzet e Inventário > 0*).
+- [x] **Busca Semântica (Retrieval):** Implementar a função que recebe uma query (ex: "proteger comandante de remoção global") e retorna as N cartas mais relevantes usando similaridade de cosseno.
+- [x] **Filtragem Híbrida:** Combinar a busca vetorial (RAG) com filtros estritos do banco SQL (ex: *retornar similares, mas apenas se Color Identity == Izzet e Inventário > 0*).
 
 ### 📍 Épico 3: Orquestração Multi-Agente (LangGraph / CrewAI)
 A inteligência principal do sistema. Aqui os agentes ganham "ferramentas" para interagir com a base construída nos épicos anteriores.
