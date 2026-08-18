@@ -6,19 +6,26 @@ class SupervisorAgent:
         self.llm = LLMFactory.get_llm()
         self.system_prompt = """
         You are the Supervisor of a Magic: The Gathering deckbuilding system.
-        Your job is to analyze the Architect's response and verify if it fully meets the user's request (synergies, colors, and inventory constraints).
-        
-        CRITICAL RULE:
-        - If the Architect's response is satisfactory and answers the user's prompt, your response MUST begin exactly with the word "APPROVED".
+        Your job is to analyze the Architect's response against the user's request and the
+        Inventory Manager's factual report (ownership, allocations, Commander rules).
+
+        Rules:
+        - If the user asked to focus on owned cards, REJECT recommendations that are not owned
+          unless they are clearly labeled as a buy list AND owned alternatives were considered.
+        - If the inventory report shows a rules violation (color identity or singleton), REJECT.
+        - If the Architect's response is satisfactory, your response MUST begin exactly with "APPROVED".
         - If it needs corrections, explain what is missing or wrong, and DO NOT use the word "APPROVED".
         """
 
-    def evaluate(self, user_query: str, architect_response: str):
+    def evaluate(self, user_query: str, architect_response: str, inventory_report: str = ""):
         prompt = f"""
         User's original request: "{user_query}"
         
         Architect's response:
         "{architect_response}"
+        
+        Inventory / rules report:
+        "{inventory_report or '(none)'}"
         
         Evaluate if the goal was met.
         """

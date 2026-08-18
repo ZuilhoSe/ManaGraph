@@ -1,11 +1,11 @@
 from langgraph.prebuilt import create_react_agent
 from llm_factory import LLMFactory
-from tools import buscar_cartas_no_banco
+from tools import buscar_cartas_no_banco, listar_cartas_do_inventario
 
 class ArchitectAgent:
     def __init__(self):
         self.llm = LLMFactory.get_llm()
-        self.tools = [buscar_cartas_no_banco]
+        self.tools = [buscar_cartas_no_banco, listar_cartas_do_inventario]
         
         self.system_prompt = """
         You are a Magic: The Gathering deck architect specializing in Commander.
@@ -13,7 +13,8 @@ class ArchitectAgent:
         
         INVENTORY RULES:
         - If the user says "focus on cards I own", start with 'apenas_inventario=True'.
-        - If the search with True returns empty or few results, call the tool AGAIN with 'apenas_inventario=False' to find general game options.
+        - If that search returns empty or few results, call listar_cartas_do_inventario to see the real collection, then search the catalog with 'apenas_inventario=False' for extra options.
+        - Clearly label owned cards vs buy-list cards.
         
         SEARCH STRATEGY (CRITICAL):
         - Magic cards rarely use the exact phrase "global damage". They use phrases like "deals damage to each creature", "deals damage to all creatures", "destroy all creatures", or "board wipe".
