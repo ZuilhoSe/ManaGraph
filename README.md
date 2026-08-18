@@ -77,7 +77,7 @@ Stretch goals for denser mathematical deckbuilding.
 
 ### Directory Structure
 
-- `data/`: Local stores (`managraph.db` for SQLite inventory and structured rules, `chroma_db/` for the vector index).
+- `data/`: Local stores (`managraph.db`, `chroma_db/`). **Not in git** — GitHub’s 100 MB file limit cannot hold ~38k MiniLM vectors. Rebuild with `scryfall_download.py` then `vectorize_cards.py`.
 - `notebooks/`: Exploratory analysis notebooks (e.g. UMAP + Plotly dimensionality reduction).
 - `src/`: Main source code:
   - `scryfall_download.py`: Import and parse official Scryfall data, including a frozen price snapshot.
