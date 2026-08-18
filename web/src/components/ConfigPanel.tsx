@@ -1,5 +1,6 @@
+import CommanderField from './CommanderField'
 import Section from './Section'
-import { CheckboxField, Field, MoneyField, SelectField, TextField } from './fields'
+import { CheckboxField, Field, MoneyField, SelectField } from './fields'
 import type { Currency, DeckFormState, Intent } from '../types'
 
 interface ConfigPanelProps {
@@ -19,13 +20,7 @@ export default function ConfigPanel({ state, onChange }: ConfigPanelProps) {
   return (
     <Section title="Configuration" subtitle="Commander, budget, and how the solver decides.">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Field label="Commander">
-          <TextField
-            value={state.commander}
-            onChange={(e) => onChange('commander', e.target.value)}
-            placeholder="e.g. Krenko, Mob Boss"
-          />
-        </Field>
+        <CommanderField value={state.commander} onChange={(v) => onChange('commander', v)} />
 
         <Field label="Intent">
           <SelectField

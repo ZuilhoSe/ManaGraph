@@ -3,9 +3,12 @@ import PromptPanel from './components/PromptPanel'
 import ConfigPanel from './components/ConfigPanel'
 import DeckCardList from './components/DeckCardList'
 import PlayBar from './components/PlayBar'
-import PayloadPreview from './components/PayloadPreview'
+import RunPanel from './components/RunPanel'
+import type { RunStatus } from './components/RunPanel'
 import CollectionView from './components/CollectionView'
 import { buildPayload } from './lib/buildPayload'
+import { runDeck } from './lib/api'
+import type { DeckRunEvent } from './lib/api'
 import { emptyFormState } from './types'
 import type { DeckFormState } from './types'
 
@@ -14,7 +17,9 @@ type Tab = 'build' | 'collection'
 export default function App() {
   const [tab, setTab] = useState<Tab>('build')
   const [form, setForm] = useState<DeckFormState>(emptyFormState)
-  const [payload, setPayload] = useState<unknown>(null)
+  const [runEvents, setRunEvents] = useState<DeckRunEvent[]>([])
+  const [runStatus, setRunStatus] = useState<RunStatus | 'idle'>('idle')
+  const [runError, setRunError] = useState<string | undefined>()
 
   function set<K extends keyof DeckFormState>(key: K, value: DeckFormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -22,10 +27,28 @@ export default function App() {
 
   const canPlay = form.query.trim().length > 0
 
-  function handlePlay() {
+  async function handlePlay() {
     if (!canPlay) return
-    setPayload(buildPayload(form))
+    const payload = buildPayload(form)
+    setRunEvents([])
+    setRunError(undefined)
+    setRunStatus('running')
+    try {
+      await runDeck(payload, (event) => {
+        setRunEvents((prev) => [...prev, event])
+        if (event.type === 'error') {
+          setRunError(event.message)
+          setRunStatus('error')
+        }
+      })
+      setRunStatus((prev) => (prev === 'error' ? prev : 'done'))
+    } catch (err) {
+      setRunError(err instanceof Error ? err.message : String(err))
+      setRunStatus('error')
+    }
   }
+
+  const isRunning = runStatus === 'running'
 
   return (
     <div className="mx-auto min-h-svh max-w-2xl px-4 py-6">
@@ -65,13 +88,16 @@ export default function App() {
             <ConfigPanel state={form} onChange={set} />
             <DeckCardList cards={form.cards} onChange={(cards) => set('cards', cards)} />
 
-            {payload !== null && <PayloadPreview payload={payload} onClose={() => setPayload(null)} />}
+            {runStatus !== 'idle' && (
+              <RunPanel events={runEvents} status={runStatus} errorMessage={runError} />
+            )}
           </div>
 
           <div className="mt-6">
             <PlayBar
               disabled={!canPlay}
               disabledReason={!canPlay ? 'Describe what you want to do to enable play' : undefined}
+              loading={isRunning}
               onPlay={handlePlay}
             />
           </div>

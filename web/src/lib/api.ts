@@ -17,3 +17,79 @@ export async function fetchInventory(): Promise<InventoryCard[]> {
   const data = await res.json()
   return data.cards as InventoryCard[]
 }
+
+export interface CommanderCandidate {
+  name: string
+  type_line: string
+  identity: string[]
+}
+
+export async function searchCommanders(query: string, signal?: AbortSignal): Promise<CommanderCandidate[]> {
+  const trimmed = query.trim()
+  if (trimmed.length < 2) return []
+  const res = await fetch(`${API_BASE}/api/commanders?q=${encodeURIComponent(trimmed)}`, { signal })
+  if (!res.ok) throw new Error(`Commander search failed (${res.status})`)
+  const data = await res.json()
+  return data.commanders as CommanderCandidate[]
+}
+
+export type RunNode = 'architect' | 'inventory' | 'solver' | 'supervisor'
+
+export interface DeckRunEvent {
+  type: 'start' | 'log' | 'node_start' | 'node' | 'error' | 'done'
+  /** Which node (architect/inventory/solver/supervisor) this event is about.
+   *  On an "error" event, this is the node that was running when it failed. */
+  node?: RunNode
+  agent?: string
+  text?: string
+  deck?: Record<string, unknown>
+  validation?: { valid: boolean; error?: string; warnings?: string[] }
+  supervisor_decision?: string
+  solver_report?: unknown
+  message?: string
+  /** Unix seconds — lets the UI show elapsed time so a slow step doesn't look frozen. */
+  ts?: number
+}
+
+interface DeckRunPayload {
+  query: string
+  deck?: Record<string, unknown>
+}
+
+// Reads newline-delimited JSON from POST /api/deck/run as it arrives, so the
+// caller can render each agent node's output as soon as it finishes instead
+// of waiting for the whole (multi-LLM-call) graph run to complete.
+export async function runDeck(
+  payload: DeckRunPayload,
+  onEvent: (event: DeckRunEvent) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/deck/run`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    signal,
+  })
+  if (!res.ok || !res.body) throw new Error(`Run request failed (${res.status})`)
+
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  const flushLine = (line: string) => {
+    const trimmed = line.trim()
+    if (trimmed) onEvent(JSON.parse(trimmed) as DeckRunEvent)
+  }
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    let newlineIndex: number
+    while ((newlineIndex = buffer.indexOf('\n')) >= 0) {
+      flushLine(buffer.slice(0, newlineIndex))
+      buffer = buffer.slice(newlineIndex + 1)
+    }
+  }
+  flushLine(buffer)
+}
