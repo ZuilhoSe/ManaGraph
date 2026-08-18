@@ -23,12 +23,13 @@ The scientific claim cannot be “LangGraph builds Commander decks.” Reviewers
 
 ## Problem statement
 
-Commander construction is **subset selection with higher-order interactions**:
+Commander construction **and revision** is **subset selection with higher-order interactions**:
 
 - Universe *C* (Oracle catalog), inventory *I* ⊆ *C*, commander with identity χ
-- Choose *D* ⊂ *C*, |*D*| = 99, singleton, identity ⊆ χ, format-legal
+- Choose *D* ⊂ *C*, |*D*| = 99, singleton, identity ⊆ χ, format-legal — **or** revise an existing *D* (add, cut, substitute) without requiring a from-scratch 99
 - Budget (hard): per-card cap *p*<sub>c</sub> ≤ *P*<sub>max</sub>, deck cap ∑ *p*<sub>c</sub> ≤ *B*; owned copies may have *p*<sub>c</sub> = 0
 - Soft objectives: synergy, curve, interaction density, owned-first, theme coherence — **not** “look like decks people already publish”
+- Valid tasks: **build**, **improve** (better cards for weak slots), **substitute** (atomic out→in), **cut** (drop redundant slots)
 
 Pairwise synergy already makes this combinatorial; combos make it **hypergraph** selection. LLMs cannot enumerate that space. The architecture should be:
 
@@ -154,15 +155,16 @@ Also freeze a **data snapshot** (Scryfall bulk date, **price snapshot**, embeddi
 
 ### Stage 1 — Deck as a first-class symbolic object (2–3 weeks)
 
-This is the real Epic 3.5. Until it exists, agents only chat.
+**Status: implemented in code.** Agents chat less; the graph mutates a `DeckState` and a deterministic gate owns legality.
 
-- `DeckState`: commander, 99 slots, curve histogram, identity, owned vs wishlist, **budget used vs cap, per-card price cap**
-- Validator: size, commander legality, banned list (`legalities` is stored and unused), singleton, identity, basic-land exceptions, **p<sub>c</sub> ≤ P<sub>max</sub>**, **∑ p<sub>c</sub> ≤ B**
-- Catalog: persist Scryfall `prices` (usd/eur) on `cards`; owned copies cost 0 toward *B* unless the user is costing a buy-from-scratch list
-- Tools return **JSON**, not prose; Supervisor becomes a **deterministic gate** (valid / invalid + reason), with the LLM only explaining
-- Architect proposes **deltas** (add/remove), Inventory applies them, Supervisor checks invariants
+- [x] `DeckState`: commander, 99 slots, curve histogram, identity, owned vs wishlist, budget used vs cap, per-card price cap
+- [x] Validator: size, commander legality, banned list (`legalities`), singleton, identity, basic-land exceptions, *p*<sub>c</sub> ≤ *P*<sub>max</sub>, ∑ *p*<sub>c</sub> ≤ *B*
+- [x] Catalog: persist Scryfall `prices` (usd/eur) on `cards`; owned copies cost 0 toward *B* unless the user is costing a buy-from-scratch list
+- [x] Tools return **JSON**, not prose; Supervisor is a **deterministic gate** (valid / invalid + reason), with the LLM only explaining
+- [x] Architect proposes **deltas** (add / remove / **substitute**), Inventory applies them, Supervisor checks invariants
+- [x] Task intents: `build`, `improve`, `substitute`, `cut`. A swap or upgrade is a complete job; do not require a new 99 unless the user asked to build a full deck
 
-Without this, Epic 4 (Streamlit) will freeze a toy.
+Without this, Epic 4 (Streamlit) will freeze a toy. Next: Stage 2 fill/cut.
 
 ### Stage 2 — Combinatorial core: fill and cut (3–4 weeks)
 

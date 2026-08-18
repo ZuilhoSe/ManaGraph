@@ -1,6 +1,3 @@
-from typing import Annotated, TypedDict, List
-from langgraph.graph.message import add_messages
+from deck_state import DeckState, MAIN_DECK_SIZE, extract_json
 
-class AgentState(TypedDict):
-    messages: Annotated[List, add_messages]
-    selected_cards: List[dict]
+__all__ = ["DeckState", "MAIN_DECK_SIZE", "extract_json"]

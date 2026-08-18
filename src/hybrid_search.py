@@ -25,11 +25,10 @@ class RAGSearcher:
         self.conn = sqlite3.connect(DB_NAME)
         self.cursor = self.conn.cursor()
 
-    def search_cards(self, query, allowed_colors, owned_only=False, limit=5):
+    def search_cards(self, query, allowed_colors, owned_only=False, limit=5, max_card_price=None, currency="usd"):
         print(f"\nSearching for: '{query}'")
-        print(f"Filters -> Colors: {allowed_colors} | Owned only: {owned_only}")
+        print(f"Filters -> Colors: {allowed_colors} | Owned only: {owned_only} | P_max: {max_card_price}")
 
-        # Vector search: fetch extra hits so SQL filters still have room
         results = self.collection.query(
             query_texts=[query],
             n_results=50
@@ -40,12 +39,10 @@ class RAGSearcher:
         ids = results["ids"][0]
         documents = results["documents"][0]
         metadatas = results["metadatas"][0]
-        # Distance: how far the text is from the query. Lower is better.
         distances = results["distances"][0]
 
         allowed_colors_set = set(allowed_colors)
 
-        # Local connection is thread-safe for LangGraph
         conn = sqlite3.connect(DB_NAME)
         cursor = conn.cursor()
 
@@ -57,6 +54,21 @@ class RAGSearcher:
                 card_colors = set(json.loads(color_str))
 
                 if not card_colors.issubset(allowed_colors_set):
+                    continue
+
+                price = None
+                try:
+                    col = "price_eur" if currency == "eur" else "price_usd"
+                    row = cursor.execute(
+                        f"SELECT {col} FROM cards WHERE name = ? COLLATE NOCASE",
+                        (name,),
+                    ).fetchone()
+                    if row:
+                        price = row[0]
+                except sqlite3.OperationalError:
+                    price = None
+
+                if max_card_price is not None and price is not None and price > max_card_price:
                     continue
 
                 total_qty = 0
@@ -80,7 +92,9 @@ class RAGSearcher:
                     "text": documents[i],
                     "distance": distances[i],
                     "quantity": total_qty,
-                    "allocation": allocation
+                    "allocation": allocation,
+                    "price": price,
+                    "currency": currency,
                 })
 
                 if len(found_cards) == limit:

@@ -12,11 +12,11 @@ _LEGACY_FREE_POOL = "pool_livre"
 _did_migrate = False
 
 
-def _connect():
+def _connect(db_path: str = DB_NAME):
     global _did_migrate
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
-    if not _did_migrate:
+    if db_path == DB_NAME and not _did_migrate:
         _migrate_free_pool_key(conn)
         _did_migrate = True
     return conn
@@ -47,8 +47,8 @@ def _clean_allocations(allocations: dict) -> dict:
     return cleaned
 
 
-def get_card(card_name: str) -> dict | None:
-    conn = _connect()
+def get_card(card_name: str, db_path: str = DB_NAME) -> dict | None:
+    conn = _connect(db_path)
     try:
         row = conn.execute(
             """
@@ -67,12 +67,14 @@ def get_card(card_name: str) -> dict | None:
             "allocations": allocations,
             "available": allocations.get(FREE_POOL, 0),
         }
+    except sqlite3.OperationalError:
+        return None
     finally:
         conn.close()
 
 
-def list_inventory(location: str | None = None) -> list[dict]:
-    conn = _connect()
+def list_inventory(location: str | None = None, db_path: str = DB_NAME) -> list[dict]:
+    conn = _connect(db_path)
     try:
         rows = conn.execute(
             "SELECT card_name, total_quantity, allocations FROM inventory ORDER BY card_name"
@@ -102,6 +104,8 @@ def list_inventory(location: str | None = None) -> list[dict]:
                     }
                 )
         return results
+    except sqlite3.OperationalError:
+        return []
     finally:
         conn.close()
 

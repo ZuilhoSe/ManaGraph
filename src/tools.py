@@ -3,64 +3,69 @@ from langchain.tools import tool
 from hybrid_search import RAGSearcher
 from inventory import get_card, list_inventory, move_card, FREE_POOL
 from rules_validator import CommanderValidator
+from deck_state import DeckState
 
-searcher = RAGSearcher()
+_searcher = None
 
 
-def _format_allocations(allocations: dict) -> str:
-    if not allocations:
-        return "(none)"
-    return ", ".join(f"{loc}: {qty}" for loc, qty in sorted(allocations.items()))
+def _get_searcher():
+    global _searcher
+    if _searcher is None:
+        _searcher = RAGSearcher()
+    return _searcher
+
+
+def _json(data) -> str:
+    return json.dumps(data, ensure_ascii=False, default=str)
 
 
 @tool
-def search_cards(query: str, colors: list, owned_only: bool = True, limit: int = 5):
+def search_cards(
+    query: str,
+    colors: list,
+    owned_only: bool = True,
+    limit: int = 5,
+    max_card_price: float | None = None,
+    currency: str = "usd",
+):
     """
     Search Magic: The Gathering cards in the vector index and filter with SQLite.
+    Returns JSON.
 
     Args:
         query: Semantic description of the card effect.
         colors: Allowed color identity, e.g. ["R", "U"].
         owned_only: True to search only owned cards, False for the full catalog.
         limit: Maximum number of cards to return.
+        max_card_price: Optional per-card price cap in `currency`. Owned copies are still returned.
+        currency: usd or eur.
     """
-    results = searcher.search_cards(
+    results = _get_searcher().search_cards(
         query=query,
         allowed_colors=colors,
         owned_only=owned_only,
-        limit=limit
+        limit=limit,
+        max_card_price=max_card_price,
+        currency=currency,
     )
-
     if not results:
-        return "No cards found with those criteria."
-
-    formatted = ""
-    for result in results:
-        formatted += f"Name: {result['name']}\nText: {result['text']}\nOwned: {result['quantity']}\n"
-        if result.get("allocation"):
-            formatted += f"Allocation: {_format_allocations(result['allocation'])}\n"
-        formatted += "\n"
-    return formatted
+        return _json({"ok": True, "cards": [], "message": "No cards found with those criteria."})
+    return _json({"ok": True, "cards": results})
 
 
 @tool
 def lookup_inventory(card_name: str) -> str:
-    """Look up one owned card: total copies and where they are allocated (free pool vs decks)."""
+    """Look up one owned card: total copies and where they are allocated (free pool vs decks). Returns JSON."""
     card = get_card(card_name)
     if not card:
-        return f"'{card_name}' is not in the inventory."
-    return (
-        f"Name: {card['card_name']}\n"
-        f"Total: {card['total_quantity']}\n"
-        f"Available ({FREE_POOL}): {card['available']}\n"
-        f"Allocation: {_format_allocations(card['allocations'])}"
-    )
+        return _json({"ok": False, "error": f"'{card_name}' is not in the inventory."})
+    return _json({"ok": True, "card": card, "free_pool": FREE_POOL})
 
 
 @tool
 def list_inventory_cards(location: str = "") -> str:
     """
-    List cards in the physical collection.
+    List cards in the physical collection. Returns JSON.
     Leave location empty to list everything.
     Use 'free_pool' for the unallocated pool or a deck key such as 'deck_krenko'.
     """
@@ -68,73 +73,67 @@ def list_inventory_cards(location: str = "") -> str:
     cards = list_inventory(loc)
     if not cards:
         target = loc or "inventory"
-        return f"No cards found in '{target}'."
-
-    lines = []
-    for card in cards:
-        if loc:
-            lines.append(
-                f"- {card['card_name']}: {card['quantity']} in {card['location']}"
-            )
-        else:
-            lines.append(
-                f"- {card['card_name']}: total {card['total_quantity']} "
-                f"[{_format_allocations(card['allocations'])}]"
-            )
-    return "\n".join(lines)
+        return _json({"ok": True, "cards": [], "message": f"No cards found in '{target}'."})
+    return _json({"ok": True, "location": loc, "cards": cards})
 
 
 @tool
 def move_inventory_card(card_name: str, source: str, destination: str, quantity: int = 1) -> str:
     """
-    Move copies of an owned card from one location to another.
+    Move copies of an owned card from one location to another. Returns JSON.
     Typical locations: 'free_pool' and deck keys like 'deck_krenko'.
     Only call this when the user explicitly asked to allocate, add, or remove cards from a deck.
     """
     result = move_card(card_name, source, destination, quantity)
-    if not result.get("ok"):
-        return f"MOVE FAILED: {result.get('error')}"
-    return (
-        f"Moved {result['moved']}x {result['card_name']} "
-        f"from '{result['from']}' to '{result['to']}'.\n"
-        f"Allocation now: {_format_allocations(result['allocations'])}"
-    )
+    result["ok"] = bool(result.get("ok"))
+    return _json(result)
 
 
 @tool
-def validate_commander_rules(commander: str, cards_json: str) -> str:
+def validate_commander_rules(commander: str, cards_json: str, constraints_json: str = "") -> str:
     """
-    Deterministically validate Commander color identity and singleton rules.
+    Deterministically validate a Commander list. Returns JSON.
 
     Args:
         commander: Commander card name, e.g. "Krenko, Mob Boss".
         cards_json: JSON object of card name -> quantity, e.g. '{"Sol Ring": 1, "Mountain": 35}'.
+        constraints_json: Optional JSON with owned_only, require_complete, max_card_price, budget_cap, currency.
     """
     try:
         deck_list = json.loads(cards_json)
         if not isinstance(deck_list, dict):
-            return "cards_json must be a JSON object of card name -> quantity."
+            return _json({"ok": False, "error": "cards_json must be a JSON object of card name -> quantity."})
     except json.JSONDecodeError as exc:
-        return f"Invalid JSON for cards_json: {exc}"
+        return _json({"ok": False, "error": f"Invalid JSON for cards_json: {exc}"})
+
+    constraints = {}
+    if constraints_json:
+        try:
+            parsed = json.loads(constraints_json)
+            if isinstance(parsed, dict):
+                constraints = parsed
+        except json.JSONDecodeError as exc:
+            return _json({"ok": False, "error": f"Invalid JSON for constraints_json: {exc}"})
 
     validator = CommanderValidator()
+    report = validator.validate_deck(commander, deck_list, **constraints)
+    report["ok"] = "error" not in report
+    return _json(report)
+
+
+@tool
+def validate_deck_json(deck_json: str) -> str:
+    """
+    Validate a full DeckState JSON object (commander, cards, budget caps). Returns JSON.
+    """
     try:
-        report = validator.validate_deck(commander, deck_list)
-    finally:
-        validator.close()
+        data = json.loads(deck_json)
+        if not isinstance(data, dict):
+            return _json({"ok": False, "error": "deck_json must be a JSON object."})
+    except json.JSONDecodeError as exc:
+        return _json({"ok": False, "error": f"Invalid JSON for deck_json: {exc}"})
 
-    if "error" in report:
-        return report["error"]
-
-    lines = [
-        f"Commander: {report['commander']}",
-        f"Identity: {report['commander_identity']}",
-        f"Valid: {'YES' if report['valid'] else 'NO'}",
-    ]
-    if report.get("color_errors"):
-        lines.append("Color errors: " + "; ".join(report["color_errors"]))
-    if report.get("singleton_errors"):
-        lines.append("Singleton errors: " + "; ".join(report["singleton_errors"]))
-    if report.get("unknown_cards"):
-        lines.append("Unknown cards: " + ", ".join(report["unknown_cards"]))
-    return "\n".join(lines)
+    validator = CommanderValidator()
+    report = validator.validate_deck_state(DeckState.from_dict(data))
+    report["ok"] = "error" not in report
+    return _json(report)

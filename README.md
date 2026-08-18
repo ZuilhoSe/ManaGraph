@@ -1,5 +1,7 @@
 ## Development Roadmap
 
+Research contract: [RESEARCH.md](RESEARCH.md). Stage 1 (`DeckState` + deterministic supervisor) is in the codebase; fill/cut is next.
+
 This project is built incrementally: first a deterministic local data layer, then autonomous agent orchestration, then optional topological synergy analysis.
 
 ### Epic 1: Data Foundation and Inventory
@@ -31,6 +33,14 @@ The core intelligence. Agents get tools to interact with the data layer from the
 - [x] **Supervisor agent:** Review the other agents' output and decide whether to approve or send work back.
 - [x] **Decision graph:** Cyclic graph connecting Architect → Inventory → Supervisor.
 
+### Epic 3.5: Symbolic deck object (Stage 1)
+
+- [x] **DeckState:** Commander + 99 slots, identity, owned-only, complete-deck flag, budget cap, per-card price cap.
+- [x] **Expanded validator:** Size, commander eligibility, Commander legalities/ban list, singleton, identity, *P*<sub>max</sub>, deck budget *B*. Owned copies cost 0 toward *B*.
+- [x] **Price snapshot:** Scryfall `prices.usd` / `prices.eur` stored on `cards`, timestamp in `catalog_meta`. Re-run `scryfall_download.py` to refresh.
+- [x] **JSON tools + deltas:** Architect proposes add/remove/**substitute** JSON; the graph applies it; supervisor **gate** is deterministic (`APPROVED` / `REJECTED`), LLM only explains.
+- [x] **Task intents:** `build`, `improve`, `substitute`, `cut`. Upgrading or swapping cards on an existing list is valid; a full 99 is only required when the user asks to build a complete deck.
+
 ### Epic 4: Interface and Usability (Local Deploy)
 
 Make the system usable without running everything from a terminal while physically assembling decks.
@@ -57,19 +67,22 @@ Stretch goals for denser mathematical deckbuilding.
 - `data/`: Local stores (`managraph.db` for SQLite inventory and structured rules, `chroma_db/` for the vector index).
 - `notebooks/`: Exploratory analysis notebooks (e.g. UMAP + Plotly dimensionality reduction).
 - `src/`: Main source code:
-  - `scryfall_download.py`: Import and parse official Scryfall data.
+  - `scryfall_download.py`: Import and parse official Scryfall data, including a frozen price snapshot.
+  - `catalog.py`: Oracle lookups, schema migration, acquisition cost, mana curve.
+  - `deck_state.py`: First-class Commander deck object and JSON delta apply.
   - `import_inventory.py`: Load a physical card collection.
   - `inventory.py`: Check availability and move cards between the free pool and decks.
   - `embeddings.py`: Strategy pattern for embedding providers (model-agnostic).
   - `vectorize_cards.py`: Batch indexing into ChromaDB.
-  - `hybrid_search.py`: Search engine combining vector similarity and SQLite filters.
-  - `rules_validator.py`: Deterministic Commander color identity and singleton checks.
+  - `hybrid_search.py`: Search engine combining vector similarity and SQLite filters (including *P*<sub>max</sub>).
+  - `rules_validator.py`: Deterministic Commander legality, size, identity, singleton, budget.
   - `llm_factory.py`: Swap LLM providers via environment variables.
-  - `tools.py`: LangChain `@tool` wrappers for the agents.
-  - `architect_agent.py`: Architect agent (synergy search).
+  - `tools.py`: LangChain `@tool` wrappers; tools return JSON.
+  - `architect_agent.py`: Architect agent (synergy search, JSON deltas).
   - `inventory_agent.py`: Inventory manager agent.
-  - `supervisor_agent.py`: Supervisor that approves or rejects proposals.
+  - `supervisor_agent.py`: Deterministic gate plus optional LLM explanation.
   - `main_agent.py`: LangGraph execution graph and demo entry point.
+- `tests/`: Stage 1 unit tests (no LLM, no Chroma).
 
 ---
 
@@ -89,13 +102,20 @@ GOOGLE_API_KEY=your_key_here
 pip install -r requirements.txt
 ```
 
-3. **Vector index** (reindex Magic cards from the relational database if needed):
+3. **Catalog + prices** (needed once, and again when you want a new price snapshot):
 
 ```bash
+python src/scryfall_download.py
 python src/vectorize_cards.py
 ```
 
-4. **Run the multi-agent loop** (synergy search + inventory + supervisor):
+4. **Stage 1 tests** (validator, deltas, budget gate; no API key):
+
+```bash
+python -m unittest tests.test_stage1
+```
+
+5. **Run the multi-agent loop** (JSON delta → inventory → symbolic supervisor):
 
 ```bash
 python src/main_agent.py

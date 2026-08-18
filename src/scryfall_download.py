@@ -5,13 +5,9 @@ import urllib.error
 import gzip
 import os
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.dirname(SCRIPT_DIR)
-DATA_DIR = os.path.join(BASE_DIR, "data")
+from catalog import DB_NAME, DATA_DIR, ensure_schema, parse_price, stamp_price_snapshot
 
 os.makedirs(DATA_DIR, exist_ok=True)
-
-DB_NAME = os.path.join(DATA_DIR, "managraph.db")
 
 SCRYFALL_BULK_ALL_URL = "https://api.scryfall.com/bulk-data"
 
@@ -20,8 +16,8 @@ def download_and_process_scryfall():
     print("Querying the Scryfall API for the bulk catalog...")
 
     headers = {
-        'User-Agent': 'ManaGraph-Agent/1.0',
-        'Accept': 'application/json'
+        "User-Agent": "ManaGraph-Agent/1.0",
+        "Accept": "application/json",
     }
 
     req_info = urllib.request.Request(SCRYFALL_BULK_ALL_URL, headers=headers)
@@ -51,24 +47,11 @@ def download_and_process_scryfall():
 
     try:
         with urllib.request.urlopen(req_data) as response:
-            with gzip.open(response, 'rt', encoding='utf-8') as f:
-
+            with gzip.open(response, "rt", encoding="utf-8") as f:
                 print("Connecting to the local database...")
                 conn = sqlite3.connect(DB_NAME)
                 cursor = conn.cursor()
-
-                cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS cards (
-                        id TEXT PRIMARY KEY,
-                        name TEXT NOT NULL,
-                        mana_cost TEXT,
-                        cmc REAL,
-                        oracle_text TEXT,
-                        color_identity TEXT,
-                        type_line TEXT,
-                        legalities TEXT
-                    )
-                """)
+                ensure_schema(conn)
 
                 batch_data = []
                 count = 0
@@ -78,40 +61,54 @@ def download_and_process_scryfall():
                         continue
 
                     card = json.loads(line)
-
-                    batch_data.append((
-                        card.get("id"),
-                        card.get("name"),
-                        card.get("mana_cost", ""),
-                        card.get("cmc", 0.0),
-                        card.get("oracle_text", ""),
-                        json.dumps(card.get("color_identity", [])),
-                        card.get("type_line", ""),
-                        json.dumps(card.get("legalities", {}))
-                    ))
+                    prices = card.get("prices") or {}
+                    batch_data.append(
+                        (
+                            card.get("id"),
+                            card.get("name"),
+                            card.get("mana_cost", ""),
+                            card.get("cmc", 0.0),
+                            card.get("oracle_text", ""),
+                            json.dumps(card.get("color_identity", [])),
+                            card.get("type_line", ""),
+                            json.dumps(card.get("legalities", {})),
+                            parse_price(prices.get("usd")),
+                            parse_price(prices.get("eur")),
+                        )
+                    )
 
                     count += 1
 
                     if len(batch_data) >= 2000:
-                        cursor.executemany("""
+                        cursor.executemany(
+                            """
                             INSERT OR REPLACE INTO cards
-                            (id, name, mana_cost, cmc, oracle_text, color_identity, type_line, legalities)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                        """, batch_data)
+                            (id, name, mana_cost, cmc, oracle_text, color_identity,
+                             type_line, legalities, price_usd, price_eur)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """,
+                            batch_data,
+                        )
                         batch_data = []
                         print(f"{count} cards processed...")
 
                 if batch_data:
-                    cursor.executemany("""
+                    cursor.executemany(
+                        """
                         INSERT OR REPLACE INTO cards
-                        (id, name, mana_cost, cmc, oracle_text, color_identity, type_line, legalities)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    """, batch_data)
+                        (id, name, mana_cost, cmc, oracle_text, color_identity,
+                         type_line, legalities, price_usd, price_eur)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        batch_data,
+                    )
 
+                stamp_price_snapshot(conn, count)
                 conn.commit()
                 conn.close()
                 print(f"\nSuccess! {count} cards inserted/updated.")
                 print(f"Database '{DB_NAME}' populated successfully.")
+                print("Price snapshot stored in catalog_meta (re-run this script to refresh).")
 
     except urllib.error.HTTPError as e:
         print(f"Error downloading the file: {e.code} - {e.reason}")
