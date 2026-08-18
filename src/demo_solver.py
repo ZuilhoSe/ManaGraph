@@ -155,8 +155,23 @@ def main():
         print(f"  {qty} {name}")
 
     out_path = os.path.join(BASE_DIR, "data", "solved_deck.txt")
+    log_path = os.path.join(BASE_DIR, "data", "solved_deck_log.json")
     _save_list(deck, out_path)
+    with open(log_path, "w", encoding="utf-8") as handle:
+        json.dump(
+            {
+                "query": "goblin tokens damage",
+                "commander": deck.commander,
+                "retrieve": retrieve,
+                "fill": fill_report,
+                "cut": cut_report,
+            },
+            handle,
+            indent=2,
+            default=str,
+        )
     print(f"\nWrote {deck.slot_count()} cards to {out_path}")
+    print(f"Wrote fill/cut log to {log_path}")
     return 0 if after.get("valid") else 2
 
 

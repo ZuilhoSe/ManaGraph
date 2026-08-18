@@ -338,6 +338,79 @@ class DeckSolver:
         value = synergy / (unit + 0.5) if deck.budget_cap is not None else 0.0
         return 2.0 * synergy + role_score - 1.4 * redundancy + value
 
+    def score_breakdown(
+        self,
+        deck: DeckState,
+        name: str,
+        query: str = "",
+        skip_self: bool = True,
+    ) -> dict:
+        """Decompose score_candidate. skip_self avoids Jaccard=1 when the card is already in the 99."""
+        info = self._info(name)
+        if not info:
+            return {"name": name, "total": -999.0, "error": "unknown card"}
+        if self._ctx is None:
+            self._rebuild_context(deck, query)
+        ctx = self._ctx
+        target = ctx["target"]
+        card_tok = _tokens(f"{info['name']} {info['type_line']} {info['oracle_text']}")
+        jaccard = _jaccard(target, card_tok)
+        distance = info.get("_distance")
+        chroma_synergy = None
+        if distance is not None:
+            chroma_synergy = 1.0 / (1.0 + float(distance))
+        synergy = jaccard if chroma_synergy is None else max(jaccard, chroma_synergy)
+
+        roles = classify_roles(info["type_line"], info["oracle_text"])
+        role_bonuses = {role: role_need_bonus(role, ctx["counts"]) for role in sorted(roles)}
+        role_score = max(role_bonuses.values(), default=0.0)
+
+        redundancy = 0.0
+        redundancy_with = None
+        for other, other_tok in zip(ctx["deck_cards"], ctx["other_toks"]):
+            other_name = other.get("name") or ""
+            if skip_self and other_name.lower() == info["name"].lower():
+                continue
+            overlap = _jaccard(card_tok, other_tok)
+            if roles & classify_roles(other.get("type_line") or "", other.get("oracle_text") or ""):
+                overlap *= 1.25
+            if overlap > redundancy:
+                redundancy = overlap
+                redundancy_with = other_name
+
+        curve_penalty = 0.0
+        if "land" not in (info.get("type_line") or "").lower():
+            bucket = _curve_bucket(float(info.get("cmc") or 0))
+            if ctx["curve"].get(bucket, 0) >= 18:
+                curve_penalty = 0.8
+                role_score -= 0.8
+
+        unit = card_unit_price(info, deck.currency) or 0.0
+        value = synergy / (unit + 0.5) if deck.budget_cap is not None else 0.0
+        total = 2.0 * synergy + role_score - 1.4 * redundancy + value
+        return {
+            "name": info["name"],
+            "type_line": info.get("type_line") or "",
+            "oracle_text": info.get("oracle_text") or "",
+            "cmc": info.get("cmc") or 0,
+            "mana_cost": info.get("mana_cost") or "",
+            "price_usd": info.get("price_usd"),
+            "roles": sorted(roles),
+            "shared_tokens": sorted(target & card_tok),
+            "jaccard": round(jaccard, 4),
+            "chroma_distance": None if distance is None else round(float(distance), 4),
+            "chroma_query": info.get("_distance_query"),
+            "chroma_synergy": None if chroma_synergy is None else round(chroma_synergy, 4),
+            "synergy": round(synergy, 4),
+            "role_bonuses": role_bonuses,
+            "role_score": round(role_score, 4),
+            "redundancy": round(redundancy, 4),
+            "redundancy_with": redundancy_with,
+            "curve_penalty": curve_penalty,
+            "value": round(value, 4),
+            "total": round(total, 4),
+        }
+
     def _commit_add(self, deck: DeckState, name: str, quantity: int):
         deck.add_card(name, quantity)
         deck.take_from_pool(name, quantity)
@@ -470,6 +543,7 @@ class DeckSolver:
                     prev = info.get("_distance")
                     if prev is None or hit["distance"] < prev:
                         info["_distance"] = hit["distance"]
+                        info["_distance_query"] = q
                 found.append(hit["name"])
         print(f"[Solver] retrieved {len(found)} hits ({len(set(n.lower() for n in found))} unique)")
         return found
