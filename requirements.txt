@@ -7,3 +7,5 @@ langchain-anthropic
 python-dotenv
 pandas
 matplotlib
+fastapi
+uvicorn

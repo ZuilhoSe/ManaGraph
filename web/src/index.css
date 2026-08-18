@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+/*
+  Central de tema: mude as cores do app inteiro aqui.
+  Todos os componentes usam as classes accent-* / surface-* do Tailwind
+  (config abaixo), nunca cor "crua", pra ficar fácil trocar a paleta depois.
+*/
+@theme {
+  --color-accent-50: #f5f0ff;
+  --color-accent-200: #d9c2ff;
+  --color-accent-400: #b487ff;
+  --color-accent-500: #9a5bff;
+  --color-accent-600: #8438f5;
+
+  --color-surface-950: #0b0b12;
+  --color-surface-900: #121319;
+  --color-surface-800: #1a1c25;
+  --color-surface-700: #242631;
+  --color-surface-600: #333644;
+  --color-surface-400: #6b6f82;
+  --color-surface-200: #c7c9d6;
+  --color-surface-50: #f5f5f8;
+
+  --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-surface-950 text-surface-200 antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
