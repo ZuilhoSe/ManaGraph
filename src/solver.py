@@ -51,7 +51,7 @@ def _jaccard(a: set[str], b: set[str]) -> float:
     return len(a & b) / len(a | b)
 
 
-def _curve_bucket(cmc: float) -> str:
+def _curve_bucket(cmc: float) -> float | str:
     if cmc >= 7:
         return "7+"
     return str(int(cmc))
@@ -63,6 +63,65 @@ class DeckSolver:
     def __init__(self, db_path: str = DB_NAME, searcher=None):
         self.db_path = db_path
         self.searcher = searcher
+        self._oracle: dict[str, dict | None] = {}
+        self._owned: dict[str, int] = {}
+        self._ctx: dict | None = None
+
+    def _info(self, name: str | None) -> dict | None:
+        if not name:
+            return None
+        key = name.lower()
+        if key not in self._oracle:
+            self._oracle[key] = get_oracle_card(name, self.db_path)
+        return self._oracle[key]
+
+    def _owned_qty(self, name: str) -> int:
+        key = name.lower()
+        if key not in self._owned:
+            inv = get_inventory_card(name, self.db_path)
+            self._owned[key] = inv["total_quantity"] if inv else 0
+        return self._owned[key]
+
+    def _rebuild_context(self, deck: DeckState, query: str = ""):
+        cmd = self._info(deck.commander) if deck.commander else None
+        deck_cards = []
+        other_toks = []
+        curve = {str(i): 0 for i in range(0, 7)}
+        curve["7+"] = 0
+        for name, qty in deck.card_list().items():
+            info = self._info(name) or {
+                "name": name,
+                "type_line": "",
+                "oracle_text": "",
+                "cmc": 0,
+            }
+            deck_cards.append({**info, "quantity": qty})
+            other_toks.append(
+                _tokens(f"{info.get('name','')} {info.get('type_line','')} {info.get('oracle_text','')}")
+            )
+            tl = (info.get("type_line") or "").lower()
+            if "land" not in tl:
+                bucket = _curve_bucket(float(info.get("cmc") or 0))
+                curve[bucket] = curve.get(bucket, 0) + qty
+        budget = 0.0
+        if deck.budget_cap is not None:
+            budget = enrich_deck(deck, self.db_path)["budget_used"]
+        self._ctx = {
+            "cmd": cmd,
+            "target": _tokens(
+                " ".join(
+                    filter(
+                        None,
+                        [query, (cmd or {}).get("oracle_text", ""), (cmd or {}).get("name", "")],
+                    )
+                )
+            ),
+            "deck_cards": deck_cards,
+            "counts": role_counts(deck_cards),
+            "other_toks": other_toks,
+            "curve": curve,
+            "budget": budget,
+        }
 
     def fill(
         self,
@@ -75,15 +134,17 @@ class DeckSolver:
         if not deck.commander:
             return {"ok": False, "error": "No commander set.", "added": []}
         if not deck.identity:
-            cmd = get_oracle_card(deck.commander, self.db_path)
+            cmd = self._info(deck.commander)
             if cmd:
                 deck.identity = list(cmd["color_identity"])
 
         candidates = self._gather_names(deck, query, extra_candidates, retrieve)
+        print(f"[Solver] fill: {len(candidates)} candidates, {deck.remaining_slots()} slots")
         added = []
         skipped = []
         dead = set()
         cap = max_adds if max_adds is not None else deck.remaining_slots()
+        self._rebuild_context(deck, query)
 
         while deck.remaining_slots() > 0 and cap > 0:
             ranked = []
@@ -101,20 +162,26 @@ class DeckSolver:
                 basic = self._best_basic(deck)
                 if not basic or basic.lower() in dead:
                     break
-                ok, reason = self.can_add(deck, basic)
+                ok, _reason = self.can_add(deck, basic)
                 if not ok:
                     break
                 self._commit_add(deck, basic, 1)
                 added.append({"name": basic, "score": 0.0, "source": "basic"})
                 cap -= 1
+                self._rebuild_context(deck, query)
                 continue
             score, name = ranked[0]
             self._commit_add(deck, name, 1)
             added.append({"name": name, "score": round(score, 4), "source": "greedy"})
             cap -= 1
-            info = get_oracle_card(name, self.db_path) or {}
-            if not allows_any_number(info.get("oracle_text") or "") and not is_basic_land(info.get("type_line") or ""):
+            info = self._info(name) or {}
+            if not allows_any_number(info.get("oracle_text") or "") and not is_basic_land(
+                info.get("type_line") or ""
+            ):
                 dead.add(name.lower())
+            self._rebuild_context(deck, query)
+            if len(added) % 10 == 0:
+                print(f"[Solver] filled {len(added)} / slots={deck.slot_count()}")
 
         return {
             "ok": True,
@@ -129,16 +196,16 @@ class DeckSolver:
         if not deck.commander:
             return {"ok": False, "error": "No commander set.", "removed": [], "swapped": []}
         if not deck.identity:
-            cmd = get_oracle_card(deck.commander, self.db_path)
+            cmd = self._info(deck.commander)
             if cmd:
                 deck.identity = list(cmd["color_identity"])
 
         removed = []
         swapped = []
+        self._rebuild_context(deck, query)
 
         while True:
-            enrichment = enrich_deck(deck, self.db_path)
-            if deck.budget_cap is None or enrichment["budget_used"] <= deck.budget_cap:
+            if deck.budget_cap is None or (self._ctx or {}).get("budget", 0) <= deck.budget_cap:
                 break
             victim = self._worst_cut(deck, query, prefer_expensive=True)
             if not victim:
@@ -146,6 +213,7 @@ class DeckSolver:
             deck.remove_card(victim, 1)
             deck.add_to_pool(victim, 1)
             removed.append({"name": victim, "reason": "over_budget"})
+            self._rebuild_context(deck, query)
 
         while deck.slot_count() > MAIN_DECK_SIZE:
             victim = self._worst_cut(deck, query, prefer_expensive=False)
@@ -154,6 +222,7 @@ class DeckSolver:
             deck.remove_card(victim, 1)
             deck.add_to_pool(victim, 1)
             removed.append({"name": victim, "reason": "over_99"})
+            self._rebuild_context(deck, query)
 
         for _ in range(max_swaps):
             if not deck.candidate_pool or deck.slot_count() == 0:
@@ -163,19 +232,25 @@ class DeckSolver:
                 break
             trial = DeckState.from_dict(deck.to_dict())
             trial.remove_card(worst, 1)
+            self._rebuild_context(trial, query)
             best = self._best_pool_card(trial, query)
             if not best or worst.lower() == best.lower():
+                self._rebuild_context(deck, query)
                 break
-            if self.score_candidate(trial, best, query) <= self.score_candidate(deck, worst, query) + 0.15:
+            # Compare on the same trial context: would `best` beat putting `worst` back?
+            if self.score_candidate(trial, best, query) <= self.score_candidate(trial, worst, query):
+                self._rebuild_context(deck, query)
                 break
             ok, _reason = self.can_add(trial, best)
             if not ok:
                 deck.take_from_pool(best, 1)
+                self._rebuild_context(deck, query)
                 continue
             deck.remove_card(worst, 1)
             deck.add_to_pool(worst, 1)
             self._commit_add(deck, best, 1)
             swapped.append({"out": worst, "in": best})
+            self._rebuild_context(deck, query)
 
         return {
             "ok": True,
@@ -188,7 +263,7 @@ class DeckSolver:
     def can_add(self, deck: DeckState, name: str, quantity: int = 1) -> tuple[bool, str]:
         if deck.remaining_slots() < quantity:
             return False, "no remaining slots"
-        info = get_oracle_card(name, self.db_path)
+        info = self._info(name)
         if not info:
             return False, "unknown card"
         if info["name"].lower() == (deck.commander or "").lower():
@@ -206,8 +281,7 @@ class DeckSolver:
         new_qty = current + quantity
         if new_qty > 1 and not is_basic_land(info["type_line"]) and not allows_any_number(info["oracle_text"]):
             return False, "singleton"
-        inv = get_inventory_card(info["name"], self.db_path)
-        owned_qty = inv["total_quantity"] if inv else 0
+        owned_qty = self._owned_qty(info["name"])
         if deck.owned_only and owned_qty < new_qty:
             return False, "not owned"
         unit = card_unit_price(info, deck.currency)
@@ -222,43 +296,42 @@ class DeckSolver:
         if deck.budget_cap is not None:
             if unknown:
                 return False, "unknown price"
-            used = enrich_deck(deck, self.db_path)["budget_used"]
+            used = (self._ctx or {}).get("budget")
+            if used is None:
+                used = enrich_deck(deck, self.db_path)["budget_used"]
             if cost is not None and used + cost > deck.budget_cap:
                 return False, "over budget"
         return True, "ok"
 
     def score_candidate(self, deck: DeckState, name: str, query: str = "") -> float:
-        info = get_oracle_card(name, self.db_path)
+        info = self._info(name)
         if not info:
             return -999.0
-        cmd = get_oracle_card(deck.commander, self.db_path) if deck.commander else None
-        target = _tokens(" ".join(filter(None, [query, (cmd or {}).get("oracle_text", ""), (cmd or {}).get("name", "")])))
+        if self._ctx is None:
+            self._rebuild_context(deck, query)
+        ctx = self._ctx
+        cmd = ctx["cmd"]
+        target = ctx["target"]
         card_tok = _tokens(f"{info['name']} {info['type_line']} {info['oracle_text']}")
         synergy = _jaccard(target, card_tok)
         distance = info.get("_distance")
         if distance is not None:
             synergy = max(synergy, 1.0 / (1.0 + float(distance)))
 
-        deck_cards = self._deck_card_infos(deck)
-        counts = role_counts(deck_cards)
+        counts = ctx["counts"]
         roles = classify_roles(info["type_line"], info["oracle_text"])
         role_score = max((role_need_bonus(role, counts) for role in roles), default=0.0)
 
         redundancy = 0.0
-        for other in deck_cards:
-            other_tok = _tokens(
-                f"{other.get('name','')} {other.get('type_line','')} {other.get('oracle_text','')}"
-            )
+        for other, other_tok in zip(ctx["deck_cards"], ctx["other_toks"]):
             overlap = _jaccard(card_tok, other_tok)
             if roles & classify_roles(other.get("type_line") or "", other.get("oracle_text") or ""):
                 overlap *= 1.25
             redundancy = max(redundancy, overlap)
 
-        cmc = float(info.get("cmc") or 0)
-        curve = enrich_deck(deck, self.db_path)["curve"]
         if "land" not in (info.get("type_line") or "").lower():
-            bucket = _curve_bucket(cmc)
-            if curve.get(bucket, 0) >= 18:
+            bucket = _curve_bucket(float(info.get("cmc") or 0))
+            if ctx["curve"].get(bucket, 0) >= 18:
                 role_score -= 0.8
 
         unit = card_unit_price(info, deck.currency) or 0.0
@@ -270,19 +343,19 @@ class DeckSolver:
         deck.take_from_pool(name, quantity)
 
     def _deck_card_infos(self, deck: DeckState) -> list[dict]:
+        if self._ctx:
+            return self._ctx["deck_cards"]
         cards = []
         for name, qty in deck.card_list().items():
-            info = get_oracle_card(name, self.db_path) or {
-                "name": name,
-                "type_line": "",
-                "oracle_text": "",
-            }
+            info = self._info(name) or {"name": name, "type_line": "", "oracle_text": ""}
             cards.append({**info, "quantity": qty})
         return cards
 
     def _worst_cut(self, deck: DeckState, query: str, prefer_expensive: bool) -> str | None:
-        deck_cards = self._deck_card_infos(deck)
-        counts = role_counts(deck_cards)
+        if self._ctx is None:
+            self._rebuild_context(deck, query)
+        deck_cards = self._ctx["deck_cards"]
+        counts = self._ctx["counts"]
         land_count = counts.get("land", 0)
         worst_name = None
         worst_score = None
@@ -325,7 +398,7 @@ class DeckSolver:
         if not names:
             names = ["Wastes"]
         for name in names:
-            info = get_oracle_card(name, self.db_path)
+            info = self._info(name)
             if info:
                 return info["name"]
         return None
@@ -370,7 +443,7 @@ class DeckSolver:
         except Exception as exc:
             print(f"[Solver] retrieval unavailable ({type(exc).__name__}: {exc})")
             return []
-        cmd = get_oracle_card(deck.commander, self.db_path) if deck.commander else None
+        cmd = self._info(deck.commander) if deck.commander else None
         queries = [q for q in [query, (cmd or {}).get("oracle_text"), (cmd or {}).get("name")] if q]
         if cmd and "—" in (cmd.get("type_line") or ""):
             queries.append(cmd["type_line"].split("—", 1)[1].strip() + " creature")
@@ -388,8 +461,15 @@ class DeckSolver:
                     currency=deck.currency,
                     n_results=160,
                 )
-            except Exception:
+            except Exception as exc:
+                print(f"[Solver] search failed for '{q}': {exc}")
                 continue
             for hit in hits:
+                info = self._info(hit["name"])
+                if info is not None and hit.get("distance") is not None:
+                    prev = info.get("_distance")
+                    if prev is None or hit["distance"] < prev:
+                        info["_distance"] = hit["distance"]
                 found.append(hit["name"])
+        print(f"[Solver] retrieved {len(found)} hits ({len(set(n.lower() for n in found))} unique)")
         return found

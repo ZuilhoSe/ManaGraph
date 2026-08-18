@@ -60,6 +60,21 @@ def _parse_list(path: str) -> dict[str, int]:
     return cards
 
 
+def _format_list(deck: DeckState) -> str:
+    lines = []
+    if deck.commander:
+        lines.append(f"1 {deck.commander}")
+    for name, qty in sorted(deck.card_list().items(), key=lambda kv: (-kv[1], kv[0])):
+        lines.append(f"{qty} {name}")
+    return "\n".join(lines) + ("\n" if lines else "")
+
+
+def _save_list(deck: DeckState, path: str) -> None:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as handle:
+        handle.write(_format_list(deck))
+
+
 def _summarize_validation(report: dict) -> dict:
     return {
         "valid": report.get("valid"),
@@ -138,6 +153,10 @@ def main():
     print("\nCommitted list:")
     for name, qty in sorted(deck.card_list().items(), key=lambda kv: (-kv[1], kv[0])):
         print(f"  {qty} {name}")
+
+    out_path = os.path.join(BASE_DIR, "data", "solved_deck.txt")
+    _save_list(deck, out_path)
+    print(f"\nWrote {deck.slot_count()} cards to {out_path}")
     return 0 if after.get("valid") else 2
 
 
