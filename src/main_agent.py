@@ -9,6 +9,7 @@ from inventory_agent import InventoryAgent
 from supervisor_agent import SupervisorAgent
 from deck_state import MAIN_DECK_SIZE, DeckState, extract_json, infer_task, proposal_has_work
 from catalog import enrich_deck, get_oracle_card
+from mana import diagnose_deck
 from rules_validator import CommanderValidator
 from solver import DeckSolver
 
@@ -68,9 +69,33 @@ def _recent_feedback(state: GraphState) -> str:
 def architect_node(state: GraphState):
     print("\n[Node: Architect] Thinking and searching...")
     deck = DeckState.from_dict(state.get("deck"))
+    diagnosis = {}
+    if deck.commander:
+        diagnosis = diagnose_deck(deck)
+    diag_view = {
+        key: diagnosis.get(key)
+        for key in (
+            "land_count",
+            "avg_cmc",
+            "avg_cmc_band",
+            "curve_profile",
+            "fast_mana",
+            "cheat_count",
+            "curve",
+            "roles",
+            "pips",
+            "sources",
+            "pips_per_source",
+            "deficits",
+            "remaining_slots",
+            "slot_count",
+        )
+        if diagnosis
+    }
     context = (
         f"User request: {state['user_query']}\n\n"
-        f"Current deck JSON:\n{json.dumps(deck.summary(), indent=2)}"
+        f"Current deck JSON:\n{json.dumps(deck.summary(), indent=2)}\n\n"
+        f"Symbolic diagnosis (do not recompute):\n{json.dumps(diag_view, indent=2, default=str)}"
         f"{_recent_feedback(state)}"
     )
     result = architect.run(context)

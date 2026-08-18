@@ -73,6 +73,10 @@ def _seed(path):
         oracle="This Saga deals 1 damage to each opponent. Exile this Saga, then return it transformed.",
         usd=0.22, cmc=1,
     )
+    _insert_card(
+        conn, "bazaar", "Bazaar of Baghdad", "Land", [],
+        oracle="{T}: Draw two cards, then discard three cards.", usd=0.5, cmc=0,
+    )
     conn.execute(
         "INSERT INTO inventory VALUES (?, ?, ?)",
         ("Sol Ring", 1, json.dumps({"free_pool": 1})),
@@ -101,6 +105,25 @@ class Stage2Tests(unittest.TestCase):
         self.assertIn("ramp", classify_roles("Artifact", "Add {C}{C}."))
         self.assertIn("interaction", classify_roles("Instant", "Lightning Bolt deals 3 damage to any target."))
         self.assertIn("threat", classify_roles("Creature — Goblin", "Create goblin tokens."))
+        self.assertIn("draw", classify_roles("Sorcery", "Draw two cards, then discard two cards."))
+        self.assertNotIn(
+            "draw",
+            classify_roles("Land", "{T}: Draw two cards, then discard three cards."),
+        )
+
+    def test_fill_skips_land_that_makes_no_mana(self):
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            candidate_pool={
+                "Bazaar of Baghdad": 1,
+                "Goblin Recruiter": 1,
+                "Mountain": 99,
+            },
+        )
+        self.solver.fill(deck, query="goblin tokens damage", retrieve=False, max_adds=5)
+        self.assertNotIn("Bazaar of Baghdad", deck.cards)
+        self.assertIn("Goblin Recruiter", deck.cards)
 
     def test_fill_reaches_99_and_not_more(self):
         deck = DeckState(

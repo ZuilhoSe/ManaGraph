@@ -12,6 +12,7 @@ from catalog import (
 from deck_state import MAIN_DECK_SIZE, DeckState
 from geometry import cosine, load_card_views, multi_view_cosine
 from inventory import get_card as get_inventory_card
+from mana import cmc_bucket, diagnose, produces_mana, shape_bonus
 from roles import ROLE_QUOTAS, classify_roles, role_counts, role_need_bonus
 from rules_validator import (
     ILLEGAL_COMMANDER_STATUS,
@@ -50,12 +51,6 @@ def _jaccard(a: set[str], b: set[str]) -> float:
     if not a or not b:
         return 0.0
     return len(a & b) / len(a | b)
-
-
-def _curve_bucket(cmc: float) -> float | str:
-    if cmc >= 7:
-        return "7+"
-    return str(int(cmc))
 
 
 def creature_types(type_line: str) -> set[str]:
@@ -129,11 +124,20 @@ class DeckSolver:
             )
             tl = (info.get("type_line") or "").lower()
             if "land" not in tl:
-                bucket = _curve_bucket(float(info.get("cmc") or 0))
+                bucket = cmc_bucket(float(info.get("cmc") or 0))
                 curve[bucket] = curve.get(bucket, 0) + qty
         budget = 0.0
         if deck.budget_cap is not None:
             budget = enrich_deck(deck, self.db_path)["budget_used"]
+        mana = diagnose(
+            deck_cards,
+            commander=cmd,
+            identity=deck.identity or (cmd or {}).get("color_identity"),
+            remaining_slots=deck.remaining_slots(),
+            slot_count=deck.slot_count(),
+            budget_cap=deck.budget_cap,
+            budget_used=budget if deck.budget_cap is not None else None,
+        )
         self._ctx = {
             "cmd": cmd,
             "target": _tokens(
@@ -149,6 +153,7 @@ class DeckSolver:
             "other_toks": other_toks,
             "curve": curve,
             "budget": budget,
+            "mana": mana,
         }
 
     def fill(
@@ -186,9 +191,10 @@ class DeckSolver:
                     skipped.append({"name": name, "reason": reason})
                     continue
                 info = self._info(name) or {}
-                if self._off_tribe_creature(info):
+                skip = self._skip_reason(info)
+                if skip:
                     dead.add(name.lower())
-                    skipped.append({"name": name, "reason": "off-tribe creature"})
+                    skipped.append({"name": name, "reason": skip})
                     continue
                 ranked.append((self.score_candidate(deck, name, query), name))
             ranked.sort(reverse=True)
@@ -275,7 +281,7 @@ class DeckSolver:
                 self._rebuild_context(deck, query)
                 break
             best_info = self._info(best) or {}
-            if self._off_tribe_creature(best_info):
+            if self._skip_reason(best_info):
                 deck.take_from_pool(best, 1)
                 self._rebuild_context(deck, query)
                 continue
@@ -431,11 +437,28 @@ class DeckSolver:
             return TRIBE_MISS_PENALTY
         return 0.0
 
+    def _skip_reason(self, info: dict) -> str | None:
+        if self._off_tribe_creature(info):
+            return "off-tribe creature"
+        if self._dead_land(info):
+            return "land produces no mana"
+        return None
+
     def _off_tribe_creature(self, info: dict) -> bool:
         cmd = (self._ctx or {}).get("cmd") or {}
         if not creature_types(cmd.get("type_line") or ""):
             return False
         return is_creature_card(info.get("type_line") or "") and not self._theme_match(info)
+
+    def _dead_land(self, info: dict) -> bool:
+        """Utility land that never taps for mana — not a land-slot fill."""
+        if "land" not in (info.get("type_line") or "").lower():
+            return False
+        return not produces_mana(
+            info.get("type_line") or "",
+            info.get("oracle_text") or "",
+            info.get("mana_cost") or "",
+        )
 
     def _score_parts(
         self,
@@ -467,12 +490,20 @@ class DeckSolver:
             synergy = geometry
         else:
             synergy = jaccard
-            if chroma_synergy is not None and (theme or jaccard >= CHROMA_JACCARD_GATE):
+            land = "land" in (info.get("type_line") or "").lower()
+            if (
+                chroma_synergy is not None
+                and not land
+                and (theme or jaccard >= CHROMA_JACCARD_GATE)
+            ):
                 synergy = max(jaccard, chroma_synergy)
 
         roles = classify_roles(info["type_line"], info["oracle_text"])
         role_bonuses = {role: role_need_bonus(role, ctx["counts"]) for role in sorted(roles)}
-        role_score = max(role_bonuses.values(), default=0.0)
+        others = [role_bonuses[r] for r in role_bonuses if r != "land"]
+        role_score = max(others, default=0.0) if others else 0.0
+        if "land" in role_bonuses:
+            role_score += role_bonuses["land"]
         tribe = self._tribe_adj(info)
 
         redundancy = 0.0
@@ -488,16 +519,12 @@ class DeckSolver:
                 redundancy = overlap
                 redundancy_with = other_name
 
-        curve_penalty = 0.0
-        if "land" not in (info.get("type_line") or "").lower():
-            bucket = _curve_bucket(float(info.get("cmc") or 0))
-            if ctx["curve"].get(bucket, 0) >= 18:
-                curve_penalty = 0.8
-                role_score -= 0.8
+        shape = shape_bonus(info, ctx.get("mana"), deck.identity)
+        curve_penalty = shape["curve_penalty"]
 
         unit = card_unit_price(info, deck.currency) or 0.0
         value = synergy / (unit + 0.5) if deck.budget_cap is not None else 0.0
-        total = 2.0 * synergy + role_score + tribe - 1.4 * redundancy + value
+        total = 2.0 * synergy + role_score + tribe - 1.4 * redundancy + value + shape["total"]
         return {
             "name": info["name"],
             "type_line": info.get("type_line") or "",
@@ -522,6 +549,10 @@ class DeckSolver:
             "redundancy": redundancy,
             "redundancy_with": redundancy_with,
             "curve_penalty": curve_penalty,
+            "curve_bonus": shape["curve_bonus"],
+            "land_bonus": shape["land_bonus"],
+            "mana_bonus": shape["mana_bonus"],
+            "shape": shape["total"],
             "value": value,
             "total": total,
             "info": info,
@@ -578,6 +609,10 @@ class DeckSolver:
             "redundancy": round(parts["redundancy"], 4),
             "redundancy_with": parts["redundancy_with"],
             "curve_penalty": parts["curve_penalty"],
+            "curve_bonus": round(parts.get("curve_bonus") or 0.0, 4),
+            "land_bonus": round(parts.get("land_bonus") or 0.0, 4),
+            "mana_bonus": round(parts.get("mana_bonus") or 0.0, 4),
+            "shape": round(parts.get("shape") or 0.0, 4),
             "value": round(parts["value"], 4),
             "total": round(parts["total"], 4),
         }
@@ -631,7 +666,7 @@ class DeckSolver:
             if not ok:
                 continue
             info = self._info(name) or {}
-            if self._off_tribe_creature(info):
+            if self._skip_reason(info):
                 continue
             score = self.score_candidate(deck, name, query)
             if best_score is None or score > best_score:

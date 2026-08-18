@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 ROLE_QUOTAS = {
     "land": (34, 38),
     "ramp": (8, 14),
@@ -17,12 +19,17 @@ _RAMP = (
     "treasure token",
     "create a treasure",
 )
-_DRAW = (
-    "draw a card",
-    "draw two cards",
-    "draw three cards",
-    "draws a card",
-    "loot",
+_DRAW_UNITS = (
+    (re.compile(r"draw three cards"), 3),
+    (re.compile(r"draw two cards"), 2),
+    (re.compile(r"draws a card"), 1),
+    (re.compile(r"draw a card"), 1),
+)
+_DISCARD_UNITS = (
+    (re.compile(r"discard three cards"), 3),
+    (re.compile(r"discard two cards"), 2),
+    (re.compile(r"discard a card"), 1),
+    (re.compile(r"discard one card"), 1),
 )
 _INTERACTION = (
     "destroy target",
@@ -36,6 +43,22 @@ _INTERACTION = (
 )
 
 
+def _count_units(text: str, units: tuple) -> int:
+    return sum(weight * len(rx.findall(text)) for rx, weight in units)
+
+
+def is_card_advantage_draw(oracle_text: str) -> bool:
+    """True if the card draws and is not a net-negative loot (Bazaar: draw 2, discard 3)."""
+    ot = (oracle_text or "").lower()
+    draws = _count_units(ot, _DRAW_UNITS)
+    if draws == 0 and "loot" in ot:
+        draws = 1
+    if draws == 0:
+        return False
+    discards = _count_units(ot, _DISCARD_UNITS)
+    return draws >= discards
+
+
 def classify_roles(type_line: str = "", oracle_text: str = "") -> set[str]:
     tl = (type_line or "").lower()
     ot = (oracle_text or "").lower()
@@ -45,7 +68,7 @@ def classify_roles(type_line: str = "", oracle_text: str = "") -> set[str]:
         roles.add("land")
     if not is_land and any(p in ot for p in _RAMP):
         roles.add("ramp")
-    if any(p in ot for p in _DRAW):
+    if is_card_advantage_draw(oracle_text):
         roles.add("draw")
     if any(p in ot for p in _INTERACTION):
         roles.add("interaction")

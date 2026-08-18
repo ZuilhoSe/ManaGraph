@@ -1,21 +1,20 @@
 1 Krenko, Mob Boss
-33 Mountain
+35 Mountain
 1 Adder-Staff Boggart
 1 Aladdin's Lamp
 1 All-Fates Scroll
 1 Battle Cry Goblin
 1 Battle-Scarred Goblin
-1 Bazaar of Baghdad
-1 Blasphemous Act
 1 Brightstone Ritual
 1 Capital City
 1 Cryptic Caves
+1 Decree of Annihilation
 1 Defiant Ogre
 1 Doubling Cube
-1 Echoing Deeps
 1 Elder Auntie
 1 Fellwar Stone
 1 Gempalm Incinerator
+1 Geosurge
 1 Goblin Artillery
 1 Goblin Brawler
 1 Goblin Brigand
@@ -34,7 +33,6 @@
 1 Goblin Picker
 1 Goblin Piledriver
 1 Goblin Rabblemaster
-1 Goblin Rally
 1 Goblin Researcher
 1 Goblin Soothsayer
 1 Goblin Spymaster
@@ -47,8 +45,8 @@
 1 Jandor's Ring
 1 Jodah's Codex
 1 Krenko's Enforcer
-1 Lightning Bolt
 1 Lowland Oaf
+1 Mana Cylix
 1 Mind's Eye
 1 Misty Mountains Raider
 1 Mogg Infestation
@@ -63,6 +61,6 @@
 1 Searslicer Goblin
 1 Siege-Gang Commander
 1 Sol Ring
-1 Spinning Wheel
+1 Springleaf Drum
 1 Swarming Goblins
 1 Volley Veteran

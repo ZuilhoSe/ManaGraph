@@ -90,6 +90,47 @@ def move_inventory_card(card_name: str, source: str, destination: str, quantity:
 
 
 @tool
+def diagnose_deck_json(deck_json: str) -> str:
+    """
+    Symbolic deck diagnosis: curve, avg CMC, lands, pips vs sources, role gaps, named deficits.
+    Returns JSON. Does not use an LLM. Trust this over any count you might invent.
+    """
+    from mana import diagnose_deck
+
+    try:
+        data = json.loads(deck_json)
+        if not isinstance(data, dict):
+            return _json({"ok": False, "error": "deck_json must be a JSON object."})
+    except json.JSONDecodeError as exc:
+        return _json({"ok": False, "error": f"Invalid JSON for deck_json: {exc}"})
+
+    report = diagnose_deck(DeckState.from_dict(data))
+    report["ok"] = True
+    return _json(report)
+
+
+@tool
+def score_card_json(deck_json: str, card_name: str, query: str = "") -> str:
+    """
+    Score one candidate against the current deck (geometry, roles, curve/mana shape).
+    Returns JSON from the solver. Not an LLM judgment.
+    """
+    from solver import DeckSolver
+
+    try:
+        data = json.loads(deck_json)
+        if not isinstance(data, dict):
+            return _json({"ok": False, "error": "deck_json must be a JSON object."})
+    except json.JSONDecodeError as exc:
+        return _json({"ok": False, "error": f"Invalid JSON for deck_json: {exc}"})
+
+    deck = DeckState.from_dict(data)
+    breakdown = DeckSolver().score_breakdown(deck, card_name, query=query)
+    breakdown["ok"] = "error" not in breakdown
+    return _json(breakdown)
+
+
+@tool
 def validate_commander_rules(commander: str, cards_json: str, constraints_json: str = "") -> str:
     """
     Deterministically validate a Commander list. Returns JSON.

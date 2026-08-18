@@ -8,14 +8,14 @@ Epics 1–3 in the README are real as **infrastructure**, not as a research syst
 
 ## What the repo actually is today
 
-A **neuro-adjacent RAG agent** over Scryfall + inventory:
+A **neuro-symbolic solver** with a RAG front-end. Stages 1–3 exist; the remaining gap before topology is **symbolic deck intelligence**, not a UI.
 
-| Layer | What exists | What is missing for NeSy / a paper |
+| Layer | What exists | Gap before topology (Stage 3.5) |
 |---|---|---|
-| Symbolic | Color identity + singleton checks; inventory moves | 100-card size, legality/banned list, curve, land count, **prices**, a **deck object** |
-| Neural | MiniLM on `name + type + oracle text`; Chroma cosine retrieval | MTG-aware embeddings, card–card geometry, hybrid retrieval that does not drop hits in post-filters |
-| Agentic | Architect → Inventory → Supervisor (max 3 cycles) | Structured state (`selected_cards` is unused), hard constraints, a cut/fill optimizer |
-| Evaluation | One hardcoded query in `main_agent.py` | Gold decks, metrics, ablations, baselines |
+| Symbolic | `DeckState`, 99, legality, budget, role quotas, CMC histogram | pip vs source algebra, target curve, keyword roles, a diagnosis object the solver consumes |
+| Neural | MiniLM concat retrieval; oracle+type views for score (`card_views.npz`) | keyword + mana-cost views; E5/BGE only as an ablation |
+| Agentic | Architect → Inventory → Solver → Supervisor | Architect has search but no diagnosis; prompts do not consume deficits |
+| Evaluation | unittest stages 1–3 | MiniLM vs multi-view vs symbolic-terms ablation on 3–5 commanders |
 
 The scientific claim cannot be “LangGraph builds Commander decks.” Reviewers will treat that as a demo. The claim should be: **constrained subset selection in a heterogeneous embedding space, with topology (and optionally contagion) as structure, and an LLM only as a proposer/explainer.**
 
@@ -136,7 +136,7 @@ That is a real second paper (complex networks / computational social science ven
 
 UMAP/Mapper should **define neighborhoods for the solver** (candidate pools, redundancy sets), not only pretty plots. The trajectory of fill/cut in the projected space is a figure reviewers understand.
 
-MiniLM-on-oracle-text is a **baseline**, not a contribution. A paper needs at least: oracle-only vs multi-view (text + type + keywords + mana) vs a graph/TDA-informed embedding, with an ablation.
+MiniLM-on-oracle-text is a **baseline**, not a contribution. A paper needs at least: concat MiniLM vs multi-view (oracle + type + keywords + mana-cost string) vs the same views **plus symbolic terms** (curve, pips, roles), then a TDA-informed cut. Do the first two comparisons in Stage 3.5, before Mapper.
 
 ---
 
@@ -195,11 +195,93 @@ Baselines (none of these is “match EDHREC”):
 - [ ] **Observation graph**: optional EDHREC/Moxfield co-occurrence, stored separately — do not add into the fill score
 - [ ] Stronger encoder (E5/BGE) as a second ablation condition
 
-Retrieval still uses the concatenated MiniLM index. Scoring encodes oracle and type separately for commander + candidates. Next: optional fused index or E5 ablation, then Stage 4 TDA.
+Retrieval still uses the concatenated MiniLM index. Scoring looks up oracle/type views from `card_views.npz` (no MiniLM at fill). Do **not** jump to TDA or E5 yet: Stage 3.5 has to make mana, curve, roles, tools, and prompts first-class, and add the remaining embedding views.
+
+### Stage 3.5 — Symbolic intelligence, tools, prompts, embedding views
+
+**Status: 3.5a–d v1 in code.** Do 3.5e (keyword/mana views) before Stage 4.
+
+Stages 1–3 produce a legal 99 with a geometry score. Fill still treats mana as a CMC integer, curve as “this CMC bucket already has ≥ 18 cards,” roles as oracle substrings, and the Architect as a search chatbot that never sees a diagnosis. Topology on that scorer would measure a weak object.
+
+**Claim:** more of Commander construction is **symbolic** than neural. Embeddings retrieve candidates. Algebra and quotas decide whether the 99 can be cast and whether slots have the right shape. The LLM names intents and explains the report — it does not count Mountains, pips, or the curve.
+
+If those numbers live only in the prompt, this stage failed.
+
+#### Already in the repo (do not rebuild)
+
+- CMC histogram on `enrich_deck` / solver context (lands excluded)
+- Curve penalty if a non-land CMC bucket has ≥ 18 cards
+- Role quotas (land / ramp / draw / interaction / threat) via oracle phrases in `roles.py`
+- `mana_cost` stored on `cards`, unused except display
+- Architect tools: `search_cards`, `list_inventory_cards` (validate/fill/cut exist but are not on the Architect)
+- Supervisor: deterministic legality gate; LLM explains
+
+#### 3.5a Mana algebra (symbolic, no MiniLM)
+
+New module `src/mana.py`, pure functions, unit-tested:
+
+- Parse `{2}{R}{R}`, hybrid pips, `{X}`, Phyrexian into generic + colored counts
+- Parse produced mana from oracle (`add {R}`, “any color”, treasure, “add one mana”) — imperfect regex is fine if tests pin known cards
+- Deck report: colored pip intensity vs colored sources (lands + rocks), generic density, average CMC excluding lands, land count vs quota, fast mana (CMC 0–1 non-land sources)
+- Identity leak is already a hard error; this layer is **castability and shape**, not legality
+
+v1: mana is a **soft objective + diagnosis** (same status as roles). Do not reject a 99 for “uncastable commander” until the parser is trusted.
+
+Keep pip counts as **numbers the solver adds**. Do not put prices in embeddings. Do not make MiniLM the only representation of `{2}{R}`.
+
+#### 3.5b Curve and roles as solver terms
+
+- Target curve **depends on plan**: `fast` (token/combat, little ramp), `mid`, or `high` (lots of ramp or cheat-into-play). A low curve is not always the goal; 7-drops are fine when the 99 can actually cast or sneak them.
+- Land count: missing lands are a fill priority, not only a role bonus
+- Role classifier: Scryfall `keywords` + type line first, oracle phrases as fallback
+- Split token **producer** vs token **payoff** when the commander cares (Krenko: make Goblins / haste / sacrifice)
+
+`solver._score_parts` must consume `mana_report` and `curve_gap`. Charts in Streamlit are Stage 6; they are not this work.
+
+#### 3.5c Tools (JSON)
+
+| Tool | Returns |
+|---|---|
+| `diagnose_deck_json` | curve, avg CMC, land count, roles vs quotas, pip vs source, budget slack, remaining slots, named deficits |
+| `score_card_json` | `score_breakdown` plus mana/curve terms |
+| `search_cards` | optional `cmc_min` / `cmc_max` / `role` (identity and *P*<sub>max</sub> already exist) |
+
+The Architect must **see a diagnosis** before improve/cut deltas (injected into the user message, or a mandatory tool call). Do not add a tool whose job is “ask the LLM to count the curve.”
+
+#### 3.5d Prompting
+
+Prompts **consume** the diagnosis; they do not invent it.
+
+- Inject a short `deficits` block into the Architect turn
+- Search queries are gap-shaped: `"2-mana goblin"`, `"add {R}"`, not `"good Krenko cards"`
+- Supervisor may summarize curve/mana **warnings** from the report; it still does not override the gate
+- Forbidden: the model emitting a 99, computing pips, or assigning a synergy number
+
+#### 3.5e Embedding views (offline, no encode at fill)
+
+Finish “embeddings worth publishing” without training a new net and without E5 as a blocker:
+
+- Persist Scryfall `keywords` on `cards` at download time
+- Add views to `card_views.npz`: **keywords** (joined list), **mana-cost string** (`{2}{R}`). Oracle stays the largest weight; keywords and mana smaller than type. Name stays out.
+- Retrieval: MiniLM concat for recall; optional BM25 over oracle as a second candidate source (hybrid sparse+dense)
+- Rebuild views once (`--views-only`). Fill still only looks up ids
+- E5/BGE is an ablation **after** 3.5a–d exist, so there is a task metric (legal 99 + role coverage + mana/curve gaps)
+
+Ablation for the paper skeleton: concat MiniLM vs oracle+type vs oracle+type+keywords+mana, **with the same symbolic terms**, on 3–5 commanders.
+
+#### Order of work
+
+- [x] `mana.py` + tests on printed costs and a Krenko 99 pip/source report
+- [x] Target curve + mana terms in `solver._score_parts`
+- [x] `diagnose_deck_json` + inject diagnosis into the Architect
+- [ ] Keywords column + extra views in `--views-only`
+- [ ] Ablation rows in the analysis notebook
+
+Then Stage 4 TDA, on a scorer that already knows curve and mana.
 
 ### Stage 4 — Topology as a solver prior (signature section)
 
-Only after Stages 1–3 have a legal 99-card output:
+Only after Stages 1–3.5: a legal 99 **and** symbolic mana/curve/role diagnosis that the solver uses:
 
 - persistence on the candidate cloud (H0 islands = missing glue cards; dense clusters = cut targets)
 - Mapper graph as a **strategy skeleton** the Architect must cover (at least one card per relevant node)
@@ -224,6 +306,7 @@ Start a stub in Stage 1, or the paper never happens. Freeze a small test suite:
 - **Hard:** legal 99, identity, singleton, owned-only / restricted-universe when requested, **p<sub>c</sub> ≤ P<sub>max</sub>** and **∑ p<sub>c</sub> ≤ B** on a frozen price snapshot
 - **Budget quality:** leftover slack *B* − ∑ *p*<sub>c</sub> is not a goal; violating *B* is a fail. Optional later: Pareto of geometric score vs spend
 - **Role coverage:** ramp, draw, interaction, wincon, lands — independent of the meta
+- **Shape (Stage 3.5):** land count vs quota, average CMC band, colored pips vs sources, named deficits from `diagnose_deck_json` (not from the LLM)
 - **Geometric:** intra-deck cohesion, fraction of singleton islands (missing glue), persistence-barcode stability under swap
 - **Novelty (primary for the discovery paper):** for each pick, geometric score vs inclusion rate. Success is high synergy + low popularity, not Jaccard with EDHREC
 - **Contrast only:** overlap with EDHREC / a personal gold list, reported as “how meta is this?” — high overlap is a warning, not a win
@@ -235,10 +318,13 @@ No LLM-as-judge as the **primary** metric. Do not maximize overlap with publishe
 
 ## What not to do next
 
-- Streamlit / charts first — they lock a retrieval chatbot, not a solver
+- Streamlit / charts first — they lock a retrieval chatbot, not a solver. A mana-curve **plot** is Stage 6; mana-curve **algebra** is Stage 3.5
+- Skipping Stage 3.5 for TDA — homology on a scorer that ignores pips and target curve is a pretty diagram of a weak 99
+- Asking the LLM to count lands, pips, or the curve — that is the solver’s job; the prompt only consumes `deficits`
+- Putting prices (or pip counts as the sole signal) into MiniLM documents
 - Training or scoring on EDHREC/Moxfield co-occurrence — that clones the meta
 - Using staple overlap as the main evaluation — that punishes overlooked strategies
-- Training a new embedding model before a task metric exists
+- Training a new embedding model before a task metric exists — extra **views** and E5 as an ablation are in 3.5e; a custom MTG encoder is not
 - Claiming “multi-agent intelligence” as the result — the graph is orchestration; the result is the 99-card set + geometry
 - One mega-paper that mixes NeSy, TDA, epidemiology, and a UI — split: **geometry of cards**, then **neuro-symbolic construction**, then **contagion on synergy graphs**
 
@@ -253,9 +339,10 @@ Deliverables:
 1. `DeckState` + expanded validator (size + legalities + **price caps**)
 2. Structured tool I/O
 3. Symbolic fill/cut (greedy is enough for v1; knapsack inequality for *B*)
-4. MiniLM vs multi-view ablation on 3–5 commanders
-5. A notebook that is actually in the repo (the README already promises UMAP; there is none)
+4. Stage 3.5: mana algebra, target curve, diagnosis tool, Architect prompt that consumes deficits
+5. MiniLM vs multi-view vs multi-view+keywords/mana ablation on 3–5 commanders (same symbolic terms)
+6. A notebook that is actually in the repo (the README already promises UMAP; there is none)
 
 That milestone is both a better product and the skeleton of a CoG/NeSy paper. TDA and epidemiology plug in without rewriting the agents.
 
-**Default path:** Stage 3 scores with multi-view cosine on the candidate pool. Next is Stage 4 TDA (kNN already exists) or an E5 ablation — not Streamlit.
+**Default path:** Stage 3.5 (mana/curve/roles → tools → prompts → extra views) → Stage 4 TDA. Not Streamlit. Not E5 until 3.5a–d exist. Not epidemiology.
