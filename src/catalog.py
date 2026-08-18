@@ -32,6 +32,10 @@ def oracle_text_from_scryfall(card: dict) -> str:
     return "\n\n".join(part for part in parts if part)
 
 
+def keywords_from_scryfall(card: dict) -> str:
+    return json.dumps(card.get("keywords") or [])
+
+
 def mana_cost_from_scryfall(card: dict) -> str:
     cost = card.get("mana_cost")
     if cost:
@@ -64,6 +68,8 @@ def ensure_schema(conn: sqlite3.Connection):
         conn.execute("ALTER TABLE cards ADD COLUMN price_usd REAL")
     if "price_eur" not in columns:
         conn.execute("ALTER TABLE cards ADD COLUMN price_eur REAL")
+    if "keywords" not in columns:
+        conn.execute("ALTER TABLE cards ADD COLUMN keywords TEXT")
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS catalog_meta (
@@ -119,6 +125,7 @@ def _row_to_card(row: sqlite3.Row) -> dict:
         "legalities": json.loads(legalities_raw or "{}"),
         "price_usd": row["price_usd"] if "price_usd" in keys else None,
         "price_eur": row["price_eur"] if "price_eur" in keys else None,
+        "keywords": json.loads(row["keywords"] or "[]") if "keywords" in keys and row["keywords"] else [],
     }
 
 

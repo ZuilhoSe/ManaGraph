@@ -27,6 +27,9 @@ def search_cards(
     limit: int = 5,
     max_card_price: float | None = None,
     currency: str = "usd",
+    cmc_min: float | None = None,
+    cmc_max: float | None = None,
+    role: str = "",
 ):
     """
     Search Magic: The Gathering cards in the vector index and filter with SQLite.
@@ -39,6 +42,9 @@ def search_cards(
         limit: Maximum number of cards to return.
         max_card_price: Optional per-card price cap in `currency`. Owned copies are still returned.
         currency: usd or eur.
+        cmc_min: Optional inclusive mana-value floor.
+        cmc_max: Optional inclusive mana-value ceiling.
+        role: Optional role class: land, ramp, draw, interaction, threat, token_producer, token_payoff.
     """
     results = _get_searcher().search_cards(
         query=query,
@@ -47,6 +53,9 @@ def search_cards(
         limit=limit,
         max_card_price=max_card_price,
         currency=currency,
+        cmc_min=cmc_min,
+        cmc_max=cmc_max,
+        role=role or None,
     )
     if not results:
         return _json({"ok": True, "cards": [], "message": "No cards found with those criteria."})

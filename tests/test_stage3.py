@@ -180,8 +180,28 @@ class Stage3Tests(unittest.TestCase):
         type_only = {"oracle": [0.0, 1.0], "type": [1.0, 0.0]}
         self.assertAlmostEqual(multi_view_cosine(cmd, same), 1.0)
         mixed = multi_view_cosine(cmd, type_only)
-        self.assertAlmostEqual(mixed, TYPE_WEIGHT)
+        self.assertAlmostEqual(mixed, TYPE_WEIGHT / (ORACLE_WEIGHT + TYPE_WEIGHT))
         self.assertGreater(ORACLE_WEIGHT, TYPE_WEIGHT)
+
+    def test_multi_view_uses_keyword_and_mana_when_present(self):
+        from geometry import KEYWORD_WEIGHT, MANA_WEIGHT, VIEW_WEIGHTS, multi_view_cosine
+
+        cmd = {
+            "oracle": [1.0, 0.0],
+            "type": [1.0, 0.0],
+            "keywords": [1.0, 0.0],
+            "mana": [1.0, 0.0],
+        }
+        kw_only = {
+            "oracle": [0.0, 1.0],
+            "type": [0.0, 1.0],
+            "keywords": [1.0, 0.0],
+            "mana": [0.0, 1.0],
+        }
+        mixed = multi_view_cosine(cmd, kw_only)
+        expected = KEYWORD_WEIGHT / sum(VIEW_WEIGHTS.values())
+        self.assertAlmostEqual(mixed, expected)
+        self.assertGreater(MANA_WEIGHT, 0.0)
 
     def test_multi_view_beats_concat_name_trap(self):
         tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)

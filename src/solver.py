@@ -13,7 +13,7 @@ from deck_state import MAIN_DECK_SIZE, DeckState
 from geometry import cosine, load_card_views, multi_view_cosine
 from inventory import get_card as get_inventory_card
 from mana import cmc_bucket, diagnose, produces_mana, shape_bonus
-from roles import ROLE_QUOTAS, classify_roles, role_counts, role_need_bonus
+from roles import ROLE_QUOTAS, classify_roles, role_counts, role_need_bonus, token_classes
 from rules_validator import (
     ILLEGAL_COMMANDER_STATUS,
     allows_any_number,
@@ -75,6 +75,7 @@ def is_creature_card(type_line: str) -> bool:
 CHROMA_JACCARD_GATE = 0.12
 TRIBE_MATCH_BONUS = 1.0
 TRIBE_MISS_PENALTY = -1.6
+TOKEN_ALIGN_BONUS = 0.8
 
 
 class DeckSolver:
@@ -393,7 +394,9 @@ class DeckSolver:
         idx = store["index"].get(card_id)
         if idx is None:
             return None
-        return {"oracle": store["oracle"][idx], "type": store["type"][idx]}
+        return {"oracle": store["oracle"][idx], "type": store["type"][idx]} | {
+            key: store[key][idx] for key in ("keywords", "mana") if key in store
+        }
 
     def _geometry_cos(self, info: dict | None) -> float | None:
         cmd = (self._ctx or {}).get("cmd") or {}
@@ -408,13 +411,33 @@ class DeckSolver:
             return None
         return cosine(a, b)
 
-    def _view_cosines(self, info: dict | None) -> tuple[float | None, float | None]:
+    def _view_cosines(self, info: dict | None) -> dict[str, float | None]:
         cmd = (self._ctx or {}).get("cmd") or {}
         cv = self._view_pair(cmd.get("id") or "")
         tv = self._view_pair((info or {}).get("id") or "")
         if not cv or not tv:
-            return None, None
-        return cosine(cv["oracle"], tv["oracle"]), cosine(cv["type"], tv["type"])
+            return {"oracle": None, "type": None, "keywords": None, "mana": None}
+        out = {}
+        for key in ("oracle", "type", "keywords", "mana"):
+            out[key] = cosine(cv[key], tv[key]) if key in cv and key in tv else None
+        return out
+
+    def _card_roles(self, info: dict) -> set[str]:
+        return classify_roles(
+            info.get("type_line") or "",
+            info.get("oracle_text") or "",
+            info.get("keywords"),
+        )
+
+    def _token_adj(self, info: dict) -> float:
+        cmd = (self._ctx or {}).get("cmd") or {}
+        cmd_cls = token_classes(cmd.get("type_line") or "", cmd.get("oracle_text") or "")
+        card_cls = token_classes(info.get("type_line") or "", info.get("oracle_text") or "")
+        if "token_producer" in cmd_cls and "token_payoff" in card_cls:
+            return TOKEN_ALIGN_BONUS
+        if "token_payoff" in cmd_cls and "token_producer" in card_cls:
+            return TOKEN_ALIGN_BONUS
+        return 0.0
 
     def _theme_match(self, info: dict) -> bool:
         """True if the card shares or names a commander creature type (Goblin, not 'creature')."""
@@ -482,7 +505,8 @@ class DeckSolver:
             chroma_synergy = 1.0 / (1.0 + float(distance))
         theme = self._theme_match(info)
         geometry = self._geometry_cos(info)
-        geo_oracle, geo_type = self._view_cosines(info)
+        geo_views = self._view_cosines(info)
+        geo_oracle, geo_type = geo_views.get("oracle"), geo_views.get("type")
         # Retrieval distance is recall. Synergy is commander↔card cosine when
         # the index is loaded; otherwise Jaccard. Chroma query-distance may
         # rerank only after a tribe/text gate (name-query false friends).
@@ -498,13 +522,14 @@ class DeckSolver:
             ):
                 synergy = max(jaccard, chroma_synergy)
 
-        roles = classify_roles(info["type_line"], info["oracle_text"])
+        roles = self._card_roles(info)
         role_bonuses = {role: role_need_bonus(role, ctx["counts"]) for role in sorted(roles)}
         others = [role_bonuses[r] for r in role_bonuses if r != "land"]
         role_score = max(others, default=0.0) if others else 0.0
         if "land" in role_bonuses:
             role_score += role_bonuses["land"]
         tribe = self._tribe_adj(info)
+        token_align = self._token_adj(info)
 
         redundancy = 0.0
         redundancy_with = None
@@ -513,7 +538,7 @@ class DeckSolver:
             if skip_self and other_name.lower() == info["name"].lower():
                 continue
             overlap = _jaccard(card_tok, other_tok)
-            if roles & classify_roles(other.get("type_line") or "", other.get("oracle_text") or ""):
+            if roles & self._card_roles(other):
                 overlap *= 1.25
             if overlap > redundancy:
                 redundancy = overlap
@@ -524,7 +549,7 @@ class DeckSolver:
 
         unit = card_unit_price(info, deck.currency) or 0.0
         value = synergy / (unit + 0.5) if deck.budget_cap is not None else 0.0
-        total = 2.0 * synergy + role_score + tribe - 1.4 * redundancy + value + shape["total"]
+        total = 2.0 * synergy + role_score + tribe + token_align - 1.4 * redundancy + value + shape["total"]
         return {
             "name": info["name"],
             "type_line": info.get("type_line") or "",
@@ -541,11 +566,14 @@ class DeckSolver:
             "geometry": geometry,
             "geometry_oracle": geo_oracle,
             "geometry_type": geo_type,
+            "geometry_keywords": geo_views.get("keywords"),
+            "geometry_mana": geo_views.get("mana"),
             "theme_match": theme,
             "synergy": synergy,
             "role_bonuses": role_bonuses,
             "role_score": role_score,
             "tribe": tribe,
+            "token_align": token_align,
             "redundancy": redundancy,
             "redundancy_with": redundancy_with,
             "curve_penalty": curve_penalty,
@@ -601,11 +629,18 @@ class DeckSolver:
             "geometry_type": None
             if parts.get("geometry_type") is None
             else round(parts["geometry_type"], 4),
+            "geometry_keywords": None
+            if parts.get("geometry_keywords") is None
+            else round(parts["geometry_keywords"], 4),
+            "geometry_mana": None
+            if parts.get("geometry_mana") is None
+            else round(parts["geometry_mana"], 4),
             "theme_match": parts["theme_match"],
             "synergy": round(parts["synergy"], 4),
             "role_bonuses": parts["role_bonuses"],
             "role_score": round(parts["role_score"], 4),
             "tribe": round(parts["tribe"], 4),
+            "token_align": round(parts.get("token_align") or 0.0, 4),
             "redundancy": round(parts["redundancy"], 4),
             "redundancy_with": parts["redundancy_with"],
             "curve_penalty": parts["curve_penalty"],
@@ -640,7 +675,7 @@ class DeckSolver:
         worst_score = None
         for card in deck_cards:
             name = card["name"]
-            roles = classify_roles(card.get("type_line") or "", card.get("oracle_text") or "")
+            roles = self._card_roles(card)
             if "land" in roles and land_count <= ROLE_QUOTAS["land"][0]:
                 continue
             protected = False

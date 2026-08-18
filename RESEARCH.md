@@ -191,7 +191,7 @@ Baselines (none of these is “match EDHREC”):
 - [x] **Metadata in the index** (cmc, color-identity bits, is_creature) — `python src/vectorize_cards.py --metadata-only`
 - [x] **Geometry score**: fill/cut use cosine(commander embedding, card embedding) when Chroma is loaded; Jaccard is the fallback
 - [x] **kNN helper** (`geometry.knn_indices`) for later TDA / redundancy
-- [x] **Multi-view score** (no encode at fill): oracle 0.7 + type line 0.3 from `data/card_views.npz`. Name is not a view. Build once with `python src/vectorize_cards.py --views-only`.
+- [x] **Multi-view score** (no encode at fill): oracle + type + keywords + mana-cost from `data/card_views.npz`. Name is not a view. Build once with `python src/vectorize_cards.py --views-only`.
 - [ ] **Observation graph**: optional EDHREC/Moxfield co-occurrence, stored separately — do not add into the fill score
 - [ ] Stronger encoder (E5/BGE) as a second ablation condition
 
@@ -199,7 +199,7 @@ Retrieval still uses the concatenated MiniLM index. Scoring looks up oracle/type
 
 ### Stage 3.5 — Symbolic intelligence, tools, prompts, embedding views
 
-**Status: 3.5a–d v1 in code.** Do 3.5e (keyword/mana views) before Stage 4.
+**Status: 3.5a–e v1 in code.** Rebuild views after a catalog download that stores `keywords`. E5 still later.
 
 Stages 1–3 produce a legal 99 with a geometry score. Fill still treats mana as a CMC integer, curve as “this CMC bucket already has ≥ 18 cards,” roles as oracle substrings, and the Architect as a search chatbot that never sees a diagnosis. Topology on that scorer would measure a weak object.
 
@@ -233,8 +233,8 @@ Keep pip counts as **numbers the solver adds**. Do not put prices in embeddings.
 
 - Target curve **depends on plan**: `fast` (token/combat, little ramp), `mid`, or `high` (lots of ramp or cheat-into-play). A low curve is not always the goal; 7-drops are fine when the 99 can actually cast or sneak them.
 - Land count: missing lands are a fill priority, not only a role bonus
-- Role classifier: Scryfall `keywords` + type line first, oracle phrases as fallback
-- Split token **producer** vs token **payoff** when the commander cares (Krenko: make Goblins / haste / sacrifice)
+- Role classifier: Scryfall `keywords` + type line first, oracle phrases as fallback — **in code**
+- Token **producer** vs token **payoff** are oracle classes (create-token vs tokens-you-control), not a creature type
 
 `solver._score_parts` must consume `mana_report` and `curve_gap`. Charts in Streamlit are Stage 6; they are not this work.
 
@@ -274,7 +274,7 @@ Ablation for the paper skeleton: concat MiniLM vs oracle+type vs oracle+type+key
 - [x] `mana.py` + tests on printed costs and a Krenko 99 pip/source report
 - [x] Target curve + mana terms in `solver._score_parts`
 - [x] `diagnose_deck_json` + inject diagnosis into the Architect
-- [ ] Keywords column + extra views in `--views-only`
+- [x] Keywords column + extra views in `--views-only`
 - [ ] Ablation rows in the analysis notebook
 
 Then Stage 4 TDA, on a scorer that already knows curve and mana.

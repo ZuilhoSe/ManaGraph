@@ -169,7 +169,7 @@ def main():
     parser.add_argument(
         "--views-only",
         action="store_true",
-        help="Encode oracle and type views once into data/card_views.npz (no Chroma write).",
+        help="Encode oracle, type, keywords, and mana-cost views once into data/card_views.npz (no Chroma write).",
     )
     parser.add_argument("--batch-size", type=int, default=256, help="Chroma upsert batch size.")
     parser.add_argument(
@@ -207,33 +207,46 @@ def stamp_metadata_only():
 
 
 def generate_card_views(encode_batch: int = 64):
-    """One-shot MiniLM encode of oracle and type; solver only does lookup after this."""
+    """One-shot MiniLM encode of oracle, type, keywords, mana cost; fill only looks up ids."""
     device = _device()
     print(f"Embedding device: {device}")
-    print("Encoding oracle + type views (once)...")
+    print("Encoding oracle + type + keywords + mana views (once)...")
     model = MiniLMStrategy().get_function()._model
     conn = sqlite3.connect(DB_NAME)
+    cols = {row[1] for row in conn.execute("PRAGMA table_info(cards)")}
+    kw_sql = "keywords" if "keywords" in cols else "NULL"
     cards = conn.execute(
-        "SELECT id, name, type_line, oracle_text FROM cards "
+        f"SELECT id, name, type_line, oracle_text, mana_cost, {kw_sql} FROM cards "
         "WHERE type_line NOT LIKE '%Basic Land%'"
     ).fetchall()
     conn.close()
     ids = [row[0] for row in cards]
-    oracles = []
-    types = []
-    for _card_id, _name, type_line, oracle_text in cards:
-        parts = view_texts({"type_line": type_line, "oracle_text": oracle_text})
-        oracles.append(parts["oracle"])
-        types.append(parts["type"])
+    texts = {key: [] for key in ("oracle", "type", "keywords", "mana")}
+    for row in cards:
+        parts = view_texts(
+            {
+                "type_line": row[2],
+                "oracle_text": row[3],
+                "mana_cost": row[4] or "",
+                "keywords": row[5],
+            }
+        )
+        for key in texts:
+            texts[key].append(parts[key])
     t0 = time.perf_counter()
-    oracle_vecs = model.encode(
-        oracles, batch_size=encode_batch, convert_to_numpy=True, show_progress_bar=True
+    n = len(ids)
+    blob = texts["oracle"] + texts["type"] + texts["keywords"] + texts["mana"]
+    encoded = model.encode(
+        blob, batch_size=encode_batch, convert_to_numpy=True, show_progress_bar=True
     )
-    type_vecs = model.encode(
-        types, batch_size=encode_batch, convert_to_numpy=True, show_progress_bar=True
+    save_card_views(
+        ids,
+        encoded[0:n],
+        encoded[n : 2 * n],
+        keywords=encoded[2 * n : 3 * n],
+        mana=encoded[3 * n : 4 * n],
     )
-    save_card_views(ids, oracle_vecs, type_vecs)
-    print(f"Wrote {len(ids)} view pairs to {VIEWS_PATH} ({time.perf_counter() - t0:.1f}s).")
+    print(f"Wrote {n} x 4 views to {VIEWS_PATH} ({time.perf_counter() - t0:.1f}s).")
 
 
 if __name__ == "__main__":

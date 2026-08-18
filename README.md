@@ -53,7 +53,7 @@ The core intelligence. Agents get tools to interact with the data layer from the
 - [x] **Identity filter at query:** color bits on Chroma metadata (`--metadata-only`).
 - [x] **Fill synergy:** cosine between commander and card embeddings when the index is loaded; tribal gate still blocks off-type creatures.
 - [x] **Multi-view score:** oracle 0.7 + type 0.3 from `data/card_views.npz` (built once). Fill does not encode.
-- [ ] Keyword + mana-cost views (Stage 3.5e).
+- [x] Keyword + mana-cost views (Stage 3.5e). Rebuild `--views-only` after `scryfall_download` so `keywords` exist.
 - [ ] Second encoder (E5/BGE) for ablation — after Stage 3.5a–d, not before.
 
 ### Epic 3.8: Symbolic intelligence (Stage 3.5) — before TDA
@@ -62,10 +62,10 @@ Legal 99 is not enough: fill still uses CMC as a single number, a crude curve ca
 
 - [x] **Mana algebra** (`src/mana.py`): parse costs and produced mana; deck pip vs source report. Soft score, not an LLM count.
 - [x] **Plan-aware curve** in fill/cut: `fast` / `mid` / `high` from commander + ramp/cheat density. Soft `shape` term.
-- [ ] **Roles from keywords** (Scryfall), then oracle phrases; split token producer vs payoff.
-- [x] **Tools:** `diagnose_deck_json`, `score_card_json`. Diagnosis is injected into the Architect. Search CMC/role filters still open.
+- [x] **Roles from keywords** (Scryfall) plus oracle classes: token producer vs token payoff. Search filters: `cmc_min` / `cmc_max` / `role`.
+- [x] **Tools:** `diagnose_deck_json`, `score_card_json`. Diagnosis is injected into the Architect. `search_cards` accepts `cmc_min` / `cmc_max` / `role`.
 - [x] **Prompts consume `deficits`.** Gap-shaped search queries. The model does not emit a 99 or compute pips.
-- [ ] **Embedding views:** keywords + mana-cost string in `card_views.npz` (offline). Optional BM25 hybrid retrieval.
+- [x] **Embedding views:** keywords + mana-cost string in `card_views.npz` (offline). Rebuild with `python src/vectorize_cards.py --views-only`.
 
 ### Epic 4: Interface and Usability (Local Deploy)
 
@@ -114,7 +114,7 @@ Research stages (do not skip 3.5 for TDA): **1 DeckState → 2 fill/cut → 3 ge
   - `inventory_agent.py`: Inventory manager agent.
   - `supervisor_agent.py`: Deterministic gate plus optional LLM explanation.
   - `main_agent.py`: LangGraph execution graph and demo entry point.
-- `tests/`: Stage 1–3 unit tests (no LLM, no Chroma). Stage 3.5 tests land next to `src/mana.py`.
+- `tests/`: Stage 1–3.5 unit tests (no LLM, no Chroma), including class invariants.
 
 ---
 
@@ -148,7 +148,7 @@ python src/vectorize_cards.py --views-only
 4. **Tests** (validator, deltas, fill/cut, geometry; no API key):
 
 ```bash
-python -m unittest tests.test_stage1 tests.test_stage2 tests.test_stage3 tests.test_stage35
+python -m unittest tests.test_stage1 tests.test_stage2 tests.test_stage3 tests.test_stage35 tests.test_invariants
 ```
 
 5. **Run the multi-agent loop** (JSON delta → inventory → fill/cut → symbolic supervisor):

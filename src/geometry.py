@@ -18,9 +18,17 @@ VIEWS_PATH = os.path.join(DATA_DIR, "card_views.npz")
 
 COLOR_BITS = (("W", "ci_w"), ("U", "ci_u"), ("B", "ci_b"), ("R", "ci_r"), ("G", "ci_g"))
 
-# Name is not a view: MiniLM clusters proper names, not mechanics (Kumano vs Krenko).
-ORACLE_WEIGHT = 0.7
-TYPE_WEIGHT = 0.3
+# Name is not a view. Oracle is the largest weight; keywords and mana cost are smaller than type.
+ORACLE_WEIGHT = 0.55
+TYPE_WEIGHT = 0.25
+KEYWORD_WEIGHT = 0.12
+MANA_WEIGHT = 0.08
+VIEW_WEIGHTS = {
+    "oracle": ORACLE_WEIGHT,
+    "type": TYPE_WEIGHT,
+    "keywords": KEYWORD_WEIGHT,
+    "mana": MANA_WEIGHT,
+}
 
 
 def cosine(a, b) -> float:
@@ -36,15 +44,27 @@ def cosine(a, b) -> float:
 def view_texts(info: dict) -> dict[str, str]:
     oracle = (info.get("oracle_text") or "").strip() or "Vanilla creature / No abilities."
     type_line = (info.get("type_line") or "").strip() or "Unknown type"
-    return {"oracle": oracle, "type": type_line}
+    raw_kw = info.get("keywords")
+    if isinstance(raw_kw, str):
+        try:
+            raw_kw = json.loads(raw_kw)
+        except json.JSONDecodeError:
+            raw_kw = [raw_kw] if raw_kw.strip() else []
+    if isinstance(raw_kw, list) and raw_kw:
+        kw_text = ", ".join(str(k) for k in raw_kw)
+    else:
+        kw_text = "No keywords."
+    mana = (info.get("mana_cost") or "").strip() or "No mana cost."
+    return {"oracle": oracle, "type": type_line, "keywords": kw_text, "mana": mana}
 
 
 def multi_view_cosine(cmd_views: dict, card_views: dict) -> float:
-    """Weighted mean of per-view cosines (oracle, type). Not a fused vector."""
-    return (
-        ORACLE_WEIGHT * cosine(cmd_views["oracle"], card_views["oracle"])
-        + TYPE_WEIGHT * cosine(cmd_views["type"], card_views["type"])
-    )
+    """Weighted mean of shared views. Missing views (old npz) are dropped and weights renormalized."""
+    keys = [k for k in VIEW_WEIGHTS if k in cmd_views and k in card_views]
+    if not keys:
+        return 0.0
+    weight_sum = sum(VIEW_WEIGHTS[k] for k in keys)
+    return sum(VIEW_WEIGHTS[k] * cosine(cmd_views[k], card_views[k]) for k in keys) / weight_sum
 
 
 def chroma_metadata(name: str, color_identity, cmc, type_line: str) -> dict:
@@ -93,14 +113,25 @@ def knn_indices(vectors: np.ndarray, k: int = 8) -> np.ndarray:
     return np.argpartition(-sim, kth=k - 1, axis=1)[:, :k]
 
 
-def save_card_views(ids: list[str], oracle, type_vecs, path: str = VIEWS_PATH):
+def save_card_views(
+    ids: list[str],
+    oracle,
+    type_vecs,
+    path: str = VIEWS_PATH,
+    keywords=None,
+    mana=None,
+):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    np.savez_compressed(
-        path,
-        ids=np.asarray(ids, dtype=object),
-        oracle=np.asarray(oracle, dtype=np.float16),
-        type=np.asarray(type_vecs, dtype=np.float16),
-    )
+    payload = {
+        "ids": np.asarray(ids, dtype=object),
+        "oracle": np.asarray(oracle, dtype=np.float16),
+        "type": np.asarray(type_vecs, dtype=np.float16),
+    }
+    if keywords is not None:
+        payload["keywords"] = np.asarray(keywords, dtype=np.float16)
+    if mana is not None:
+        payload["mana"] = np.asarray(mana, dtype=np.float16)
+    np.savez_compressed(path, **payload)
 
 
 def load_card_views(path: str = VIEWS_PATH) -> dict | None:
@@ -108,8 +139,12 @@ def load_card_views(path: str = VIEWS_PATH) -> dict | None:
         return None
     data = np.load(path, allow_pickle=True)
     ids = [str(i) for i in data["ids"]]
-    return {
+    store = {
         "index": {card_id: i for i, card_id in enumerate(ids)},
         "oracle": data["oracle"],
         "type": data["type"],
     }
+    for key in ("keywords", "mana"):
+        if key in data.files:
+            store[key] = data[key]
+    return store

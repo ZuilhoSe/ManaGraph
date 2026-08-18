@@ -9,6 +9,7 @@ from catalog import (
     DB_NAME,
     DATA_DIR,
     ensure_schema,
+    keywords_from_scryfall,
     mana_cost_from_scryfall,
     oracle_text_from_scryfall,
     parse_price,
@@ -82,6 +83,7 @@ def download_and_process_scryfall():
                             json.dumps(card.get("legalities", {})),
                             parse_price(prices.get("usd")),
                             parse_price(prices.get("eur")),
+                            keywords_from_scryfall(card),
                         )
                     )
 
@@ -92,8 +94,8 @@ def download_and_process_scryfall():
                             """
                             INSERT OR REPLACE INTO cards
                             (id, name, mana_cost, cmc, oracle_text, color_identity,
-                             type_line, legalities, price_usd, price_eur)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                             type_line, legalities, price_usd, price_eur, keywords)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                             """,
                             batch_data,
                         )
@@ -105,8 +107,8 @@ def download_and_process_scryfall():
                         """
                         INSERT OR REPLACE INTO cards
                         (id, name, mana_cost, cmc, oracle_text, color_identity,
-                         type_line, legalities, price_usd, price_eur)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                         type_line, legalities, price_usd, price_eur, keywords)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                         batch_data,
                     )
