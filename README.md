@@ -1,6 +1,6 @@
 ## Development Roadmap
 
-Research contract: [RESEARCH.md](RESEARCH.md). Stage 1 (`DeckState` + deterministic supervisor) is in the codebase; fill/cut is next.
+Research contract: [RESEARCH.md](RESEARCH.md). Stage 2 fill/cut is in the graph (`Architect → Inventory → Solver → Supervisor`).
 
 This project is built incrementally: first a deterministic local data layer, then autonomous agent orchestration, then optional topological synergy analysis.
 
@@ -31,7 +31,7 @@ The core intelligence. Agents get tools to interact with the data layer from the
 - [x] **Inventory manager agent:** Check availability and move cards between decks.
 - [x] **Architect agent (RAG):** Discover synergies and query rules in the vector DB.
 - [x] **Supervisor agent:** Review the other agents' output and decide whether to approve or send work back.
-- [x] **Decision graph:** Cyclic graph connecting Architect → Inventory → Supervisor.
+- [x] **Decision graph:** Cyclic graph connecting Architect → Inventory → Solver → Supervisor.
 
 ### Epic 3.5: Symbolic deck object (Stage 1)
 
@@ -41,6 +41,12 @@ The core intelligence. Agents get tools to interact with the data layer from the
 - [x] **JSON tools + deltas:** Architect proposes add/remove/**substitute** JSON; the graph applies it; supervisor **gate** is deterministic (`APPROVED` / `REJECTED`), LLM only explains.
 - [x] **Task intents:** `build`, `improve`, `substitute`, `cut`. Upgrading or swapping cards on an existing list is valid; a full 99 is only required when the user asks to build a complete deck.
 - [x] **99-card cap:** the committed list cannot exceed 99. Extra Architect picks go to `candidate_pool` for a later fill/cut, not into the deck.
+
+### Epic 3.6: Combinatorial solver (Stage 2)
+
+- [x] **Fill:** greedy select into remaining slots from `candidate_pool` (+ optional RAG), under identity, singleton, legality, *P*<sub>max</sub>, and *B*. Basics fill holes.
+- [x] **Cut:** drop over-budget / over-99 cards; swap weak 99 slots for better pool cards using text synergy, role quotas, and redundancy. Committed list stays ≤ 99.
+- [x] **Graph node:** Architect → Inventory → **Solver** → Supervisor.
 
 ### Epic 4: Interface and Usability (Local Deploy)
 
@@ -55,7 +61,7 @@ Make the system usable without running everything from a terminal while physical
 Stretch goals for denser mathematical deckbuilding.
 
 - [ ] **Topological synergy analysis (TDA):** Topological metrics on the embedding space to find isolated "islands" (cards with no synergy) or redundancy.
-- [ ] **Cut algorithm:** Given a list of 110 cards, mathematically pick the 10 worst slots using vector redundancy and mana-curve weight.
+- [x] **Cut algorithm (v1 greedy):** Drop worst slots by text redundancy, role quotas, curve, and synergy-per-dollar. TDA-informed cut comes in Stage 4.
 
 ---
 
@@ -71,6 +77,8 @@ Stretch goals for denser mathematical deckbuilding.
   - `scryfall_download.py`: Import and parse official Scryfall data, including a frozen price snapshot.
   - `catalog.py`: Oracle lookups, schema migration, acquisition cost, mana curve.
   - `deck_state.py`: First-class Commander deck object and JSON delta apply.
+  - `roles.py`: Heuristic card roles (land, ramp, draw, interaction, threat).
+  - `solver.py`: Greedy fill/cut under symbolic constraints.
   - `import_inventory.py`: Load a physical card collection.
   - `inventory.py`: Check availability and move cards between the free pool and decks.
   - `embeddings.py`: Strategy pattern for embedding providers (model-agnostic).
@@ -83,7 +91,7 @@ Stretch goals for denser mathematical deckbuilding.
   - `inventory_agent.py`: Inventory manager agent.
   - `supervisor_agent.py`: Deterministic gate plus optional LLM explanation.
   - `main_agent.py`: LangGraph execution graph and demo entry point.
-- `tests/`: Stage 1 unit tests (no LLM, no Chroma).
+- `tests/`: Stage 1–2 unit tests (no LLM, no Chroma).
 
 ---
 
@@ -110,13 +118,13 @@ python src/scryfall_download.py
 python src/vectorize_cards.py
 ```
 
-4. **Stage 1 tests** (validator, deltas, budget gate; no API key):
+4. **Tests** (validator, deltas, fill/cut; no API key):
 
 ```bash
-python -m unittest tests.test_stage1
+python -m unittest tests.test_stage1 tests.test_stage2
 ```
 
-5. **Run the multi-agent loop** (JSON delta → inventory → symbolic supervisor):
+5. **Run the multi-agent loop** (JSON delta → inventory → fill/cut → symbolic supervisor):
 
 ```bash
 python src/main_agent.py

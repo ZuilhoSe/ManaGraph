@@ -219,6 +219,19 @@ class DeckState:
         else:
             self.candidate_pool[name] = quantity
 
+    def take_from_pool(self, name: str, quantity: int = 1) -> int:
+        key = self._pool_key(name)
+        if not key:
+            return 0
+        have = self.candidate_pool[key]
+        moved = min(quantity, have)
+        remaining = have - moved
+        if remaining <= 0:
+            self.candidate_pool.pop(key)
+        else:
+            self.candidate_pool[key] = remaining
+        return moved
+
     def add_card(self, name: str, quantity: int = 1):
         name = name.strip()
         if not name or quantity == 0:
@@ -371,6 +384,11 @@ class DeckState:
         deck = cls(commander=commander, cards=cards, **kwargs)
         if commander:
             deck.set_commander(commander)
+            if not deck.identity:
+                from catalog import get_oracle_card
+                info = get_oracle_card(commander, db_path or DB_NAME)
+                if info:
+                    deck.identity = list(info["color_identity"])
         return deck
 
     @classmethod

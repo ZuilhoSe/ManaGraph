@@ -7,9 +7,10 @@ from langchain_core.messages import AIMessage
 from architect_agent import ArchitectAgent
 from inventory_agent import InventoryAgent
 from supervisor_agent import SupervisorAgent
-from deck_state import DeckState, extract_json, infer_task, proposal_has_work
+from deck_state import MAIN_DECK_SIZE, DeckState, extract_json, infer_task, proposal_has_work
 from catalog import enrich_deck, get_oracle_card
 from rules_validator import CommanderValidator
+from solver import DeckSolver
 
 
 def to_text(content: Any) -> str:
@@ -46,6 +47,7 @@ class GraphState(TypedDict):
     proposal: dict
     supervisor_decision: str
     validation: dict
+    solver_report: dict
 
 
 architect = ArchitectAgent()
@@ -118,11 +120,52 @@ def inventory_node(state: GraphState):
     }
 
 
+def solver_node(state: GraphState):
+    print("\n[Node: Solver] Fill/cut...")
+    deck = DeckState.from_dict(state.get("deck"))
+    solver = DeckSolver()
+    query = state.get("user_query") or ""
+    report = {"fill": None, "cut": None}
+
+    if deck.require_complete and deck.commander:
+        print("[Solver] Filling to 99, then cutting...")
+        report["fill"] = solver.fill(deck, query=query, retrieve=True)
+        report["cut"] = solver.cut(deck, query=query)
+    elif deck.intent == "cut" and deck.commander:
+        print("[Solver] Cutting / swapping from pool...")
+        report["cut"] = solver.cut(deck, query=query)
+        if deck.remaining_slots() and deck.candidate_pool:
+            report["fill"] = solver.fill(deck, query=query, retrieve=False)
+    else:
+        if deck.remaining_slots() and deck.candidate_pool:
+            print("[Solver] Filling remaining slots from candidate_pool...")
+            report["fill"] = solver.fill(deck, query=query, retrieve=False)
+        if deck.slot_count() == MAIN_DECK_SIZE and deck.candidate_pool:
+            print("[Solver] Swapping pool cards into the 99...")
+            report["cut"] = solver.cut(deck, query=query)
+
+    payload = json.dumps(report, default=str)
+    added = len((report.get("fill") or {}).get("added") or [])
+    swapped = len((report.get("cut") or {}).get("swapped") or [])
+    print(f"[Solver] slots={deck.slot_count()} added={added} swapped={swapped}")
+    return {
+        "messages": [AIMessage(content=payload, name="solver")],
+        "deck": deck.to_dict(),
+        "solver_report": report,
+    }
+
+
 def supervisor_node(state: GraphState):
     print("\n[Node: Supervisor] Symbolic gate...")
     deck = DeckState.from_dict(state.get("deck"))
     proposal = state.get("proposal") or {}
-    if not proposal_has_work(proposal):
+    solver_report = state.get("solver_report") or {}
+    solver_did = bool(
+        ((solver_report.get("fill") or {}).get("added"))
+        or ((solver_report.get("cut") or {}).get("swapped"))
+        or ((solver_report.get("cut") or {}).get("removed"))
+    )
+    if not proposal_has_work(proposal) and not solver_did:
         validation = {
             "valid": False,
             "error": "Architect did not return an add, remove, substitute, candidate_pool, or buy_list.",
@@ -164,11 +207,13 @@ workflow = StateGraph(GraphState)
 
 workflow.add_node("architect", architect_node)
 workflow.add_node("inventory", inventory_node)
+workflow.add_node("solver", solver_node)
 workflow.add_node("supervisor", supervisor_node)
 
 workflow.set_entry_point("architect")
 workflow.add_edge("architect", "inventory")
-workflow.add_edge("inventory", "supervisor")
+workflow.add_edge("inventory", "solver")
+workflow.add_edge("solver", "supervisor")
 workflow.add_conditional_edges(
     "supervisor",
     route_evaluation,
@@ -214,6 +259,7 @@ def initial_graph_state(query: str, deck: DeckState | dict | None = None) -> dic
         "proposal": {},
         "supervisor_decision": "",
         "validation": {},
+        "solver_report": {},
     }
 
 
@@ -230,6 +276,9 @@ if __name__ == "__main__":
     print("\n=== VALIDATION ===")
     print(json.dumps(final_state.get("validation"), indent=2, default=str))
     print(f"\nSupervisor: {final_state.get('supervisor_decision')}")
+    if final_state.get("solver_report"):
+        print("\n=== SOLVER ===")
+        print(json.dumps(final_state.get("solver_report"), indent=2, default=str))
     if final_state.get("architect_reply"):
         print("\n=== ARCHITECT ===")
         print(final_state["architect_reply"])

@@ -137,3 +137,45 @@ def validate_deck_json(deck_json: str) -> str:
     report = validator.validate_deck_state(DeckState.from_dict(data))
     report["ok"] = "error" not in report
     return _json(report)
+
+
+@tool
+def fill_deck_json(deck_json: str, query: str = "", retrieve: bool = False) -> str:
+    """
+    Greedy-fill remaining slots from candidate_pool (and optional vector retrieval).
+    Returns JSON with the updated DeckState. The committed list never exceeds 99.
+    """
+    from solver import DeckSolver
+
+    try:
+        data = json.loads(deck_json)
+        if not isinstance(data, dict):
+            return _json({"ok": False, "error": "deck_json must be a JSON object."})
+    except json.JSONDecodeError as exc:
+        return _json({"ok": False, "error": f"Invalid JSON for deck_json: {exc}"})
+
+    deck = DeckState.from_dict(data)
+    report = DeckSolver().fill(deck, query=query, retrieve=retrieve)
+    report["deck"] = deck.to_dict()
+    return _json(report)
+
+
+@tool
+def cut_deck_json(deck_json: str, query: str = "") -> str:
+    """
+    Cut over-budget / over-99 cards and swap weak 99 slots for better candidate_pool cards.
+    Returns JSON with the updated DeckState. The committed list never exceeds 99.
+    """
+    from solver import DeckSolver
+
+    try:
+        data = json.loads(deck_json)
+        if not isinstance(data, dict):
+            return _json({"ok": False, "error": "deck_json must be a JSON object."})
+    except json.JSONDecodeError as exc:
+        return _json({"ok": False, "error": f"Invalid JSON for deck_json: {exc}"})
+
+    deck = DeckState.from_dict(data)
+    report = DeckSolver().cut(deck, query=query)
+    report["deck"] = deck.to_dict()
+    return _json(report)

@@ -165,11 +165,11 @@ Also freeze a **data snapshot** (Scryfall bulk date, **price snapshot**, embeddi
 - [x] Task intents: `build`, `improve`, `substitute`, `cut`. A swap or upgrade is a complete job; do not require a new 99 unless the user asked to build a full deck
 - [x] Hard cap: committed main deck never exceeds 99. Architect overflow goes to `candidate_pool` for later fill/cut, not into the 99
 
-Without this, Epic 4 (Streamlit) will freeze a toy. Next: Stage 2 fill/cut.
+Without this, Epic 4 (Streamlit) will freeze a toy.
 
 ### Stage 2 — Combinatorial core: fill and cut (3–4 weeks)
 
-This is the Epic 5 “cut algorithm,” but it should ship **before** TDA.
+**Status: v1 greedy implemented.** ILP / embedding distances can replace the scorer later without changing `DeckState`.
 
 **Fill:** from a commander + intent, retrieve a candidate pool *P* (|*P*| ≈ 150–300), merge with `DeckState.candidate_pool` (Architect overflow, never part of the 99), then select 99 by beam search or ILP (PuLP/OR-Tools) with hard constraints (including *P*<sub>max</sub> and *B*) and a linear synergy score.
 
@@ -257,4 +257,4 @@ Deliverables:
 
 That milestone is both a better product and the skeleton of a CoG/NeSy paper. TDA and epidemiology plug in without rewriting the agents.
 
-**Default path:** Stage 1 (`DeckState` + deterministic supervisor), then either **geometry-first** (Stages 3–4, embeddings paper) or **solver-first** (Stages 1–2, NeSy paper). They share Stage 1 either way.
+**Default path:** Stage 2 greedy fill/cut is in the graph. Next is **Stage 3 embeddings** (multi-view + metadata in the index) so the solver can score with geometry instead of token overlap, then Stage 4 TDA.

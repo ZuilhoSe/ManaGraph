@@ -25,13 +25,16 @@ class RAGSearcher:
         self.conn = sqlite3.connect(DB_NAME)
         self.cursor = self.conn.cursor()
 
-    def search_cards(self, query, allowed_colors, owned_only=False, limit=5, max_card_price=None, currency="usd"):
+    def search_cards(self, query, allowed_colors, owned_only=False, limit=5, max_card_price=None, currency="usd", n_results=None):
         print(f"\nSearching for: '{query}'")
         print(f"Filters -> Colors: {allowed_colors} | Owned only: {owned_only} | P_max: {max_card_price}")
 
+        fetch = n_results if n_results is not None else max(limit * 4, 50)
+        fetch = min(max(int(fetch), limit), 400)
+
         results = self.collection.query(
             query_texts=[query],
-            n_results=50
+            n_results=fetch
         )
 
         found_cards = []

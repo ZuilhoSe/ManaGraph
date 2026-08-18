@@ -25,7 +25,8 @@ class ArchitectAgent:
         - The committed main deck MUST stay at most 99 cards (see remaining_slots on the deck JSON).
         - Never put more copies in delta.add than remaining_slots. Do not return a 100+ card list.
         - Extra ideas that you like but that would overflow the 99 go in candidate_pool (or buy_list if unowned).
-        - candidate_pool is NOT the deck. A later fill/cut step picks the ideal 99 from cards + pool.
+        - candidate_pool is NOT the deck. The Solver fill/cut step picks the ideal 99 from cards + pool.
+        - Do not emit 99 adds yourself. Seed the pool; stay at most remaining_slots in delta.add.
         - substitute keeps slot count stable (out then in). Prefer it when the 99 is already full.
 
         INVENTORY RULES:
