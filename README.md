@@ -35,3 +35,54 @@ Facilitar o uso do sistema para não precisar rodar tudo via terminal durante a 
 *Stretch goals* focados em otimizações matemáticas mais densas do deckbuilding.
 - [ ] **Análise Topológica de Sinergias (TDA):** Aplicar métricas topológicas sobre o espaço de embeddings para identificar "ilhas" isoladas no deck (cartas que não têm sinergia com o resto) ou redundâncias.
 - [ ] **Algoritmo de *Cuts* (Cortes de Deck):** Otimizar o agente para, dada uma lista de 110 cartas, calcular matematicamente os 10 piores *slots* considerando redundância vetorial e peso na curva de mana.
+
+
+---
+
+## 🛠️ Guia de Utilização e Arquitetura do Projeto
+
+O **ManaGraph** é um sistema inteligente de *deckbuilding* e busca semântica para Magic: The Gathering, estruturado com uma arquitetura modular orientada a dados (RAG) e orquestração multi-agente.
+
+### 📂 Estrutura de Diretórios
+
+*   `data/`: Armazena os bancos locais (`managraph.db` para o SQLite com inventário e regras estruturadas, e `chroma_db/` para o banco vetorial).
+*   `notebooks/`: Contém cadernos interativos de análise exploratória de dados (ex: redução de dimensionalidade com UMAP e Plotly).
+*   `src/`: Contém o código-fonte principal do sistema:
+    *   `scryfall_download.py`: Importação e parsing dos dados oficiais do Scryfall.
+    *   `import_inventory.py`: Gestão da sua coleção física de cartas.
+    *   `embeddings.py`: Padrão *Strategy* para provedores de vetores (agnóstico a modelos).
+    *   `vectorize_cards.py`: Processamento e indexação em lotes para o ChromaDB.
+    *   `hybrid_search.py`: Motor de busca combinando similaridade vetorial e filtros relacionais (SQLite).
+    *   `llm_factory.py`: Fábrica modular para troca de provedores de LLM via variáveis de ambiente.
+    *   `tools.py`: Encapsulamento das buscas em ferramentas (`@tool`) para agentes de IA.
+    *   `architect_agent.py`: O Agente Arquiteto orquestrado via LangGraph.
+    *   `main_agent.py`: Script de execução e testes dos agentes.
+
+---
+
+### 🚀 Como Executar o Projeto
+
+1. **Configuração do Ambiente:**
+   Certifique-se de preencher o arquivo `.env` na raiz do projeto com a sua chave de API e provedor desejado (ex: Google Gemini):
+   ```env
+   LLM_PROVIDER=google
+   LLM_MODEL=gemini-2.5-flash
+   GOOGLE_API_KEY=sua_chave_aqui
+   ```
+
+2. **Instalação de Dependências:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Geração de Base Vetorial**
+Caso precise reindexar as cartas do Magic a partir do banco relacional:
+   ```bash
+   python src/vectorize_cards.py
+   ```
+
+4. **Executando o Agente Arquiteto:**
+Para testar as consultas inteligentes de sinergia e inventário:
+    ```bash
+    python src/main_agent.py   
+    ```
