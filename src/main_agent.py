@@ -125,7 +125,7 @@ def supervisor_node(state: GraphState):
     if not proposal_has_work(proposal):
         validation = {
             "valid": False,
-            "error": "Architect did not return an add, remove, substitute, or buy_list.",
+            "error": "Architect did not return an add, remove, substitute, candidate_pool, or buy_list.",
             "warnings": [],
         }
     else:

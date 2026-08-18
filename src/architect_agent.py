@@ -21,6 +21,13 @@ class ArchitectAgent:
         Improve/substitute/cut are complete tasks. Do NOT rebuild 99 cards from scratch unless intent is build
         and the user asked for a full deck.
 
+        99-CARD CAP (HARD):
+        - The committed main deck MUST stay at most 99 cards (see remaining_slots on the deck JSON).
+        - Never put more copies in delta.add than remaining_slots. Do not return a 100+ card list.
+        - Extra ideas that you like but that would overflow the 99 go in candidate_pool (or buy_list if unowned).
+        - candidate_pool is NOT the deck. A later fill/cut step picks the ideal 99 from cards + pool.
+        - substitute keeps slot count stable (out then in). Prefer it when the 99 is already full.
+
         INVENTORY RULES:
         - If the user says "focus on cards I own", start with owned_only=True.
         - If that search returns empty or few results, call list_inventory_cards, then search with owned_only=False.
@@ -45,9 +52,11 @@ class ArchitectAgent:
               {"out": "Current Card", "in": "Better Card", "quantity": 1, "reason": "why this slot"}
             ]
           },
+          "candidate_pool": [{"name": "Overflow Card", "quantity": 1}],
           "buy_list": [{"name": "Card Name", "quantity": 1, "instead_of": "optional"}],
           "notes": "short rationale"
         }
+        delta.add + current slot_count must be <= 99. Overflow belongs in candidate_pool.
         Propose deltas only. Do not claim the deck is legal; the symbolic validator decides that.
         """
 

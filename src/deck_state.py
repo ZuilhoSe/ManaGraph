@@ -112,10 +112,10 @@ def proposal_has_work(proposal: dict | None) -> bool:
     if not proposal:
         return False
     payload = proposal.get("delta") if isinstance(proposal.get("delta"), dict) else proposal
-    for key in ("add", "remove", "substitute", "substitutions"):
+    for key in ("add", "remove", "substitute", "substitutions", "candidate_pool", "pool"):
         if payload.get(key):
             return True
-    return bool(proposal.get("buy_list"))
+    return bool(proposal.get("buy_list") or proposal.get("candidate_pool"))
 
 
 def _qty_items(items) -> list[tuple[str, int]]:
@@ -133,6 +133,15 @@ def _qty_items(items) -> list[tuple[str, int]]:
             continue
         parsed.append((name, qty))
     return parsed
+
+
+def _clean_qty_map(cards) -> dict[str, int]:
+    clean = {}
+    for name, qty in (cards or {}).items():
+        qty = int(qty)
+        if name and qty > 0:
+            clean[str(name)] = qty
+    return clean
 
 
 def _substitutions(items) -> list[tuple[str, str, int, str]]:
@@ -168,9 +177,16 @@ class DeckState:
     owned_cost_zero: bool = True
     intent: str = "build"
     last_delta: dict = field(default_factory=dict)
+    candidate_pool: dict[str, int] = field(default_factory=dict)
 
     def slot_count(self) -> int:
         return sum(max(int(qty), 0) for qty in self.cards.values())
+
+    def remaining_slots(self) -> int:
+        return max(0, MAIN_DECK_SIZE - self.slot_count())
+
+    def pool_count(self) -> int:
+        return sum(max(int(qty), 0) for qty in self.candidate_pool.values())
 
     def card_list(self) -> dict[str, int]:
         return {name: int(qty) for name, qty in self.cards.items() if int(qty) > 0}
@@ -187,6 +203,21 @@ class DeckState:
         existing = self._key(name)
         if existing:
             self.cards.pop(existing, None)
+
+    def _pool_key(self, name: str) -> str | None:
+        return {n.lower(): n for n in self.candidate_pool}.get(name.lower())
+
+    def add_to_pool(self, name: str, quantity: int = 1):
+        name = name.strip()
+        if not name or quantity <= 0:
+            return
+        if self.commander and name.lower() == self.commander.lower():
+            return
+        key = self._pool_key(name)
+        if key:
+            self.candidate_pool[key] += quantity
+        else:
+            self.candidate_pool[name] = quantity
 
     def add_card(self, name: str, quantity: int = 1):
         name = name.strip()
@@ -231,6 +262,7 @@ class DeckState:
             "removed": [],
             "substituted": [],
             "failed_substitutions": [],
+            "overflow_to_pool": [],
         }
         if not delta:
             self.last_delta = applied
@@ -259,8 +291,21 @@ class DeckState:
             self.remove_card(name, qty)
             applied["removed"].append({"name": name, "quantity": qty})
         for name, qty in _qty_items(payload.get("add")):
-            self.add_card(name, qty)
-            applied["added"].append({"name": name, "quantity": qty})
+            room = self.remaining_slots()
+            into_deck = min(qty, room)
+            overflow = qty - into_deck
+            if into_deck:
+                self.add_card(name, into_deck)
+                applied["added"].append({"name": name, "quantity": into_deck})
+            if overflow:
+                self.add_to_pool(name, overflow)
+                applied["overflow_to_pool"].append({"name": name, "quantity": overflow})
+        for name, qty in _qty_items(
+            payload.get("candidate_pool")
+            or delta.get("candidate_pool")
+            or payload.get("pool")
+        ):
+            self.add_to_pool(name, qty)
         self.last_delta = applied
         return self
 
@@ -276,6 +321,7 @@ class DeckState:
             "identity": self.identity,
             "slot_count": self.slot_count(),
             "target_slots": MAIN_DECK_SIZE,
+            "remaining_slots": self.remaining_slots(),
             "owned_only": self.owned_only,
             "require_complete": self.require_complete,
             "currency": self.currency,
@@ -284,21 +330,16 @@ class DeckState:
             "owned_cost_zero": self.owned_cost_zero,
             "intent": self.intent,
             "cards": self.card_list(),
+            "candidate_pool": {name: qty for name, qty in self.candidate_pool.items() if qty > 0},
             "last_delta": self.last_delta,
         }
 
     @classmethod
     def from_dict(cls, data: dict | None) -> DeckState:
         data = data or {}
-        cards = data.get("cards") or {}
-        clean = {}
-        for name, qty in cards.items():
-            qty = int(qty)
-            if name and qty > 0:
-                clean[name] = qty
         deck = cls(
             commander=data.get("commander") or "",
-            cards=clean,
+            cards=_clean_qty_map(data.get("cards")),
             identity=list(data.get("identity") or []),
             owned_only=bool(data.get("owned_only", False)),
             require_complete=bool(data.get("require_complete", False)),
@@ -307,6 +348,7 @@ class DeckState:
             budget_cap=data.get("budget_cap"),
             owned_cost_zero=bool(data.get("owned_cost_zero", True)),
             intent=data.get("intent") if data.get("intent") in VALID_INTENTS else "build",
+            candidate_pool=_clean_qty_map(data.get("candidate_pool")),
         )
         if deck.commander:
             deck.set_commander(deck.commander)

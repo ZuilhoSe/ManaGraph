@@ -40,6 +40,7 @@ The core intelligence. Agents get tools to interact with the data layer from the
 - [x] **Price snapshot:** Scryfall `prices.usd` / `prices.eur` stored on `cards`, timestamp in `catalog_meta`. Re-run `scryfall_download.py` to refresh.
 - [x] **JSON tools + deltas:** Architect proposes add/remove/**substitute** JSON; the graph applies it; supervisor **gate** is deterministic (`APPROVED` / `REJECTED`), LLM only explains.
 - [x] **Task intents:** `build`, `improve`, `substitute`, `cut`. Upgrading or swapping cards on an existing list is valid; a full 99 is only required when the user asks to build a complete deck.
+- [x] **99-card cap:** the committed list cannot exceed 99. Extra Architect picks go to `candidate_pool` for a later fill/cut, not into the deck.
 
 ### Epic 4: Interface and Usability (Local Deploy)
 

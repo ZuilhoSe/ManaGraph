@@ -144,6 +144,31 @@ class Stage1Tests(unittest.TestCase):
         )
         self.assertFalse(proposal_has_work({"notes": "looks fine"}))
 
+    def test_add_never_exceeds_99_overflow_goes_to_pool(self):
+        deck = DeckState(commander="Krenko, Mob Boss")
+        deck.apply_delta({"add": [{"name": "Mountain", "quantity": 120}]})
+        self.assertEqual(deck.slot_count(), 99)
+        self.assertEqual(deck.cards["Mountain"], 99)
+        self.assertEqual(deck.candidate_pool["Mountain"], 21)
+        self.assertEqual(deck.last_delta["overflow_to_pool"][0]["quantity"], 21)
+
+    def test_remaining_slots_limit_new_uniques(self):
+        deck = DeckState(commander="Krenko, Mob Boss", cards={"Mountain": 97})
+        deck.apply_delta(
+            {
+                "add": [
+                    {"name": "Sol Ring", "quantity": 1},
+                    {"name": "Lightning Bolt", "quantity": 1},
+                    {"name": "Test Swarm", "quantity": 1},
+                ]
+            }
+        )
+        self.assertEqual(deck.slot_count(), 99)
+        self.assertIn("Sol Ring", deck.cards)
+        self.assertIn("Lightning Bolt", deck.cards)
+        self.assertNotIn("Test Swarm", deck.cards)
+        self.assertEqual(deck.candidate_pool.get("Test Swarm"), 1)
+
     def test_color_identity_and_singleton(self):
         report = self.validator.validate_deck(
             "Krenko, Mob Boss",

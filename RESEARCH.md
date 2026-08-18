@@ -163,6 +163,7 @@ Also freeze a **data snapshot** (Scryfall bulk date, **price snapshot**, embeddi
 - [x] Tools return **JSON**, not prose; Supervisor is a **deterministic gate** (valid / invalid + reason), with the LLM only explaining
 - [x] Architect proposes **deltas** (add / remove / **substitute**), Inventory applies them, Supervisor checks invariants
 - [x] Task intents: `build`, `improve`, `substitute`, `cut`. A swap or upgrade is a complete job; do not require a new 99 unless the user asked to build a full deck
+- [x] Hard cap: committed main deck never exceeds 99. Architect overflow goes to `candidate_pool` for later fill/cut, not into the 99
 
 Without this, Epic 4 (Streamlit) will freeze a toy. Next: Stage 2 fill/cut.
 
@@ -170,9 +171,9 @@ Without this, Epic 4 (Streamlit) will freeze a toy. Next: Stage 2 fill/cut.
 
 This is the Epic 5 “cut algorithm,” but it should ship **before** TDA.
 
-**Fill:** from a commander + intent, retrieve a candidate pool *P* (|*P*| ≈ 150–300), then select 99 by beam search or ILP (PuLP/OR-Tools) with hard constraints (including *P*<sub>max</sub> and *B*) and a linear synergy score.
+**Fill:** from a commander + intent, retrieve a candidate pool *P* (|*P*| ≈ 150–300), merge with `DeckState.candidate_pool` (Architect overflow, never part of the 99), then select 99 by beam search or ILP (PuLP/OR-Tools) with hard constraints (including *P*<sub>max</sub> and *B*) and a linear synergy score.
 
-**Cut:** given ~110 names, drop extras by redundancy (embedding nearest-neighbor density) + curve penalty + role quotas (ramp, draw, interaction, wincon, lands). If over budget, cut the worst synergy-per-dollar (or the most redundant expensive card) until ∑ *p*<sub>c</sub> ≤ *B*.
+**Cut:** given the 99 plus pool extras, drop the worst by redundancy (embedding nearest-neighbor density) + curve penalty + role quotas. If over budget, cut the worst synergy-per-dollar (or the most redundant expensive card) until ∑ *p*<sub>c</sub> ≤ *B*. The committed list stays ≤ 99 at every step.
 
 Baselines (none of these is “match EDHREC”):
 
