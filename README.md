@@ -7,7 +7,7 @@ O objetivo desta fase é criar a infraestrutura local para ler as cartas e as re
 - [x] **Integração com Scryfall:** Script para baixar e processar o *Bulk Data* (JSON) do Scryfall, extraindo `Oracle Text`, `Mana Value`, `Color Identity` e `Legalities`.
 - [x] **Parser de Inventário:** Criar o módulo que lê a coleção pessoal (arquivos `.csv` do ManaBox/Moxfield).
 - [x] **Banco de Dados Relacional:** Implementar SQLite (ou DuckDB) para rastrear o estado da coleção (quais cartas estão livres, quais estão alocadas em decks).
-- [ ] **Validador de Regras Base:** Funções determinísticas em Python para checar identidade de cor de comandantes e restrição de Singleton.
+- [x] **Validador de Regras Base:** Funções determinísticas em Python para checar identidade de cor de comandantes e restrição de Singleton.
 
 ### 📍 Épico 2: Pipeline RAG e Espaço Vetorial (Embeddings)
 Aqui, o sistema ganha a capacidade de entender as cartas semanticamente, indo além da busca por palavras-chave.
