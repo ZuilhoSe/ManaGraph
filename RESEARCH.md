@@ -186,15 +186,16 @@ Baselines (none of these is “match EDHREC”):
 
 ### Stage 3 — Embeddings worth publishing (parallel with Stage 2)
 
-Current index concatenates name, type, and oracle text into MiniLM. Next:
+**Status: v1 in code.** MiniLM documents unchanged; the solver now scores **commander↔card cosine** from the existing index (not query-to-name distance). Hybrid search can filter identity **at query time** once metadata is stamped.
 
-- **Metadata in the index** (cmc, type, keywords) so hybrid search is filter-at-query, not “fetch 50 then hope”
-- **Multi-view embeddings**: oracle text, type line, keyword vector — fuse or concatenate
-- **Geometry graph**: kNN in embedding space (this is what the solver may use)
-- **Observation graph**: optional EDHREC/Moxfield co-occurrence, stored separately for novelty diagnostics — do not add co-occurrence edges into the fill score
-- Keep the strategy pattern; add one stronger encoder (e.g. E5/BGE) as a second condition in the ablation
+- [x] **Metadata in the index** (cmc, color-identity bits, is_creature) — `python src/vectorize_cards.py --metadata-only`
+- [x] **Geometry score**: fill/cut use cosine(commander embedding, card embedding) when Chroma is loaded; Jaccard is the fallback
+- [x] **kNN helper** (`geometry.knn_indices`) for later TDA / redundancy
+- [ ] **Multi-view embeddings**: encode oracle / type / name separately, then fuse
+- [ ] **Observation graph**: optional EDHREC/Moxfield co-occurrence, stored separately — do not add into the fill score
+- [ ] Stronger encoder (E5/BGE) as a second ablation condition
 
-Claim: *domain structure in embedding geometry predicts synergy and redundancy better than generic STS embeddings, and surfaces clusters the play-data graph under-represents.* That is an embeddings paper even if the agent is still simple.
+Current index still concatenates name + type + oracle into MiniLM. Next: fuse views without using the commander *name* as a retrieval query.
 
 ### Stage 4 — Topology as a solver prior (signature section)
 
@@ -257,4 +258,4 @@ Deliverables:
 
 That milestone is both a better product and the skeleton of a CoG/NeSy paper. TDA and epidemiology plug in without rewriting the agents.
 
-**Default path:** Stage 2 greedy fill/cut is in the graph. Next is **Stage 3 embeddings** (multi-view + metadata in the index) so the solver can score with geometry instead of token overlap, then Stage 4 TDA.
+**Default path:** Stage 2 greedy fill/cut is in the graph. Stage 3 v1 is metadata-at-query + commander↔card cosine. Next is **multi-view fusion**, then Stage 4 TDA.

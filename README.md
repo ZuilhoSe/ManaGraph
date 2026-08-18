@@ -48,6 +48,12 @@ The core intelligence. Agents get tools to interact with the data layer from the
 - [x] **Cut:** drop over-budget / over-99 cards; swap weak 99 slots for better pool cards using text synergy, role quotas, and redundancy. Committed list stays ≤ 99.
 - [x] **Graph node:** Architect → Inventory → **Solver** → Supervisor.
 
+### Epic 3.7: Geometry score (Stage 3 v1)
+
+- [x] **Identity filter at query:** color bits on Chroma metadata (`--metadata-only`).
+- [x] **Fill synergy:** cosine between commander and card embeddings when the index is loaded; tribal gate still blocks off-type creatures.
+- [ ] **Multi-view MiniLM** (oracle / type / name fused) and a second encoder for ablation.
+
 ### Epic 4: Interface and Usability (Local Deploy)
 
 Make the system usable without running everything from a terminal while physically assembling decks.
@@ -78,6 +84,7 @@ Stretch goals for denser mathematical deckbuilding.
   - `catalog.py`: Oracle lookups, schema migration, acquisition cost, mana curve.
   - `deck_state.py`: First-class Commander deck object and JSON delta apply.
   - `roles.py`: Heuristic card roles (land, ramp, draw, interaction, threat).
+  - `geometry.py`: Cosine, identity `where` clauses, kNN in embedding space.
   - `solver.py`: Greedy fill/cut under symbolic constraints.
   - `import_inventory.py`: Load a physical card collection.
   - `inventory.py`: Check availability and move cards between the free pool and decks.
@@ -116,12 +123,15 @@ pip install -r requirements.txt
 ```bash
 python src/scryfall_download.py
 python src/vectorize_cards.py
+python src/vectorize_cards.py --metadata-only
 ```
 
-4. **Tests** (validator, deltas, fill/cut; no API key):
+`--metadata-only` stamps color-identity bits on an existing Chroma index (no MiniLM). Needed once after upgrading, so hybrid search can filter identity at query time.
+
+4. **Tests** (validator, deltas, fill/cut, geometry; no API key):
 
 ```bash
-python -m unittest tests.test_stage1 tests.test_stage2
+python -m unittest tests.test_stage1 tests.test_stage2 tests.test_stage3
 ```
 
 5. **Run the multi-agent loop** (JSON delta → inventory → fill/cut → symbolic supervisor):

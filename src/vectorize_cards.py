@@ -4,6 +4,7 @@ Default is incremental: cards whose document text already matches Chroma are
 skipped. Full upsert of 38k into an existing HNSW index is the slow path.
 
   python src/vectorize_cards.py              # only changed cards
+  python src/vectorize_cards.py --metadata-only
   python src/vectorize_cards.py --rebuild    # drop collection and encode all
 """
 
@@ -16,6 +17,7 @@ import time
 
 import chromadb
 from embeddings import MiniLMStrategy, _device
+from geometry import chroma_metadata
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(SCRIPT_DIR)
@@ -58,7 +60,7 @@ def generate_embeddings(rebuild: bool = False, batch_size: int = 256, encode_bat
     print("Reading cards from the local SQLite database...")
     conn = sqlite3.connect(DB_NAME)
     cards = conn.execute(
-        "SELECT id, name, type_line, oracle_text, color_identity FROM cards "
+        "SELECT id, name, type_line, oracle_text, color_identity, cmc FROM cards "
         "WHERE type_line NOT LIKE '%Basic Land%'"
     ).fetchall()
     conn.close()
@@ -66,7 +68,7 @@ def generate_embeddings(rebuild: bool = False, batch_size: int = 256, encode_bat
 
     ids = [row[0] for row in cards]
     documents = [_document(row[1], row[2], row[3]) for row in cards]
-    metadatas = [{"name": row[1], "color_identity": row[4]} for row in cards]
+    metadatas = [chroma_metadata(row[1], row[4], row[5], row[2]) for row in cards]
 
     skip = set()
     if not rebuild:
@@ -96,6 +98,8 @@ def generate_embeddings(rebuild: bool = False, batch_size: int = 256, encode_bat
 
     if not pending_ids:
         print("Nothing to embed.")
+        if not rebuild:
+            stamp_chroma_metadata(collection, cards, metadatas, ids)
         return
 
     print(f"Encoding {len(pending_docs)} texts (batch_size={encode_batch})...")
@@ -122,7 +126,31 @@ def generate_embeddings(rebuild: bool = False, batch_size: int = 256, encode_bat
         done = min(i + batch_size, len(pending_ids))
         print(f"Wrote {done} / {len(pending_ids)}")
     print(f"Chroma write done in {time.perf_counter() - t1:.1f}s.")
+    stamp_chroma_metadata(collection, cards, metadatas, ids)
     print("Vectorization complete.")
+
+
+def stamp_chroma_metadata(collection, cards, metadatas, ids, batch_size: int = 500):
+    """Write cmc / color bits onto existing vectors without re-encoding."""
+    print("Stamping Chroma metadata (no re-encode)...")
+    t0 = time.perf_counter()
+    written = 0
+    for i in range(0, len(ids), batch_size):
+        chunk_ids = ids[i : i + batch_size]
+        chunk_meta = metadatas[i : i + batch_size]
+        got = collection.get(ids=chunk_ids)
+        have = set(got["ids"])
+        keep_ids = []
+        keep_meta = []
+        for card_id, meta in zip(chunk_ids, chunk_meta):
+            if card_id in have:
+                keep_ids.append(card_id)
+                keep_meta.append(meta)
+        if keep_ids:
+            collection.update(ids=keep_ids, metadatas=keep_meta)
+            written += len(keep_ids)
+        print(f"  metadata {min(i + batch_size, len(ids))} / {len(ids)}")
+    print(f"Updated metadata on {written} cards ({time.perf_counter() - t0:.1f}s).")
 
 
 def main():
@@ -132,6 +160,11 @@ def main():
         action="store_true",
         help="Drop the collection and encode every card (use after changing the model).",
     )
+    parser.add_argument(
+        "--metadata-only",
+        action="store_true",
+        help="Update Chroma metadata (identity bits, cmc) without encoding.",
+    )
     parser.add_argument("--batch-size", type=int, default=256, help="Chroma upsert batch size.")
     parser.add_argument(
         "--encode-batch",
@@ -140,11 +173,28 @@ def main():
         help="SentenceTransformer encode batch size (CPU: 32-64, GPU: 128-256).",
     )
     args = parser.parse_args()
+    if args.metadata_only:
+        stamp_metadata_only()
+        return
     generate_embeddings(
         rebuild=args.rebuild,
         batch_size=args.batch_size,
         encode_batch=args.encode_batch,
     )
+
+
+def stamp_metadata_only():
+    chroma_client = chromadb.PersistentClient(path=CHROMA_DIR)
+    collection = chroma_client.get_collection(name=COLLECTION)
+    conn = sqlite3.connect(DB_NAME)
+    cards = conn.execute(
+        "SELECT id, name, type_line, oracle_text, color_identity, cmc FROM cards "
+        "WHERE type_line NOT LIKE '%Basic Land%'"
+    ).fetchall()
+    conn.close()
+    ids = [row[0] for row in cards]
+    metadatas = [chroma_metadata(row[1], row[4], row[5], row[2]) for row in cards]
+    stamp_chroma_metadata(collection, cards, metadatas, ids)
 
 
 if __name__ == "__main__":

@@ -67,6 +67,12 @@ def _seed(path):
                  oracle="Add three mana of any one color.", usd=8.0, cmc=5)
     _insert_card(conn, "draw", "Goblin Recruiter", "Creature — Goblin", ["R"],
                  oracle="Search your library for any number of Goblin cards.", usd=0.4, cmc=2)
+    _insert_card(
+        conn, "kumano", "Kumano Faces Kakkazan // Etching of Kumano",
+        "Enchantment — Saga // Enchantment Creature — Human Shaman", ["R"],
+        oracle="This Saga deals 1 damage to each opponent. Exile this Saga, then return it transformed.",
+        usd=0.22, cmc=1,
+    )
     conn.execute(
         "INSERT INTO inventory VALUES (?, ?, ?)",
         ("Sol Ring", 1, json.dumps({"free_pool": 1})),
@@ -163,6 +169,36 @@ class Stage2Tests(unittest.TestCase):
         ok, reason = self.solver.can_add(deck, "Counterspell")
         self.assertFalse(ok)
         self.assertIn("identity", reason)
+
+    def test_off_tribe_creature_does_not_fill(self):
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            candidate_pool={
+                "Kumano Faces Kakkazan // Etching of Kumano": 1,
+                "Goblin Recruiter": 1,
+                "Mountain": 99,
+            },
+        )
+        self.solver.fill(deck, query="goblin tokens damage", retrieve=False, max_adds=2)
+        self.assertIn("Goblin Recruiter", deck.cards)
+        self.assertNotIn("Kumano Faces Kakkazan // Etching of Kumano", deck.cards)
+
+    def test_chroma_distance_does_not_fake_synergy(self):
+        deck = DeckState(commander="Krenko, Mob Boss", identity=["R"])
+        self.solver._rebuild_context(deck, "goblin tokens damage")
+        kumano = self.solver._info("Kumano Faces Kakkazan // Etching of Kumano")
+        kumano["_distance"] = 0.2
+        goblin = self.solver.score_candidate(deck, "Goblin Recruiter", "goblin tokens damage")
+        fake = self.solver.score_candidate(
+            deck, "Kumano Faces Kakkazan // Etching of Kumano", "goblin tokens damage"
+        )
+        br = self.solver.score_breakdown(
+            deck, "Kumano Faces Kakkazan // Etching of Kumano", "goblin tokens damage"
+        )
+        self.assertFalse(br["theme_match"])
+        self.assertLess(br["synergy"], br["chroma_synergy"])
+        self.assertGreater(goblin, fake)
 
 
 if __name__ == "__main__":
