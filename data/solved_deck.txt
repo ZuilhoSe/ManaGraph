@@ -1,66 +1,68 @@
 1 Krenko, Mob Boss
-35 Mountain
+33 Mountain
 1 Adder-Staff Boggart
 1 Aladdin's Lamp
 1 All-Fates Scroll
 1 Battle Cry Goblin
 1 Battle-Scarred Goblin
 1 Bazaar of Baghdad
+1 Blasphemous Act
 1 Brightstone Ritual
-1 Courageous Goblin
-1 Crazed Goblin
+1 Capital City
 1 Cryptic Caves
 1 Defiant Ogre
-1 Empty the Warrens
+1 Doubling Cube
+1 Echoing Deeps
+1 Elder Auntie
+1 Fellwar Stone
 1 Gempalm Incinerator
-1 Geosurge
-1 Glittering Stockpile
 1 Goblin Artillery
-1 Goblin Assailant
 1 Goblin Brawler
-1 Goblin Bully
-1 Goblin Chainwhirler
-1 Goblin Chariot
+1 Goblin Brigand
+1 Goblin Burrows
+1 Goblin Chieftain
 1 Goblin Cohort
-1 Goblin Gathering
+1 Goblin Fireslinger
+1 Goblin Gang Leader
+1 Goblin General
 1 Goblin Glory Chaser
 1 Goblin Goliath
 1 Goblin Instigator
 1 Goblin Lackey
 1 Goblin Masons
 1 Goblin Matron
+1 Goblin Picker
 1 Goblin Piledriver
+1 Goblin Rabblemaster
 1 Goblin Rally
 1 Goblin Researcher
 1 Goblin Soothsayer
-1 Goblin Spelunkers
 1 Goblin Spymaster
 1 Goblin Trashmaster
-1 Goblin War Party
 1 Goblin Warchief
-1 Goblin Wardriver
 1 Guild Globe
-1 Horizon of Progress
 1 Howlsquad Heavy
 1 Ib Halfheart, Goblin Tactician
+1 Illuminated Folio
+1 Jandor's Ring
 1 Jodah's Codex
-1 Krenko's Command
 1 Krenko's Enforcer
+1 Lightning Bolt
 1 Lowland Oaf
 1 Mind's Eye
 1 Misty Mountains Raider
-1 Mogg Fanatic
 1 Mogg Infestation
 1 Mogg War Marshal
 1 Moggcatcher
-1 Mudbutton Clanger
 1 Pashalik Mons
 1 Patchwork Banner
 1 Relic Robber
+1 Rummaging Goblin
+1 Scroll of Origins
 1 Scrying Glass
 1 Searslicer Goblin
+1 Siege-Gang Commander
 1 Sol Ring
+1 Spinning Wheel
 1 Swarming Goblins
-1 Tooth and Claw
 1 Volley Veteran
-1 You See a Pair of Goblins

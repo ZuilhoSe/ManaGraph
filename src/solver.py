@@ -10,7 +10,7 @@ from catalog import (
     get_oracle_card,
 )
 from deck_state import MAIN_DECK_SIZE, DeckState
-from geometry import cosine
+from geometry import cosine, load_card_views, multi_view_cosine
 from inventory import get_card as get_inventory_card
 from roles import ROLE_QUOTAS, classify_roles, role_counts, role_need_bonus
 from rules_validator import (
@@ -92,6 +92,8 @@ class DeckSolver:
         self._owned: dict[str, int] = {}
         self._ctx: dict | None = None
         self._emb: dict[str, object] = {}
+        self._views: dict[str, dict] = {}
+        self._view_store: dict | None | bool = False  # False = not loaded yet
 
     def _info(self, name: str | None) -> dict | None:
         if not name:
@@ -361,17 +363,52 @@ class DeckSolver:
                 got = self.searcher.collection.get(ids=chunk, include=["embeddings"])
             except Exception:
                 return
-            for card_id, vec in zip(got.get("ids") or [], got.get("embeddings") or []):
+            ids_got = got.get("ids")
+            embs = got.get("embeddings")
+            if ids_got is None or embs is None:
+                continue
+            for card_id, vec in zip(ids_got, embs):
                 if vec is not None:
                     self._emb[card_id] = vec
 
+    def _ensure_view_store(self) -> dict | None:
+        if self._view_store is False:
+            self._view_store = load_card_views()
+        return self._view_store or None
+
+    def _view_pair(self, card_id: str | None) -> dict | None:
+        if not card_id:
+            return None
+        if card_id in self._views:
+            return self._views[card_id]
+        store = self._ensure_view_store()
+        if not store:
+            return None
+        idx = store["index"].get(card_id)
+        if idx is None:
+            return None
+        return {"oracle": store["oracle"][idx], "type": store["type"][idx]}
+
     def _geometry_cos(self, info: dict | None) -> float | None:
         cmd = (self._ctx or {}).get("cmd") or {}
-        a = self._emb.get(cmd.get("id") or "")
-        b = self._emb.get((info or {}).get("id") or "")
+        cmd_id = cmd.get("id") or ""
+        card_id = (info or {}).get("id") or ""
+        cv, tv = self._view_pair(cmd_id), self._view_pair(card_id)
+        if cv and tv:
+            return multi_view_cosine(cv, tv)
+        a = self._emb.get(cmd_id)
+        b = self._emb.get(card_id)
         if a is None or b is None:
             return None
         return cosine(a, b)
+
+    def _view_cosines(self, info: dict | None) -> tuple[float | None, float | None]:
+        cmd = (self._ctx or {}).get("cmd") or {}
+        cv = self._view_pair(cmd.get("id") or "")
+        tv = self._view_pair((info or {}).get("id") or "")
+        if not cv or not tv:
+            return None, None
+        return cosine(cv["oracle"], tv["oracle"]), cosine(cv["type"], tv["type"])
 
     def _theme_match(self, info: dict) -> bool:
         """True if the card shares or names a commander creature type (Goblin, not 'creature')."""
@@ -422,6 +459,7 @@ class DeckSolver:
             chroma_synergy = 1.0 / (1.0 + float(distance))
         theme = self._theme_match(info)
         geometry = self._geometry_cos(info)
+        geo_oracle, geo_type = self._view_cosines(info)
         # Retrieval distance is recall. Synergy is commander↔card cosine when
         # the index is loaded; otherwise Jaccard. Chroma query-distance may
         # rerank only after a tribe/text gate (name-query false friends).
@@ -474,6 +512,8 @@ class DeckSolver:
             "chroma_query": info.get("_distance_query"),
             "chroma_synergy": chroma_synergy,
             "geometry": geometry,
+            "geometry_oracle": geo_oracle,
+            "geometry_type": geo_type,
             "theme_match": theme,
             "synergy": synergy,
             "role_bonuses": role_bonuses,
@@ -524,6 +564,12 @@ class DeckSolver:
             "geometry": None
             if parts.get("geometry") is None
             else round(parts["geometry"], 4),
+            "geometry_oracle": None
+            if parts.get("geometry_oracle") is None
+            else round(parts["geometry_oracle"], 4),
+            "geometry_type": None
+            if parts.get("geometry_type") is None
+            else round(parts["geometry_type"], 4),
             "theme_match": parts["theme_match"],
             "synergy": round(parts["synergy"], 4),
             "role_bonuses": parts["role_bonuses"],

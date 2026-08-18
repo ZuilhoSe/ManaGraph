@@ -191,11 +191,11 @@ Baselines (none of these is “match EDHREC”):
 - [x] **Metadata in the index** (cmc, color-identity bits, is_creature) — `python src/vectorize_cards.py --metadata-only`
 - [x] **Geometry score**: fill/cut use cosine(commander embedding, card embedding) when Chroma is loaded; Jaccard is the fallback
 - [x] **kNN helper** (`geometry.knn_indices`) for later TDA / redundancy
-- [ ] **Multi-view embeddings**: encode oracle / type / name separately, then fuse
+- [x] **Multi-view score** (no encode at fill): oracle 0.7 + type line 0.3 from `data/card_views.npz`. Name is not a view. Build once with `python src/vectorize_cards.py --views-only`.
 - [ ] **Observation graph**: optional EDHREC/Moxfield co-occurrence, stored separately — do not add into the fill score
 - [ ] Stronger encoder (E5/BGE) as a second ablation condition
 
-Current index still concatenates name + type + oracle into MiniLM. Next: fuse views without using the commander *name* as a retrieval query.
+Retrieval still uses the concatenated MiniLM index. Scoring encodes oracle and type separately for commander + candidates. Next: optional fused index or E5 ablation, then Stage 4 TDA.
 
 ### Stage 4 — Topology as a solver prior (signature section)
 
@@ -258,4 +258,4 @@ Deliverables:
 
 That milestone is both a better product and the skeleton of a CoG/NeSy paper. TDA and epidemiology plug in without rewriting the agents.
 
-**Default path:** Stage 2 greedy fill/cut is in the graph. Stage 3 v1 is metadata-at-query + commander↔card cosine. Next is **multi-view fusion**, then Stage 4 TDA.
+**Default path:** Stage 3 scores with multi-view cosine on the candidate pool. Next is Stage 4 TDA (kNN already exists) or an E5 ablation — not Streamlit.

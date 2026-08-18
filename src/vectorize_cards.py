@@ -5,7 +5,8 @@ skipped. Full upsert of 38k into an existing HNSW index is the slow path.
 
   python src/vectorize_cards.py              # only changed cards
   python src/vectorize_cards.py --metadata-only
-  python src/vectorize_cards.py --rebuild    # drop collection and encode all
+  python src/vectorize_cards.py --views-only   # oracle+type vectors once, for scoring
+  python src/vectorize_cards.py --rebuild
 """
 
 from __future__ import annotations
@@ -17,7 +18,7 @@ import time
 
 import chromadb
 from embeddings import MiniLMStrategy, _device
-from geometry import chroma_metadata
+from geometry import VIEWS_PATH, chroma_metadata, save_card_views, view_texts
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(SCRIPT_DIR)
@@ -165,6 +166,11 @@ def main():
         action="store_true",
         help="Update Chroma metadata (identity bits, cmc) without encoding.",
     )
+    parser.add_argument(
+        "--views-only",
+        action="store_true",
+        help="Encode oracle and type views once into data/card_views.npz (no Chroma write).",
+    )
     parser.add_argument("--batch-size", type=int, default=256, help="Chroma upsert batch size.")
     parser.add_argument(
         "--encode-batch",
@@ -175,6 +181,9 @@ def main():
     args = parser.parse_args()
     if args.metadata_only:
         stamp_metadata_only()
+        return
+    if args.views_only:
+        generate_card_views(encode_batch=args.encode_batch)
         return
     generate_embeddings(
         rebuild=args.rebuild,
@@ -195,6 +204,36 @@ def stamp_metadata_only():
     ids = [row[0] for row in cards]
     metadatas = [chroma_metadata(row[1], row[4], row[5], row[2]) for row in cards]
     stamp_chroma_metadata(collection, cards, metadatas, ids)
+
+
+def generate_card_views(encode_batch: int = 64):
+    """One-shot MiniLM encode of oracle and type; solver only does lookup after this."""
+    device = _device()
+    print(f"Embedding device: {device}")
+    print("Encoding oracle + type views (once)...")
+    model = MiniLMStrategy().get_function()._model
+    conn = sqlite3.connect(DB_NAME)
+    cards = conn.execute(
+        "SELECT id, name, type_line, oracle_text FROM cards "
+        "WHERE type_line NOT LIKE '%Basic Land%'"
+    ).fetchall()
+    conn.close()
+    ids = [row[0] for row in cards]
+    oracles = []
+    types = []
+    for _card_id, _name, type_line, oracle_text in cards:
+        parts = view_texts({"type_line": type_line, "oracle_text": oracle_text})
+        oracles.append(parts["oracle"])
+        types.append(parts["type"])
+    t0 = time.perf_counter()
+    oracle_vecs = model.encode(
+        oracles, batch_size=encode_batch, convert_to_numpy=True, show_progress_bar=True
+    )
+    type_vecs = model.encode(
+        types, batch_size=encode_batch, convert_to_numpy=True, show_progress_bar=True
+    )
+    save_card_views(ids, oracle_vecs, type_vecs)
+    print(f"Wrote {len(ids)} view pairs to {VIEWS_PATH} ({time.perf_counter() - t0:.1f}s).")
 
 
 if __name__ == "__main__":

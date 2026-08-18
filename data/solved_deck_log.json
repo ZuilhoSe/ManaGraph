@@ -6,318 +6,318 @@
     "ok": true,
     "added": [
       {
-        "name": "Crazed Goblin",
-        "score": 5.1418,
-        "source": "greedy"
-      },
-      {
-        "name": "Swarming Goblins",
-        "score": 4.9009,
-        "source": "greedy"
-      },
-      {
-        "name": "Moggcatcher",
-        "score": 4.8753,
-        "source": "greedy"
-      },
-      {
-        "name": "Courageous Goblin",
-        "score": 4.8423,
-        "source": "greedy"
-      },
-      {
-        "name": "Volley Veteran",
-        "score": 4.7889,
-        "source": "greedy"
-      },
-      {
-        "name": "Adder-Staff Boggart",
-        "score": 4.7582,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Cohort",
-        "score": 4.7579,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Researcher",
-        "score": 4.7263,
-        "source": "greedy"
-      },
-      {
-        "name": "Misty Mountains Raider",
-        "score": 4.7241,
-        "source": "greedy"
-      },
-      {
-        "name": "Relic Robber",
-        "score": 4.6838,
-        "source": "greedy"
-      },
-      {
-        "name": "Mogg War Marshal",
-        "score": 4.676,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Spelunkers",
-        "score": 4.6744,
-        "source": "greedy"
-      },
-      {
-        "name": "Battle-Scarred Goblin",
-        "score": 4.621,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Masons",
-        "score": 4.6141,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Glory Chaser",
-        "score": 4.5597,
-        "source": "greedy"
-      },
-      {
-        "name": "Gempalm Incinerator",
-        "score": 4.5431,
-        "source": "greedy"
-      },
-      {
-        "name": "Defiant Ogre",
-        "score": 4.5227,
-        "source": "greedy"
-      },
-      {
-        "name": "Pashalik Mons",
-        "score": 4.5062,
-        "source": "greedy"
-      },
-      {
-        "name": "Howlsquad Heavy",
-        "score": 4.49,
-        "source": "greedy"
-      },
-      {
-        "name": "All-Fates Scroll",
-        "score": 3.6998,
-        "source": "greedy"
-      },
-      {
-        "name": "Brightstone Ritual",
-        "score": 3.6729,
-        "source": "greedy"
-      },
-      {
-        "name": "Patchwork Banner",
-        "score": 3.5282,
-        "source": "greedy"
-      },
-      {
-        "name": "Glittering Stockpile",
-        "score": 3.2736,
-        "source": "greedy"
-      },
-      {
-        "name": "Mudbutton Clanger",
-        "score": 2.5612,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Warchief",
-        "score": 2.5291,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Assailant",
-        "score": 2.4969,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Wardriver",
-        "score": 2.4776,
-        "source": "greedy"
-      },
-      {
-        "name": "Jodah's Codex",
-        "score": 2.477,
-        "source": "greedy"
-      },
-      {
-        "name": "Krenko's Enforcer",
-        "score": 2.4756,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Chariot",
-        "score": 2.4316,
-        "source": "greedy"
-      },
-      {
-        "name": "Searslicer Goblin",
-        "score": 2.4115,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Brawler",
-        "score": 2.4098,
-        "source": "greedy"
-      },
-      {
-        "name": "Scrying Glass",
-        "score": 2.3841,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Soothsayer",
-        "score": 2.3816,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Trashmaster",
-        "score": 2.372,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Lackey",
-        "score": 2.3653,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Goliath",
-        "score": 2.3622,
-        "source": "greedy"
-      },
-      {
-        "name": "Lowland Oaf",
-        "score": 2.3605,
-        "source": "greedy"
-      },
-      {
-        "name": "Aladdin's Lamp",
-        "score": 2.3597,
-        "source": "greedy"
-      },
-      {
-        "name": "Horizon of Progress",
-        "score": 2.3468,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Artillery",
-        "score": 2.3456,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Instigator",
-        "score": 2.342,
-        "source": "greedy"
-      },
-      {
-        "name": "Bazaar of Baghdad",
-        "score": 2.33,
+        "name": "Goblin Gang Leader",
+        "score": 5.12,
         "source": "greedy"
       },
       {
         "name": "Battle Cry Goblin",
-        "score": 2.3281,
+        "score": 4.7384,
         "source": "greedy"
       },
       {
-        "name": "Geosurge",
-        "score": 2.3077,
+        "name": "Goblin Goliath",
+        "score": 4.6144,
         "source": "greedy"
       },
       {
-        "name": "Mind's Eye",
-        "score": 2.2723,
+        "name": "Mogg War Marshal",
+        "score": 4.6033,
         "source": "greedy"
       },
       {
-        "name": "Goblin Chainwhirler",
-        "score": 2.2574,
+        "name": "Misty Mountains Raider",
+        "score": 4.5404,
         "source": "greedy"
       },
       {
-        "name": "Cryptic Caves",
-        "score": 2.2484,
+        "name": "Goblin Trashmaster",
+        "score": 4.5283,
         "source": "greedy"
       },
       {
-        "name": "Goblin Spymaster",
-        "score": 2.2473,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Bully",
-        "score": 2.2233,
+        "name": "Moggcatcher",
+        "score": 4.4696,
         "source": "greedy"
       },
       {
         "name": "Goblin Piledriver",
-        "score": 2.2132,
+        "score": 4.4566,
         "source": "greedy"
       },
       {
-        "name": "Guild Globe",
-        "score": 2.2069,
+        "name": "Volley Veteran",
+        "score": 4.4483,
         "source": "greedy"
       },
       {
-        "name": "Goblin Matron",
-        "score": 2.2027,
+        "name": "Searslicer Goblin",
+        "score": 4.4454,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Soothsayer",
+        "score": 4.4362,
         "source": "greedy"
       },
       {
         "name": "Ib Halfheart, Goblin Tactician",
-        "score": 2.1111,
+        "score": 4.4335,
         "source": "greedy"
       },
       {
-        "name": "Mogg Fanatic",
-        "score": 2.1085,
+        "name": "Relic Robber",
+        "score": 4.3635,
         "source": "greedy"
       },
       {
-        "name": "Goblin Gathering",
-        "score": 1.1375,
+        "name": "Gempalm Incinerator",
+        "score": 4.3631,
         "source": "greedy"
       },
       {
-        "name": "You See a Pair of Goblins",
-        "score": 1.1071,
+        "name": "Howlsquad Heavy",
+        "score": 4.3267,
+        "source": "greedy"
+      },
+      {
+        "name": "Siege-Gang Commander",
+        "score": 4.3238,
+        "source": "greedy"
+      },
+      {
+        "name": "Pashalik Mons",
+        "score": 4.2101,
+        "source": "greedy"
+      },
+      {
+        "name": "Rummaging Goblin",
+        "score": 4.2005,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Picker",
+        "score": 3.4489,
+        "source": "greedy"
+      },
+      {
+        "name": "Brightstone Ritual",
+        "score": 3.2879,
+        "source": "greedy"
+      },
+      {
+        "name": "All-Fates Scroll",
+        "score": 3.1683,
+        "source": "greedy"
+      },
+      {
+        "name": "Scrying Glass",
+        "score": 3.0808,
+        "source": "greedy"
+      },
+      {
+        "name": "Aladdin's Lamp",
+        "score": 3.0436,
+        "source": "greedy"
+      },
+      {
+        "name": "Jodah's Codex",
+        "score": 3.0197,
+        "source": "greedy"
+      },
+      {
+        "name": "Patchwork Banner",
+        "score": 2.9593,
+        "source": "greedy"
+      },
+      {
+        "name": "Illuminated Folio",
+        "score": 2.9295,
+        "source": "greedy"
+      },
+      {
+        "name": "Fellwar Stone",
+        "score": 2.9081,
+        "source": "greedy"
+      },
+      {
+        "name": "Guild Globe",
+        "score": 2.8655,
+        "source": "greedy"
+      },
+      {
+        "name": "Spinning Wheel",
+        "score": 2.7862,
+        "source": "greedy"
+      },
+      {
+        "name": "Swarming Goblins",
+        "score": 2.2872,
+        "source": "greedy"
+      },
+      {
+        "name": "Elder Auntie",
+        "score": 2.2554,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Chieftain",
+        "score": 2.2528,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Spymaster",
+        "score": 2.1856,
+        "source": "greedy"
+      },
+      {
+        "name": "Adder-Staff Boggart",
+        "score": 2.1785,
+        "source": "greedy"
+      },
+      {
+        "name": "Lowland Oaf",
+        "score": 2.1428,
+        "source": "greedy"
+      },
+      {
+        "name": "Krenko's Enforcer",
+        "score": 2.1145,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Warchief",
+        "score": 2.1007,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Rabblemaster",
+        "score": 2.0718,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Lackey",
+        "score": 2.0538,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin General",
+        "score": 2.0176,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Fireslinger",
+        "score": 2.0051,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Instigator",
+        "score": 1.9858,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Researcher",
+        "score": 1.981,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Cohort",
+        "score": 1.9646,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Brawler",
+        "score": 1.9308,
+        "source": "greedy"
+      },
+      {
+        "name": "Defiant Ogre",
+        "score": 1.9143,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Matron",
+        "score": 1.8925,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Glory Chaser",
+        "score": 1.8904,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Brigand",
+        "score": 1.89,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Masons",
+        "score": 1.8649,
+        "source": "greedy"
+      },
+      {
+        "name": "Battle-Scarred Goblin",
+        "score": 1.778,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Artillery",
+        "score": 1.7618,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Burrows",
+        "score": 0.8889,
         "source": "greedy"
       },
       {
         "name": "Mogg Infestation",
-        "score": 0.9795,
+        "score": 0.769,
         "source": "greedy"
       },
       {
-        "name": "Tooth and Claw",
-        "score": 0.9609,
+        "name": "Bazaar of Baghdad",
+        "score": 0.7591,
         "source": "greedy"
       },
       {
-        "name": "Empty the Warrens",
-        "score": 0.8272,
+        "name": "Jandor's Ring",
+        "score": 0.7555,
+        "source": "greedy"
+      },
+      {
+        "name": "Echoing Deeps",
+        "score": 0.7521,
+        "source": "greedy"
+      },
+      {
+        "name": "Scroll of Origins",
+        "score": 0.7311,
+        "source": "greedy"
+      },
+      {
+        "name": "Capital City",
+        "score": 0.7114,
+        "source": "greedy"
+      },
+      {
+        "name": "Cryptic Caves",
+        "score": 0.6838,
+        "source": "greedy"
+      },
+      {
+        "name": "Doubling Cube",
+        "score": 0.6735,
+        "source": "greedy"
+      },
+      {
+        "name": "Mind's Eye",
+        "score": 0.6632,
         "source": "greedy"
       },
       {
         "name": "Goblin Rally",
-        "score": 0.8129,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin War Party",
-        "score": 0.7536,
-        "source": "greedy"
-      },
-      {
-        "name": "Krenko's Command",
-        "score": 0.6386,
+        "score": 0.629,
         "source": "greedy"
       }
     ],
@@ -443,6 +443,14 @@
         "reason": "off-tribe creature"
       },
       {
+        "name": "Maralen of the Mornsong Avatar",
+        "reason": "format not_legal"
+      },
+      {
+        "name": "Your Nightmares Are Delicious",
+        "reason": "format not_legal"
+      },
+      {
         "name": "Behold the Power of Destruction",
         "reason": "format not_legal"
       },
@@ -473,14 +481,6 @@
       {
         "name": "Suncrusher",
         "reason": "off-tribe creature"
-      },
-      {
-        "name": "Ashling, the Extinguisher Avatar",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Stingmoggie",
-        "reason": "off-tribe creature"
       }
     ],
     "slot_count": 99,
@@ -490,7 +490,16 @@
   "cut": {
     "ok": true,
     "removed": [],
-    "swapped": [],
+    "swapped": [
+      {
+        "out": "Mountain",
+        "in": "Blasphemous Act"
+      },
+      {
+        "out": "Mountain",
+        "in": "Lightning Bolt"
+      }
+    ],
     "slot_count": 99,
     "pool_count": 7
   }

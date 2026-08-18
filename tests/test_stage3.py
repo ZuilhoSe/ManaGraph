@@ -91,6 +91,54 @@ class Stage3Tests(unittest.TestCase):
         self.assertEqual(meta["is_creature"], 0)
         self.assertEqual(meta["cmc"], 1.0)
 
+    def test_views_npz_lookup_without_encode(self):
+        from geometry import load_card_views, save_card_views
+
+        tmp = tempfile.NamedTemporaryFile(suffix=".npz", delete=False)
+        tmp.close()
+        try:
+            ids = ["krenko", "warchief"]
+            oracle = np.array([[1.0, 0.0], [0.9, 0.1]], dtype=np.float16)
+            types = np.array([[1.0, 0.0], [0.95, 0.05]], dtype=np.float16)
+            save_card_views(ids, oracle, types, path=tmp.name)
+            store = load_card_views(tmp.name)
+            self.assertEqual(store["index"]["warchief"], 1)
+            self.assertEqual(store["oracle"].shape, (2, 2))
+        finally:
+            os.unlink(tmp.name)
+
+    def test_warm_embeddings_accepts_numpy_from_chroma(self):
+        tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        tmp.close()
+        try:
+            _seed(tmp.name)
+            solver = DeckSolver(tmp.name)
+            solver.searcher = type(
+                "S",
+                (),
+                {
+                    "collection": type(
+                        "C",
+                        (),
+                        {
+                            "get": staticmethod(
+                                lambda **_kw: {
+                                    "ids": np.array(["krenko", "warchief"]),
+                                    "embeddings": np.array(
+                                        [[1.0, 0.0], [0.9, 0.1]], dtype=np.float32
+                                    ),
+                                }
+                            )
+                        },
+                    )()
+                },
+            )()
+            solver._warm_embeddings(["Krenko, Mob Boss", "Goblin Warchief"])
+            self.assertIn("krenko", solver._emb)
+            self.assertEqual(len(solver._emb["krenko"]), 2)
+        finally:
+            os.unlink(tmp.name)
+
     def test_knn_excludes_self(self):
         vecs = np.array([[1.0, 0.0], [0.9, 0.1], [0.0, 1.0]])
         idx = knn_indices(vecs, k=1)
@@ -104,6 +152,7 @@ class Stage3Tests(unittest.TestCase):
         try:
             _seed(tmp.name)
             solver = DeckSolver(tmp.name)
+            solver._view_store = None
             cmd = np.array([1.0, 0.0, 0.0])
             solver._emb = {
                 "krenko": cmd,
@@ -120,6 +169,56 @@ class Stage3Tests(unittest.TestCase):
             self.assertGreater(goblin["synergy"], saga["synergy"])
             self.assertGreater(goblin["geometry"], 0.9)
             self.assertLess(saga["geometry"], 0.2)
+        finally:
+            os.unlink(tmp.name)
+
+    def test_multi_view_cosine_weights_oracle_and_type(self):
+        from geometry import ORACLE_WEIGHT, TYPE_WEIGHT, multi_view_cosine
+
+        cmd = {"oracle": [1.0, 0.0], "type": [1.0, 0.0]}
+        same = {"oracle": [1.0, 0.0], "type": [1.0, 0.0]}
+        type_only = {"oracle": [0.0, 1.0], "type": [1.0, 0.0]}
+        self.assertAlmostEqual(multi_view_cosine(cmd, same), 1.0)
+        mixed = multi_view_cosine(cmd, type_only)
+        self.assertAlmostEqual(mixed, TYPE_WEIGHT)
+        self.assertGreater(ORACLE_WEIGHT, TYPE_WEIGHT)
+
+    def test_multi_view_beats_concat_name_trap(self):
+        tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        tmp.close()
+        try:
+            _seed(tmp.name)
+            solver = DeckSolver(tmp.name)
+            solver._view_store = None
+            solver._views = {
+                "krenko": {
+                    "oracle": np.array([1.0, 0.0]),
+                    "type": np.array([1.0, 0.0]),
+                },
+                "warchief": {
+                    "oracle": np.array([0.9, 0.1]),
+                    "type": np.array([0.95, 0.05]),
+                },
+                "kumano": {
+                    "oracle": np.array([0.2, 0.8]),
+                    "type": np.array([0.0, 1.0]),
+                },
+            }
+            # Concat index still thinks Kumano is close (name trap).
+            solver._emb = {
+                "krenko": np.array([1.0, 0.0]),
+                "warchief": np.array([0.2, 0.8]),
+                "kumano": np.array([0.99, 0.01]),
+            }
+            deck = DeckState(commander="Krenko, Mob Boss", identity=["R"])
+            solver._rebuild_context(deck, "goblin tokens")
+            goblin = solver.score_breakdown(deck, "Goblin Warchief", "goblin tokens")
+            saga = solver.score_breakdown(
+                deck, "Kumano Faces Kakkazan // Etching of Kumano", "goblin tokens"
+            )
+            self.assertGreater(goblin["geometry"], saga["geometry"])
+            self.assertIsNotNone(goblin["geometry_oracle"])
+            self.assertGreater(goblin["geometry_type"], saga["geometry_type"])
         finally:
             os.unlink(tmp.name)
 

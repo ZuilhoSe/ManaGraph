@@ -52,7 +52,8 @@ The core intelligence. Agents get tools to interact with the data layer from the
 
 - [x] **Identity filter at query:** color bits on Chroma metadata (`--metadata-only`).
 - [x] **Fill synergy:** cosine between commander and card embeddings when the index is loaded; tribal gate still blocks off-type creatures.
-- [ ] **Multi-view MiniLM** (oracle / type / name fused) and a second encoder for ablation.
+- [x] **Multi-view score:** oracle 0.7 + type 0.3 from `data/card_views.npz` (built once). Fill does not encode.
+- [ ] Second encoder (E5/BGE) for ablation.
 
 ### Epic 4: Interface and Usability (Local Deploy)
 
@@ -124,6 +125,7 @@ pip install -r requirements.txt
 python src/scryfall_download.py
 python src/vectorize_cards.py
 python src/vectorize_cards.py --metadata-only
+python src/vectorize_cards.py --views-only
 ```
 
 `--metadata-only` stamps color-identity bits on an existing Chroma index (no MiniLM). Needed once after upgrading, so hybrid search can filter identity at query time.
