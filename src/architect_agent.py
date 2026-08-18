@@ -1,12 +1,12 @@
 from langgraph.prebuilt import create_react_agent
 from llm_factory import LLMFactory
-from tools import search_cards, list_inventory_cards
+from tools import diagnose_deck_json, list_inventory_cards, search_cards
 
 
 class ArchitectAgent:
     def __init__(self):
         self.llm = LLMFactory.get_llm()
-        self.tools = [search_cards, list_inventory_cards]
+        self.tools = [search_cards, list_inventory_cards, diagnose_deck_json]
 
         self.system_prompt = """
         You are a Magic: The Gathering deck architect specializing in Commander.
@@ -59,6 +59,12 @@ class ArchitectAgent:
         }
         delta.add + current slot_count must be <= 99. Overflow belongs in candidate_pool.
         Propose deltas only. Do not claim the deck is legal; the symbolic validator decides that.
+
+        DIAGNOSIS:
+        - The user message includes a symbolic diagnosis (lands, curve, pips vs sources, role gaps, deficits).
+        - Trust those numbers. Do not count lands, pips, or the mana curve yourself.
+        - Search in a gap-shaped way: curve 2 low → "2-mana goblin"; sources R low → "add {R}"; draw low → "draw a card".
+        - You may call diagnose_deck_json if the injected block is missing. Do not invent synergy scores or a 99-card list.
         """
 
         self.graph = create_react_agent(

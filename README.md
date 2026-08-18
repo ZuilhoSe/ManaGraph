@@ -48,19 +48,38 @@ The core intelligence. Agents get tools to interact with the data layer from the
 - [x] **Cut:** drop over-budget / over-99 cards; swap weak 99 slots for better pool cards using text synergy, role quotas, and redundancy. Committed list stays ≤ 99.
 - [x] **Graph node:** Architect → Inventory → **Solver** → Supervisor.
 
+### Epic 3.7: Geometry score (Stage 3 v1)
+
+- [x] **Identity filter at query:** color bits on Chroma metadata (`--metadata-only`).
+- [x] **Fill synergy:** cosine between commander and card embeddings when the index is loaded; tribal gate still blocks off-type creatures.
+- [x] **Multi-view score:** oracle 0.7 + type 0.3 from `data/card_views.npz` (built once). Fill does not encode.
+- [x] Keyword + mana-cost views (Stage 3.5e). Rebuild `--views-only` after `scryfall_download` so `keywords` exist.
+- [ ] Second encoder (E5/BGE) for ablation — after Stage 3.5a–d, not before.
+
+### Epic 3.8: Symbolic intelligence (Stage 3.5) — before TDA
+
+Legal 99 is not enough: fill still uses CMC as a single number, a crude curve cap, and substring roles. The Architect searches without a diagnosis. Do this **before** topology. Details: [RESEARCH.md](RESEARCH.md) Stage 3.5.
+
+- [x] **Mana algebra** (`src/mana.py`): parse costs and produced mana; deck pip vs source report. Soft score, not an LLM count.
+- [x] **Plan-aware curve** in fill/cut: `fast` / `mid` / `high` from commander + ramp/cheat density. Soft `shape` term.
+- [x] **Roles from keywords** (Scryfall) plus oracle classes: token producer vs token payoff. Search filters: `cmc_min` / `cmc_max` / `role`.
+- [x] **Tools:** `diagnose_deck_json`, `score_card_json`. Diagnosis is injected into the Architect. `search_cards` accepts `cmc_min` / `cmc_max` / `role`.
+- [x] **Prompts consume `deficits`.** Gap-shaped search queries. The model does not emit a 99 or compute pips.
+- [x] **Embedding views:** keywords + mana-cost string in `card_views.npz` (offline). Rebuild with `python src/vectorize_cards.py --views-only`.
+
 ### Epic 4: Interface and Usability (Local Deploy)
 
-Make the system usable without running everything from a terminal while physically assembling decks.
+After Stage 3.5. Charts display the diagnosis; they do not replace it.
 
 - [ ] **Interactive CLI or Streamlit:** Basic Python UI to chat with the agents.
-- [ ] **Mana curve and stats:** Simple charts (`matplotlib` or native Streamlit) for the deck output.
+- [ ] **Mana curve and stats charts:** Plot the Stage 3.5 report (`matplotlib` or Streamlit).
 - [ ] **Decklist export:** Produce a file ready to import back into Moxfield.
 
 ### Epic 5: Advanced Features (Research and Optimization)
 
-Stretch goals for denser mathematical deckbuilding.
+After Stage 3.5. Topology is a solver prior, not a notebook.
 
-- [ ] **Topological synergy analysis (TDA):** Topological metrics on the embedding space to find isolated "islands" (cards with no synergy) or redundancy.
+- [ ] **Topological synergy analysis (TDA):** Islands and dense clusters **change which 99 cards are picked** (Stage 4).
 - [x] **Cut algorithm (v1 greedy):** Drop worst slots by text redundancy, role quotas, curve, and synergy-per-dollar. TDA-informed cut comes in Stage 4.
 
 ---
@@ -69,15 +88,19 @@ Stretch goals for denser mathematical deckbuilding.
 
 **ManaGraph** is a local Magic: The Gathering deckbuilding and semantic search system, built as a modular data-oriented (RAG) architecture with multi-agent orchestration.
 
+Research stages (do not skip 3.5 for TDA): **1 DeckState → 2 fill/cut → 3 geometry → 3.5 mana/curve/tools/prompts/views → 4 TDA → 5 epidemiology → 6 UI.**
+
 ### Directory Structure
 
-- `data/`: Local stores (`managraph.db` for SQLite inventory and structured rules, `chroma_db/` for the vector index).
+- `data/`: Local stores (`managraph.db`, `chroma_db/`). **Not in git** — GitHub’s 100 MB file limit cannot hold ~38k MiniLM vectors. Rebuild with `scryfall_download.py` then `vectorize_cards.py`.
 - `notebooks/`: Exploratory analysis notebooks (e.g. UMAP + Plotly dimensionality reduction).
 - `src/`: Main source code:
   - `scryfall_download.py`: Import and parse official Scryfall data, including a frozen price snapshot.
   - `catalog.py`: Oracle lookups, schema migration, acquisition cost, mana curve.
   - `deck_state.py`: First-class Commander deck object and JSON delta apply.
   - `roles.py`: Heuristic card roles (land, ramp, draw, interaction, threat).
+  - `mana.py`: *(Stage 3.5)* pip/source algebra and deck mana report.
+  - `geometry.py`: Cosine, identity `where` clauses, kNN in embedding space.
   - `solver.py`: Greedy fill/cut under symbolic constraints.
   - `import_inventory.py`: Load a physical card collection.
   - `inventory.py`: Check availability and move cards between the free pool and decks.
@@ -91,7 +114,7 @@ Stretch goals for denser mathematical deckbuilding.
   - `inventory_agent.py`: Inventory manager agent.
   - `supervisor_agent.py`: Deterministic gate plus optional LLM explanation.
   - `main_agent.py`: LangGraph execution graph and demo entry point.
-- `tests/`: Stage 1–2 unit tests (no LLM, no Chroma).
+- `tests/`: Stage 1–3.5 unit tests (no LLM, no Chroma), including class invariants.
 
 ---
 
@@ -116,12 +139,16 @@ pip install -r requirements.txt
 ```bash
 python src/scryfall_download.py
 python src/vectorize_cards.py
+python src/vectorize_cards.py --metadata-only
+python src/vectorize_cards.py --views-only
 ```
 
-4. **Tests** (validator, deltas, fill/cut; no API key):
+`--metadata-only` stamps color-identity bits on an existing Chroma index (no MiniLM). Needed once after upgrading, so hybrid search can filter identity at query time.
+
+4. **Tests** (validator, deltas, fill/cut, geometry; no API key):
 
 ```bash
-python -m unittest tests.test_stage1 tests.test_stage2
+python -m unittest tests.test_stage1 tests.test_stage2 tests.test_stage3 tests.test_stage35 tests.test_invariants
 ```
 
 5. **Run the multi-agent loop** (JSON delta → inventory → fill/cut → symbolic supervisor):

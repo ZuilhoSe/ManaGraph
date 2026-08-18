@@ -2,7 +2,10 @@ import sqlite3
 import json
 import os
 import chromadb
+from catalog import ensure_schema
 from embeddings import MiniLMStrategy
+from geometry import identity_where
+from roles import SEARCH_ROLES, classify_roles
 
 # Absolute paths so the script works regardless of cwd
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -25,17 +28,50 @@ class RAGSearcher:
         self.conn = sqlite3.connect(DB_NAME)
         self.cursor = self.conn.cursor()
 
-    def search_cards(self, query, allowed_colors, owned_only=False, limit=5, max_card_price=None, currency="usd", n_results=None):
+    def _has_identity_bits(self) -> bool:
+        if getattr(self, "_identity_bits", None) is not None:
+            return self._identity_bits
+        try:
+            peek = self.collection.peek(1)
+        except TypeError:
+            peek = self.collection.peek()
+        metas = peek.get("metadatas") or []
+        self._identity_bits = bool(metas and isinstance(metas[0], dict) and "ci_r" in metas[0])
+        return self._identity_bits
+
+    def search_cards(
+        self,
+        query,
+        allowed_colors,
+        owned_only=False,
+        limit=5,
+        max_card_price=None,
+        currency="usd",
+        n_results=None,
+        cmc_min=None,
+        cmc_max=None,
+        role=None,
+    ):
         print(f"\nSearching for: '{query}'")
-        print(f"Filters -> Colors: {allowed_colors} | Owned only: {owned_only} | P_max: {max_card_price}")
+        print(
+            f"Filters -> Colors: {allowed_colors} | Owned only: {owned_only} | "
+            f"P_max: {max_card_price} | cmc: [{cmc_min}, {cmc_max}] | role: {role}"
+        )
+        role_key = (role or "").strip().lower() or None
+        if role_key and role_key not in SEARCH_ROLES:
+            return []
 
         fetch = n_results if n_results is not None else max(limit * 4, 50)
+        if cmc_min is not None or cmc_max is not None or role_key:
+            fetch = max(fetch, limit * 8)
         fetch = min(max(int(fetch), limit), 400)
 
-        results = self.collection.query(
-            query_texts=[query],
-            n_results=fetch
-        )
+        query_kwargs = {"query_texts": [query], "n_results": fetch}
+        where = identity_where(allowed_colors)
+        if where and self._has_identity_bits():
+            query_kwargs["where"] = where
+
+        results = self.collection.query(**query_kwargs)
 
         found_cards = []
 
@@ -47,6 +83,7 @@ class RAGSearcher:
         allowed_colors_set = set(allowed_colors)
 
         conn = sqlite3.connect(DB_NAME)
+        ensure_schema(conn)
         cursor = conn.cursor()
 
         try:
@@ -59,17 +96,30 @@ class RAGSearcher:
                 if not card_colors.issubset(allowed_colors_set):
                     continue
 
+                cmc = metadatas[i].get("cmc")
+                row = cursor.execute(
+                    "SELECT price_usd, price_eur, type_line, oracle_text, keywords, cmc "
+                    "FROM cards WHERE name = ? COLLATE NOCASE",
+                    (name,),
+                ).fetchone()
+
+                if cmc is None and row is not None:
+                    cmc = row[5]
+                if cmc_min is not None and cmc is not None and float(cmc) < float(cmc_min):
+                    continue
+                if cmc_max is not None and cmc is not None and float(cmc) > float(cmc_max):
+                    continue
+
+                if role_key:
+                    type_line = row[2] if row else ""
+                    oracle_text = row[3] if row else ""
+                    keywords = row[4] if row else []
+                    if role_key not in classify_roles(type_line, oracle_text, keywords):
+                        continue
+
                 price = None
-                try:
-                    col = "price_eur" if currency == "eur" else "price_usd"
-                    row = cursor.execute(
-                        f"SELECT {col} FROM cards WHERE name = ? COLLATE NOCASE",
-                        (name,),
-                    ).fetchone()
-                    if row:
-                        price = row[0]
-                except sqlite3.OperationalError:
-                    price = None
+                if row:
+                    price = row[1] if currency == "eur" else row[0]
 
                 if max_card_price is not None and price is not None and price > max_card_price:
                     continue

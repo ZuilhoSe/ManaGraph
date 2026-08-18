@@ -27,6 +27,9 @@ def search_cards(
     limit: int = 5,
     max_card_price: float | None = None,
     currency: str = "usd",
+    cmc_min: float | None = None,
+    cmc_max: float | None = None,
+    role: str = "",
 ):
     """
     Search Magic: The Gathering cards in the vector index and filter with SQLite.
@@ -39,6 +42,9 @@ def search_cards(
         limit: Maximum number of cards to return.
         max_card_price: Optional per-card price cap in `currency`. Owned copies are still returned.
         currency: usd or eur.
+        cmc_min: Optional inclusive mana-value floor.
+        cmc_max: Optional inclusive mana-value ceiling.
+        role: Optional role class: land, ramp, draw, interaction, threat, token_producer, token_payoff.
     """
     results = _get_searcher().search_cards(
         query=query,
@@ -47,6 +53,9 @@ def search_cards(
         limit=limit,
         max_card_price=max_card_price,
         currency=currency,
+        cmc_min=cmc_min,
+        cmc_max=cmc_max,
+        role=role or None,
     )
     if not results:
         return _json({"ok": True, "cards": [], "message": "No cards found with those criteria."})
@@ -87,6 +96,47 @@ def move_inventory_card(card_name: str, source: str, destination: str, quantity:
     result = move_card(card_name, source, destination, quantity)
     result["ok"] = bool(result.get("ok"))
     return _json(result)
+
+
+@tool
+def diagnose_deck_json(deck_json: str) -> str:
+    """
+    Symbolic deck diagnosis: curve, avg CMC, lands, pips vs sources, role gaps, named deficits.
+    Returns JSON. Does not use an LLM. Trust this over any count you might invent.
+    """
+    from mana import diagnose_deck
+
+    try:
+        data = json.loads(deck_json)
+        if not isinstance(data, dict):
+            return _json({"ok": False, "error": "deck_json must be a JSON object."})
+    except json.JSONDecodeError as exc:
+        return _json({"ok": False, "error": f"Invalid JSON for deck_json: {exc}"})
+
+    report = diagnose_deck(DeckState.from_dict(data))
+    report["ok"] = True
+    return _json(report)
+
+
+@tool
+def score_card_json(deck_json: str, card_name: str, query: str = "") -> str:
+    """
+    Score one candidate against the current deck (geometry, roles, curve/mana shape).
+    Returns JSON from the solver. Not an LLM judgment.
+    """
+    from solver import DeckSolver
+
+    try:
+        data = json.loads(deck_json)
+        if not isinstance(data, dict):
+            return _json({"ok": False, "error": "deck_json must be a JSON object."})
+    except json.JSONDecodeError as exc:
+        return _json({"ok": False, "error": f"Invalid JSON for deck_json: {exc}"})
+
+    deck = DeckState.from_dict(data)
+    breakdown = DeckSolver().score_breakdown(deck, card_name, query=query)
+    breakdown["ok"] = "error" not in breakdown
+    return _json(breakdown)
 
 
 @tool

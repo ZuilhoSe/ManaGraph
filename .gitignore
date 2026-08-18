@@ -17,3 +17,10 @@ __pycache__/
 *.log
 .DS_Store
 Thumbs.db
+
+# Local catalogs (regenerate: scryfall_download.py, vectorize_cards.py)
+data/chroma_db/
+data/managraph.db
+data/*.db
+data/*.sqlite3
+data/card_views.npz

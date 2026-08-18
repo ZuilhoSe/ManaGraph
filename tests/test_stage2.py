@@ -67,6 +67,16 @@ def _seed(path):
                  oracle="Add three mana of any one color.", usd=8.0, cmc=5)
     _insert_card(conn, "draw", "Goblin Recruiter", "Creature — Goblin", ["R"],
                  oracle="Search your library for any number of Goblin cards.", usd=0.4, cmc=2)
+    _insert_card(
+        conn, "kumano", "Kumano Faces Kakkazan // Etching of Kumano",
+        "Enchantment — Saga // Enchantment Creature — Human Shaman", ["R"],
+        oracle="This Saga deals 1 damage to each opponent. Exile this Saga, then return it transformed.",
+        usd=0.22, cmc=1,
+    )
+    _insert_card(
+        conn, "bazaar", "Bazaar of Baghdad", "Land", [],
+        oracle="{T}: Draw two cards, then discard three cards.", usd=0.5, cmc=0,
+    )
     conn.execute(
         "INSERT INTO inventory VALUES (?, ?, ?)",
         ("Sol Ring", 1, json.dumps({"free_pool": 1})),
@@ -95,6 +105,25 @@ class Stage2Tests(unittest.TestCase):
         self.assertIn("ramp", classify_roles("Artifact", "Add {C}{C}."))
         self.assertIn("interaction", classify_roles("Instant", "Lightning Bolt deals 3 damage to any target."))
         self.assertIn("threat", classify_roles("Creature — Goblin", "Create goblin tokens."))
+        self.assertIn("draw", classify_roles("Sorcery", "Draw two cards, then discard two cards."))
+        self.assertNotIn(
+            "draw",
+            classify_roles("Land", "{T}: Draw two cards, then discard three cards."),
+        )
+
+    def test_fill_skips_land_that_makes_no_mana(self):
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            candidate_pool={
+                "Bazaar of Baghdad": 1,
+                "Goblin Recruiter": 1,
+                "Mountain": 99,
+            },
+        )
+        self.solver.fill(deck, query="goblin tokens damage", retrieve=False, max_adds=5)
+        self.assertNotIn("Bazaar of Baghdad", deck.cards)
+        self.assertIn("Goblin Recruiter", deck.cards)
 
     def test_fill_reaches_99_and_not_more(self):
         deck = DeckState(
@@ -163,6 +192,36 @@ class Stage2Tests(unittest.TestCase):
         ok, reason = self.solver.can_add(deck, "Counterspell")
         self.assertFalse(ok)
         self.assertIn("identity", reason)
+
+    def test_off_tribe_creature_does_not_fill(self):
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            candidate_pool={
+                "Kumano Faces Kakkazan // Etching of Kumano": 1,
+                "Goblin Recruiter": 1,
+                "Mountain": 99,
+            },
+        )
+        self.solver.fill(deck, query="goblin tokens damage", retrieve=False, max_adds=2)
+        self.assertIn("Goblin Recruiter", deck.cards)
+        self.assertNotIn("Kumano Faces Kakkazan // Etching of Kumano", deck.cards)
+
+    def test_chroma_distance_does_not_fake_synergy(self):
+        deck = DeckState(commander="Krenko, Mob Boss", identity=["R"])
+        self.solver._rebuild_context(deck, "goblin tokens damage")
+        kumano = self.solver._info("Kumano Faces Kakkazan // Etching of Kumano")
+        kumano["_distance"] = 0.2
+        goblin = self.solver.score_candidate(deck, "Goblin Recruiter", "goblin tokens damage")
+        fake = self.solver.score_candidate(
+            deck, "Kumano Faces Kakkazan // Etching of Kumano", "goblin tokens damage"
+        )
+        br = self.solver.score_breakdown(
+            deck, "Kumano Faces Kakkazan // Etching of Kumano", "goblin tokens damage"
+        )
+        self.assertFalse(br["theme_match"])
+        self.assertLess(br["synergy"], br["chroma_synergy"])
+        self.assertGreater(goblin, fake)
 
 
 if __name__ == "__main__":

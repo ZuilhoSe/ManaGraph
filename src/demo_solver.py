@@ -17,6 +17,7 @@ if SCRIPT_DIR not in sys.path:
 
 from catalog import DB_NAME, get_meta, get_oracle_card
 from deck_state import DeckState
+from mana import diagnose_deck
 from rules_validator import CommanderValidator
 from solver import DeckSolver
 
@@ -150,6 +151,27 @@ def main():
     _print_section("5. Validator (after solver)")
     after = validator.validate_deck_state(deck)
     print(json.dumps(_summarize_validation(after), indent=2))
+    diagnosis = diagnose_deck(deck)
+    print("\nSymbolic diagnosis:")
+    print(
+        json.dumps(
+            {
+                "curve_profile": diagnosis["curve_profile"],
+                "land_count": diagnosis["land_count"],
+                "avg_cmc": diagnosis["avg_cmc"],
+                "avg_cmc_band": diagnosis["avg_cmc_band"],
+                "fast_mana": diagnosis["fast_mana"],
+                "cheat_count": diagnosis["cheat_count"],
+                "curve": diagnosis["curve"],
+                "roles": diagnosis["roles"],
+                "pips": {k: diagnosis["pips"][k] for k in ("R", "generic", "colored")},
+                "sources": {k: diagnosis["sources"][k] for k in ("R", "C", "any")},
+                "pips_per_source": diagnosis["pips_per_source"].get("R"),
+                "deficits": diagnosis["deficits"],
+            },
+            indent=2,
+        )
+    )
     print("\nCommitted list:")
     for name, qty in sorted(deck.card_list().items(), key=lambda kv: (-kv[1], kv[0])):
         print(f"  {qty} {name}")

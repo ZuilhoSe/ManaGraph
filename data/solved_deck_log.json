@@ -6,318 +6,318 @@
     "ok": true,
     "added": [
       {
-        "name": "Crazed Goblin",
-        "score": 4.1418,
+        "name": "Goblin Gang Leader",
+        "score": 6.12,
         "source": "greedy"
       },
       {
-        "name": "Swarming Goblins",
-        "score": 3.9009,
+        "name": "Battle Cry Goblin",
+        "score": 5.7384,
         "source": "greedy"
       },
       {
-        "name": "Moggcatcher",
-        "score": 3.8753,
-        "source": "greedy"
-      },
-      {
-        "name": "Courageous Goblin",
-        "score": 3.8423,
-        "source": "greedy"
-      },
-      {
-        "name": "Salvaged Manaworker",
-        "score": 3.8397,
-        "source": "greedy"
-      },
-      {
-        "name": "Dangerous Wager",
-        "score": 3.8171,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Lyre",
-        "score": 3.8112,
-        "source": "greedy"
-      },
-      {
-        "name": "Adder-Staff Boggart",
-        "score": 3.7582,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Cohort",
-        "score": 3.7579,
-        "source": "greedy"
-      },
-      {
-        "name": "Wizard's Rockets",
-        "score": 3.7429,
-        "source": "greedy"
-      },
-      {
-        "name": "Red Elemental Blast",
-        "score": 3.739,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Researcher",
-        "score": 3.7263,
-        "source": "greedy"
-      },
-      {
-        "name": "Relic Robber",
-        "score": 3.7255,
-        "source": "greedy"
-      },
-      {
-        "name": "Misty Mountains Raider",
-        "score": 3.7241,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Trashmaster",
-        "score": 3.6953,
-        "source": "greedy"
-      },
-      {
-        "name": "Scrying Glass",
-        "score": 3.6861,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Negotiation",
-        "score": 3.6801,
+        "name": "Volley Veteran",
+        "score": 5.6074,
         "source": "greedy"
       },
       {
         "name": "Mogg War Marshal",
-        "score": 3.676,
+        "score": 5.6033,
         "source": "greedy"
       },
       {
-        "name": "Brightstone Ritual",
-        "score": 3.6729,
+        "name": "Moggcatcher",
+        "score": 5.5138,
         "source": "greedy"
       },
       {
-        "name": "Book of Rass",
-        "score": 3.6418,
+        "name": "Goblin Chieftain",
+        "score": 5.5106,
         "source": "greedy"
       },
       {
-        "name": "Goblin Artillery",
-        "score": 3.64,
+        "name": "Goblin Piledriver",
+        "score": 5.4566,
         "source": "greedy"
       },
       {
-        "name": "Decree of Annihilation",
-        "score": 3.6114,
-        "source": "greedy"
-      },
-      {
-        "name": "Jester's Scepter",
-        "score": 3.6073,
-        "source": "greedy"
-      },
-      {
-        "name": "Jeweled Amulet",
-        "score": 3.5946,
-        "source": "greedy"
-      },
-      {
-        "name": "All-Fates Scroll",
-        "score": 3.5792,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Chainwhirler",
-        "score": 3.5771,
-        "source": "greedy"
-      },
-      {
-        "name": "Aladdin's Lamp",
-        "score": 3.5718,
-        "source": "greedy"
-      },
-      {
-        "name": "Geosurge",
-        "score": 3.5356,
-        "source": "greedy"
-      },
-      {
-        "name": "Illuminated Folio",
-        "score": 3.5149,
-        "source": "greedy"
-      },
-      {
-        "name": "Gempalm Incinerator",
-        "score": 3.51,
-        "source": "greedy"
-      },
-      {
-        "name": "Honored Heirloom",
-        "score": 3.5096,
-        "source": "greedy"
-      },
-      {
-        "name": "Howlsquad Heavy",
-        "score": 3.49,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Spelunkers",
-        "score": 1.5744,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Bully",
-        "score": 1.5733,
-        "source": "greedy"
-      },
-      {
-        "name": "Mudbutton Clanger",
-        "score": 1.5612,
-        "source": "greedy"
-      },
-      {
-        "name": "Kumano Faces Kakkazan // Etching of Kumano",
-        "score": 1.5085,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Wardriver",
-        "score": 1.4776,
-        "source": "greedy"
-      },
-      {
-        "name": "Krenko's Enforcer",
-        "score": 1.4756,
-        "source": "greedy"
-      },
-      {
-        "name": "Craterize",
-        "score": 1.4693,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Glory Chaser",
-        "score": 1.4597,
-        "source": "greedy"
-      },
-      {
-        "name": "Despotic Scepter",
-        "score": 1.4519,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Brawler",
-        "score": 1.4487,
-        "source": "greedy"
-      },
-      {
-        "name": "Heavyweight Demolisher",
-        "score": 1.4415,
-        "source": "greedy"
-      },
-      {
-        "name": "Power Depot",
-        "score": 1.4387,
-        "source": "greedy"
-      },
-      {
-        "name": "Plunder",
-        "score": 1.436,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Chariot",
-        "score": 1.4316,
-        "source": "greedy"
-      },
-      {
-        "name": "Agate Assault",
-        "score": 1.4192,
+        "name": "Misty Mountains Raider",
+        "score": 5.5404,
         "source": "greedy"
       },
       {
         "name": "Searslicer Goblin",
-        "score": 1.4115,
-        "source": "greedy"
-      },
-      {
-        "name": "Dramatist's Puppet",
-        "score": 1.4113,
-        "source": "greedy"
-      },
-      {
-        "name": "Bloodcrusher of Khorne",
-        "score": 1.4111,
-        "source": "greedy"
-      },
-      {
-        "name": "Ib Halfheart, Goblin Tactician",
-        "score": 1.4005,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Warchief",
-        "score": 1.3846,
-        "source": "greedy"
-      },
-      {
-        "name": "Goblin Goliath",
-        "score": 1.3827,
+        "score": 5.4454,
         "source": "greedy"
       },
       {
         "name": "Goblin Soothsayer",
-        "score": 1.3816,
+        "score": 5.4362,
         "source": "greedy"
       },
       {
-        "name": "Fomori Nomad",
-        "score": 1.3698,
+        "name": "Ib Halfheart, Goblin Tactician",
+        "score": 5.4335,
         "source": "greedy"
       },
       {
-        "name": "Blasted Landscape",
-        "score": 1.3678,
+        "name": "Swarming Goblins",
+        "score": 5.3872,
+        "source": "greedy"
+      },
+      {
+        "name": "Relic Robber",
+        "score": 5.3635,
+        "source": "greedy"
+      },
+      {
+        "name": "Gempalm Incinerator",
+        "score": 5.3631,
+        "source": "greedy"
+      },
+      {
+        "name": "Howlsquad Heavy",
+        "score": 5.3267,
+        "source": "greedy"
+      },
+      {
+        "name": "Pashalik Mons",
+        "score": 5.2985,
+        "source": "greedy"
+      },
+      {
+        "name": "Rummaging Goblin",
+        "score": 5.2005,
         "source": "greedy"
       },
       {
         "name": "Goblin Lackey",
-        "score": 1.3653,
+        "score": 5.1538,
         "source": "greedy"
       },
       {
-        "name": "Lowland Oaf",
-        "score": 1.3605,
+        "name": "Goblin Goliath",
+        "score": 5.4907,
         "source": "greedy"
       },
       {
-        "name": "Rograkh, Son of Rohgahh",
-        "score": 1.3571,
+        "name": "Goblin Trashmaster",
+        "score": 5.401,
         "source": "greedy"
       },
       {
-        "name": "Goblin Masons",
-        "score": 1.3529,
+        "name": "Brightstone Ritual",
+        "score": 4.6879,
         "source": "greedy"
       },
       {
-        "name": "Krenko, Tin Street Kingpin",
-        "score": 1.3482,
+        "name": "Goblin Picker",
+        "score": 4.4489,
+        "source": "greedy"
+      },
+      {
+        "name": "All-Fates Scroll",
+        "score": 4.1683,
+        "source": "greedy"
+      },
+      {
+        "name": "Scrying Glass",
+        "score": 4.0808,
+        "source": "greedy"
+      },
+      {
+        "name": "Aladdin's Lamp",
+        "score": 4.0436,
+        "source": "greedy"
+      },
+      {
+        "name": "Jodah's Codex",
+        "score": 4.0197,
         "source": "greedy"
       },
       {
         "name": "Patchwork Banner",
-        "score": 1.3471,
+        "score": 3.9593,
+        "source": "greedy"
+      },
+      {
+        "name": "Illuminated Folio",
+        "score": 3.9295,
+        "source": "greedy"
+      },
+      {
+        "name": "Fellwar Stone",
+        "score": 3.9081,
+        "source": "greedy"
+      },
+      {
+        "name": "Guild Globe",
+        "score": 3.8655,
+        "source": "greedy"
+      },
+      {
+        "name": "Geosurge",
+        "score": 3.765,
+        "source": "greedy"
+      },
+      {
+        "name": "Defiant Ogre",
+        "score": 2.9143,
+        "source": "greedy"
+      },
+      {
+        "name": "Elder Auntie",
+        "score": 2.2554,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Spymaster",
+        "score": 2.1856,
+        "source": "greedy"
+      },
+      {
+        "name": "Adder-Staff Boggart",
+        "score": 2.1583,
+        "source": "greedy"
+      },
+      {
+        "name": "Lowland Oaf",
+        "score": 2.1428,
+        "source": "greedy"
+      },
+      {
+        "name": "Krenko's Enforcer",
+        "score": 2.1145,
+        "source": "greedy"
+      },
+      {
+        "name": "Siege-Gang Commander",
+        "score": 2.1127,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Warchief",
+        "score": 2.1007,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Rabblemaster",
+        "score": 2.0718,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin General",
+        "score": 2.0176,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Fireslinger",
+        "score": 2.0051,
         "source": "greedy"
       },
       {
         "name": "Goblin Instigator",
-        "score": 1.342,
+        "score": 1.9858,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Researcher",
+        "score": 1.981,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Cohort",
+        "score": 1.9646,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Brawler",
+        "score": 1.9308,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Matron",
+        "score": 1.8925,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Glory Chaser",
+        "score": 1.8904,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Brigand",
+        "score": 1.89,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Masons",
+        "score": 1.8649,
+        "source": "greedy"
+      },
+      {
+        "name": "Battle-Scarred Goblin",
+        "score": 1.778,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Artillery",
+        "score": 1.7618,
+        "source": "greedy"
+      },
+      {
+        "name": "Decree of Annihilation",
+        "score": 1.4861,
+        "source": "greedy"
+      },
+      {
+        "name": "Capital City",
+        "score": 1.1114,
+        "source": "greedy"
+      },
+      {
+        "name": "Cryptic Caves",
+        "score": 1.0838,
+        "source": "greedy"
+      },
+      {
+        "name": "Springleaf Drum",
+        "score": 1.022,
+        "source": "greedy"
+      },
+      {
+        "name": "Mana Cylix",
+        "score": 0.9059,
+        "source": "greedy"
+      },
+      {
+        "name": "Goblin Burrows",
+        "score": 0.8889,
+        "source": "greedy"
+      },
+      {
+        "name": "Mogg Infestation",
+        "score": 0.769,
+        "source": "greedy"
+      },
+      {
+        "name": "Jandor's Ring",
+        "score": 0.7555,
+        "source": "greedy"
+      },
+      {
+        "name": "Scroll of Origins",
+        "score": 0.7311,
+        "source": "greedy"
+      },
+      {
+        "name": "Mind's Eye",
+        "score": 0.6632,
+        "source": "greedy"
+      },
+      {
+        "name": "Doubling Cube",
+        "score": 0.6475,
         "source": "greedy"
       }
     ],
@@ -359,120 +359,40 @@
         "reason": "format not_legal"
       },
       {
-        "name": "Krenko, Baron of Tin Street // Krenko, Baron of Tin Street",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Krang, Dimension X Overlord",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Savanti Romero, Temporal Rogue",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Rat King, the Chaosbringer",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Rocksteady, Rowdy Rhino",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Krang, Utrom Warlord // Krang, Utrom Warlord",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Kros, Defense Contractor // Kros, Defense Contractor",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Shredder, Foot Clan Overlord",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Chrome Dome, Cyber-Ninja",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Zuko, Conflicted // Zuko, Conflicted",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Kosei, Penitent Warlord // Kosei, Penitent Warlord",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Karai, Shadow Warrior",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Bebop, Porcine Punk",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Karona, False God Avatar",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Korlessa, Scale Singer // Korlessa, Scale Singer",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Urza, Prince of Kroog // Urza, Prince of Kroog",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Sakashima the Impostor Avatar",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Queen Kayla bin-Kroog // Queen Kayla bin-Kroog",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Kraven, Proud Predator // Kraven, Proud Predator",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Karumonix, the Rat King // Karumonix, the Rat King",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Sakiko, Mother of Summer // Sakiko, Mother of Summer",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Phabine, Boss's Confidant // Phabine, Boss's Confidant",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Leatherhead, Sewer Gator",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Defense Force Aggressor",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Krang, the All-Powerful // Krang, the All-Powerful",
-        "reason": "format not_legal"
-      },
-      {
-        "name": "Ezrim, Agency Chief // Ezrim, Agency Chief",
-        "reason": "format not_legal"
-      },
-      {
         "name": "Artifact Unknown Shores",
         "reason": "format not_legal"
+      },
+      {
+        "name": "Salvaged Manaworker",
+        "reason": "off-tribe creature"
       },
       {
         "name": "Key to the Archive",
         "reason": "format not_legal"
       },
       {
+        "name": "Mystic Skull // Mystic Monstrosity",
+        "reason": "off-tribe creature"
+      },
+      {
+        "name": "Manakin",
+        "reason": "off-tribe creature"
+      },
+      {
+        "name": "Prismite",
+        "reason": "off-tribe creature"
+      },
+      {
+        "name": "Alloy Myr",
+        "reason": "off-tribe creature"
+      },
+      {
         "name": "Your Mana Rock",
         "reason": "format not_legal"
+      },
+      {
+        "name": "Marut",
+        "reason": "off-tribe creature"
       },
       {
         "name": "Manakin and Millikin",
@@ -480,6 +400,86 @@
       },
       {
         "name": "Card Draw",
+        "reason": "format not_legal"
+      },
+      {
+        "name": "Gerrard",
+        "reason": "format not_legal"
+      },
+      {
+        "name": "Library of Alexandria",
+        "reason": "format banned"
+      },
+      {
+        "name": "Look at Us, We're R&D // Look at Us, We're R&D (cont'd)",
+        "reason": "format not_legal"
+      },
+      {
+        "name": "Bazaar of Baghdad",
+        "reason": "land produces no mana"
+      },
+      {
+        "name": "Embrace My Diabolical Vision",
+        "reason": "format not_legal"
+      },
+      {
+        "name": "The Harvester",
+        "reason": "format not_legal"
+      },
+      {
+        "name": "Starke",
+        "reason": "format not_legal"
+      },
+      {
+        "name": "Your Plans Mean Nothing",
+        "reason": "format not_legal"
+      },
+      {
+        "name": "Vampire Wedding Planner // Vampire Wedding Planner (cont'd)",
+        "reason": "format not_legal"
+      },
+      {
+        "name": "Double-Faced Substitute Card",
+        "reason": "format not_legal"
+      },
+      {
+        "name": "Merchant of the Vale // Haggle",
+        "reason": "off-tribe creature"
+      },
+      {
+        "name": "Maralen of the Mornsong Avatar",
+        "reason": "format not_legal"
+      },
+      {
+        "name": "Your Nightmares Are Delicious",
+        "reason": "format not_legal"
+      },
+      {
+        "name": "Behold the Power of Destruction",
+        "reason": "format not_legal"
+      },
+      {
+        "name": "Poison Counter",
+        "reason": "format not_legal"
+      },
+      {
+        "name": "Dramatist's Puppet",
+        "reason": "off-tribe creature"
+      },
+      {
+        "name": "Murderous Redcap Avatar",
+        "reason": "format not_legal"
+      },
+      {
+        "name": "Synth Eradicator",
+        "reason": "off-tribe creature"
+      },
+      {
+        "name": "Myr Scrapling",
+        "reason": "off-tribe creature"
+      },
+      {
+        "name": "Arms Depot",
         "reason": "format not_legal"
       }
     ],
