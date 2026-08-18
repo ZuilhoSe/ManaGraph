@@ -3,6 +3,7 @@ import json
 import os
 import chromadb
 from chromadb.utils import embedding_functions
+from embeddings import MiniLMStrategy
 
 # ==== CONFIGURAÇÃO DE CAMINHOS ABSOLUTOS ====
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -16,7 +17,8 @@ class RAGSearcher:
     def __init__(self):
         print("Carregando o modelo de linguagem e conectando aos bancos...")
         # Usa exatamente o mesmo modelo que usamos para vetorizar
-        self.emb_fn = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
+        self.emb_fn = MiniLMStrategy().get_function()        
+        self.chroma_client = chromadb.PersistentClient(path=CHROMA_DIR)
         self.chroma_client = chromadb.PersistentClient(path=CHROMA_DIR)
         
         # Puxamos a coleção que você acabou de criar
