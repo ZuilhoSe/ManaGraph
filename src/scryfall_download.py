@@ -3,10 +3,16 @@ import sqlite3
 import urllib.request
 import urllib.error
 import gzip
+import os
 
-# Endpoint que lista todas as opções de Bulk Data
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+BASE_DIR = os.path.dirname(SCRIPT_DIR)
+
+DB_NAME = os.path.join(BASE_DIR, "managraph.db")
+
 SCRYFALL_BULK_ALL_URL = "https://api.scryfall.com/bulk-data"
-DB_NAME = "data/managraph.db"
 
 def download_and_process_scryfall():
     print("Consultando a API do Scryfall para localizar o catálogo de dados...")
