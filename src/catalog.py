@@ -22,6 +22,26 @@ def parse_price(value):
         return None
 
 
+def oracle_text_from_scryfall(card: dict) -> str:
+    """Oracle cards store DFC/split text on card_faces, not top-level oracle_text."""
+    text = (card.get("oracle_text") or "").strip()
+    if text:
+        return text
+    faces = card.get("card_faces") or []
+    parts = [(face.get("oracle_text") or "").strip() for face in faces]
+    return "\n\n".join(part for part in parts if part)
+
+
+def mana_cost_from_scryfall(card: dict) -> str:
+    cost = card.get("mana_cost")
+    if cost:
+        return cost
+    faces = card.get("card_faces") or []
+    if not faces:
+        return ""
+    return faces[0].get("mana_cost") or ""
+
+
 def ensure_schema(conn: sqlite3.Connection):
     conn.execute(
         """

@@ -8,7 +8,7 @@ import unittest
 SRC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src")
 sys.path.insert(0, SRC_DIR)
 
-from catalog import ensure_schema
+from catalog import ensure_schema, mana_cost_from_scryfall, oracle_text_from_scryfall
 from deck_state import DeckState, extract_json, infer_intent, infer_task, proposal_has_work
 from rules_validator import CommanderValidator
 from supervisor_agent import deterministic_gate
@@ -242,6 +242,23 @@ class Stage1Tests(unittest.TestCase):
             owned_only=True,
         )
         self.assertTrue(report["owned_errors"])
+
+    def test_scryfall_flattens_dfc_faces(self):
+        card = {
+            "oracle_text": "",
+            "mana_cost": "",
+            "card_faces": [
+                {
+                    "mana_cost": "{R}",
+                    "oracle_text": "I — Kumano Faces Kakkazan deals 1 damage.",
+                },
+                {"oracle_text": "+1/+1 counters. Whenever this deals combat damage, exile the top card."},
+            ],
+        }
+        text = oracle_text_from_scryfall(card)
+        self.assertIn("deals 1 damage", text)
+        self.assertIn("+1/+1", text)
+        self.assertEqual(mana_cost_from_scryfall(card), "{R}")
 
     def test_split_card_lookup(self):
         info = self.validator.get_card_info("Fire")

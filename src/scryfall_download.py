@@ -5,7 +5,15 @@ import urllib.error
 import gzip
 import os
 
-from catalog import DB_NAME, DATA_DIR, ensure_schema, parse_price, stamp_price_snapshot
+from catalog import (
+    DB_NAME,
+    DATA_DIR,
+    ensure_schema,
+    mana_cost_from_scryfall,
+    oracle_text_from_scryfall,
+    parse_price,
+    stamp_price_snapshot,
+)
 
 os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -66,9 +74,9 @@ def download_and_process_scryfall():
                         (
                             card.get("id"),
                             card.get("name"),
-                            card.get("mana_cost", ""),
+                            mana_cost_from_scryfall(card),
                             card.get("cmc", 0.0),
-                            card.get("oracle_text", ""),
+                            oracle_text_from_scryfall(card),
                             json.dumps(card.get("color_identity", [])),
                             card.get("type_line", ""),
                             json.dumps(card.get("legalities", {})),
