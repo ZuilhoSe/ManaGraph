@@ -4,10 +4,12 @@ import re
 import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-
 BASE_DIR = os.path.dirname(SCRIPT_DIR)
+DATA_DIR = os.path.join(BASE_DIR, "data")
 
-DB_NAME = os.path.join(BASE_DIR, "managraph.db")
+os.makedirs(DATA_DIR, exist_ok=True)
+
+DB_NAME = os.path.join(DATA_DIR, "managraph.db")
 
 def init_db():
     conn = sqlite3.connect(DB_NAME)

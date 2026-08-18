@@ -5,14 +5,15 @@ import urllib.error
 import gzip
 import os
 
-
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-
 BASE_DIR = os.path.dirname(SCRIPT_DIR)
+DATA_DIR = os.path.join(BASE_DIR, "data")
 
-DB_NAME = os.path.join(BASE_DIR, "managraph.db")
+os.makedirs(DATA_DIR, exist_ok=True)
 
-SCRYFALL_BULK_ALL_URL = "https://api.scryfall.com/bulk-data"
+DB_NAME = os.path.join(DATA_DIR, "managraph.db")
+
+SCRYFALL_BULK_ALL_URL = "https://api.scryfall.com/bulk-data"    
 
 def download_and_process_scryfall():
     print("Consultando a API do Scryfall para localizar o catálogo de dados...")
