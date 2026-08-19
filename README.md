@@ -92,9 +92,10 @@ Research stages (do not skip 3.5 for TDA): **1 DeckState → 2 fill/cut → 3 ge
 
 ### Directory Structure
 
-- `data/`: Local stores (`managraph.db`, `chroma_db/`). **Not in git** — GitHub’s 100 MB file limit cannot hold ~38k MiniLM vectors. Rebuild with `scryfall_download.py` then `vectorize_cards.py`.
+- `data/`: Local stores (`managraph.db`, `chroma_db/`, `card_views.npz`). **Not in git** — GitHub’s 100 MB file limit cannot hold ~38k MiniLM vectors. Rebuild with `python src/build_dataset.py`.
 - `notebooks/`: Exploratory analysis notebooks (e.g. UMAP + Plotly dimensionality reduction).
 - `src/`: Main source code:
+  - `build_dataset.py`: One-shot catalog + Chroma + metadata + multi-view embeddings.
   - `scryfall_download.py`: Import and parse official Scryfall data, including a frozen price snapshot.
   - `catalog.py`: Oracle lookups, schema migration, acquisition cost, mana curve.
   - `deck_state.py`: First-class Commander deck object and JSON delta apply.
@@ -134,16 +135,19 @@ GOOGLE_API_KEY=your_key_here
 pip install -r requirements.txt
 ```
 
-3. **Catalog + prices** (needed once, and again when you want a new price snapshot):
+3. **Build the dataset** (needed once, and again when you want a new price snapshot or embeddings):
 
 ```bash
-python src/scryfall_download.py
-python src/vectorize_cards.py
-python src/vectorize_cards.py --metadata-only
-python src/vectorize_cards.py --views-only
+python src/build_dataset.py
 ```
 
-`--metadata-only` stamps color-identity bits on an existing Chroma index (no MiniLM). Needed once after upgrading, so hybrid search can filter identity at query time.
+This runs, in order: Scryfall download → Chroma oracle index → metadata stamp (color-identity bits, cmc) → multi-view file `data/card_views.npz` (oracle, type, keywords, mana) → test inventory if the collection is empty.
+
+MiniLM encoding uses **CUDA** when PyTorch sees a GPU (batch size 256). If `torch.cuda.is_available()` is false, it falls back to CPU and prints a warning.
+
+Useful flags: `--rebuild` (drop and re-encode Chroma), `--skip-download` (reuse SQLite), `--skip-views`, `--skip-inventory`.
+
+The individual scripts still work if you only need one step (`scryfall_download.py`, `vectorize_cards.py`, `vectorize_cards.py --views-only`).
 
 4. **Tests** (validator, deltas, fill/cut, geometry; no API key):
 

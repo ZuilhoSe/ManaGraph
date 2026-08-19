@@ -3,9 +3,11 @@
 Default is incremental: cards whose document text already matches Chroma are
 skipped. Full upsert of 38k into an existing HNSW index is the slow path.
 
+Prefer the full pipeline: python src/build_dataset.py
+
   python src/vectorize_cards.py              # only changed cards
   python src/vectorize_cards.py --metadata-only
-  python src/vectorize_cards.py --views-only   # oracle+type vectors once, for scoring
+  python src/vectorize_cards.py --views-only   # oracle+type+keywords+mana, for scoring
   python src/vectorize_cards.py --rebuild
 """
 
@@ -17,7 +19,13 @@ import sqlite3
 import time
 
 import chromadb
-from embeddings import MiniLMStrategy, _device
+from embeddings import (
+    MiniLMStrategy,
+    default_encode_batch,
+    describe_embedding_device,
+    encode_texts,
+    place_model_on_device,
+)
 from geometry import VIEWS_PATH, chroma_metadata, save_card_views, view_texts
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -34,13 +42,18 @@ def _document(name, type_line, oracle_text) -> str:
     return f"{name} - {type_line}. Effect: {oracle_text}"
 
 
-def generate_embeddings(rebuild: bool = False, batch_size: int = 256, encode_batch: int = 64):
-    device = _device()
-    print(f"Embedding device: {device}")
+def generate_embeddings(
+    rebuild: bool = False, batch_size: int = 256, encode_batch: int | None = None
+):
+    if encode_batch is None:
+        encode_batch = default_encode_batch()
+    print(f"Embedding device: {describe_embedding_device()}")
+    print(f"Encode batch size: {encode_batch}")
     print("Initializing the embedding provider...")
     strategy = MiniLMStrategy()
     embedding_provider = strategy.get_function()
     model = embedding_provider._model
+    place_model_on_device(model)
 
     print(f"Connecting to ChromaDB at: {CHROMA_DIR}")
     chroma_client = chromadb.PersistentClient(path=CHROMA_DIR)
@@ -103,14 +116,13 @@ def generate_embeddings(rebuild: bool = False, batch_size: int = 256, encode_bat
             stamp_chroma_metadata(collection, cards, metadatas, ids)
         return
 
-    print(f"Encoding {len(pending_docs)} texts (batch_size={encode_batch})...")
+    print(f"Encoding {len(pending_docs)} texts on {describe_embedding_device()} (batch_size={encode_batch})...")
     t0 = time.perf_counter()
-    vectors = model.encode(
+    vectors = encode_texts(
+        model,
         pending_docs,
         batch_size=encode_batch,
-        convert_to_numpy=True,
-        normalize_embeddings=embedding_provider.normalize_embeddings,
-        show_progress_bar=True,
+        normalize=embedding_provider.normalize_embeddings,
     )
     print(f"Encode done in {time.perf_counter() - t0:.1f}s. Writing to Chroma...")
 
@@ -175,8 +187,8 @@ def main():
     parser.add_argument(
         "--encode-batch",
         type=int,
-        default=64,
-        help="SentenceTransformer encode batch size (CPU: 32-64, GPU: 128-256).",
+        default=None,
+        help="SentenceTransformer encode batch size (default: 256 on CUDA, 64 on CPU).",
     )
     args = parser.parse_args()
     if args.metadata_only:
@@ -206,12 +218,15 @@ def stamp_metadata_only():
     stamp_chroma_metadata(collection, cards, metadatas, ids)
 
 
-def generate_card_views(encode_batch: int = 64):
+def generate_card_views(encode_batch: int | None = None):
     """One-shot MiniLM encode of oracle, type, keywords, mana cost; fill only looks up ids."""
-    device = _device()
-    print(f"Embedding device: {device}")
+    if encode_batch is None:
+        encode_batch = default_encode_batch()
+    print(f"Embedding device: {describe_embedding_device()}")
+    print(f"Encode batch size: {encode_batch}")
     print("Encoding oracle + type + keywords + mana views (once)...")
     model = MiniLMStrategy().get_function()._model
+    place_model_on_device(model)
     conn = sqlite3.connect(DB_NAME)
     cols = {row[1] for row in conn.execute("PRAGMA table_info(cards)")}
     kw_sql = "keywords" if "keywords" in cols else "NULL"
@@ -236,9 +251,7 @@ def generate_card_views(encode_batch: int = 64):
     t0 = time.perf_counter()
     n = len(ids)
     blob = texts["oracle"] + texts["type"] + texts["keywords"] + texts["mana"]
-    encoded = model.encode(
-        blob, batch_size=encode_batch, convert_to_numpy=True, show_progress_bar=True
-    )
+    encoded = encode_texts(model, blob, batch_size=encode_batch, normalize=False)
     save_card_views(
         ids,
         encoded[0:n],

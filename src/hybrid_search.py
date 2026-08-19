@@ -3,7 +3,7 @@ import json
 import os
 import chromadb
 from catalog import ensure_schema
-from embeddings import MiniLMStrategy
+from embeddings import MiniLMStrategy, describe_embedding_device, place_model_on_device
 from geometry import identity_where
 from roles import SEARCH_ROLES, classify_roles
 
@@ -17,8 +17,9 @@ CHROMA_DIR = os.path.join(DATA_DIR, "chroma_db")
 
 class RAGSearcher:
     def __init__(self):
-        print("Loading the embedding model and connecting to the databases...")
+        print(f"Loading the embedding model on {describe_embedding_device()}...")
         self.emb_fn = MiniLMStrategy().get_function()
+        place_model_on_device(self.emb_fn._model)
         self.chroma_client = chromadb.PersistentClient(path=CHROMA_DIR)
 
         self.collection = self.chroma_client.get_collection(
