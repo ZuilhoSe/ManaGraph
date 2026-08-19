@@ -197,7 +197,8 @@ class Stage35Tests(unittest.TestCase):
         self.assertEqual(report["land_count"], 2)
         self.assertEqual(report["pips"]["R"], 3)
         self.assertEqual(report["sources"]["R"], 2)
-        self.assertTrue(any(d.startswith("lands:") for d in report["deficits"]))
+        self.assertEqual(report["land_alert"]["status"], "low")
+        self.assertTrue(any(d.startswith("LAND") for d in report["deficits"]))
         self.assertTrue(any("sources R" in d for d in report["deficits"]))
         self.assertFalse(any(d.startswith("curve") for d in report["deficits"]))
 

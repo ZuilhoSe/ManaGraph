@@ -107,6 +107,43 @@ CURVE_TARGETS = CURVE_PROFILES["mid"]["targets"]
 AVG_CMC_BAND = CURVE_PROFILES["mid"]["avg"]
 PIP_PER_SOURCE_WARN = 2.0
 MIN_SOURCES = {1: 14, 2: 10, 3: 7, 4: 6, 5: 5}
+# Land count off-quota, as a fraction of the breached bound: <15% mild, 15-40% moderate, >40% severe.
+LAND_SEVERITY_BANDS = (0.15, 0.40)
+LAND_SEVERITY_SCALE = {"none": 0.0, "mild": 1.0, "moderate": 1.8, "severe": 3.0}
+
+
+def land_alert(land_count: int) -> dict:
+    """How far the land count sits outside ROLE_QUOTAS['land'], with a severity tier.
+
+    One flat string among a dozen deficits reads the same for 39 lands and 67 lands.
+    This gives a dedicated, magnitude-aware signal so both the solver bias and the
+    human-facing warning can react proportionally instead of just "in range or not".
+    """
+    low, high = ROLE_QUOTAS["land"]
+    if land_count < low:
+        status, delta, bound = "low", low - land_count, low
+    elif land_count > high:
+        status, delta, bound = "high", land_count - high, high
+    else:
+        return {
+            "status": "ok",
+            "count": land_count,
+            "quota": [low, high],
+            "delta": 0,
+            "pct": 0.0,
+            "severity": "none",
+        }
+    pct = delta / bound
+    mild, moderate = LAND_SEVERITY_BANDS
+    severity = "severe" if pct >= moderate else "moderate" if pct >= mild else "mild"
+    return {
+        "status": status,
+        "count": land_count,
+        "quota": [low, high],
+        "delta": delta,
+        "pct": round(pct, 3),
+        "severity": severity,
+    }
 
 
 def cmc_bucket(cmc: float) -> str:
@@ -385,10 +422,13 @@ def diagnose(
 
     deficits: list[str] = []
     land_low, land_high = ROLE_QUOTAS["land"]
-    if land_count < land_low:
-        deficits.append(f"lands: {land_count} < {land_low}")
-    elif land_count > land_high:
-        deficits.append(f"lands: {land_count} > {land_high}")
+    alert = land_alert(land_count)
+    if alert["status"] != "ok":
+        direction = "too few" if alert["status"] == "low" else "too many"
+        deficits.append(
+            f"LAND {alert['severity'].upper()}: {land_count} lands is {direction} by "
+            f"{alert['delta']} vs quota {land_low}-{land_high} ({alert['pct'] * 100:.0f}% off)"
+        )
 
     curve_gaps = []
     if nonlands >= 8:
@@ -452,6 +492,7 @@ def diagnose(
         "min_sources": min_src,
         "roles": roles,
         "role_gaps": role_gaps,
+        "land_alert": alert,
         "deficits": deficits,
         "remaining_slots": remaining_slots,
         "slot_count": slot_count,
@@ -507,12 +548,14 @@ def shape_bonus(info: dict, report: dict | None, identity: list[str] | None = No
     prod = produced_mana(tl, ot, cost)
     land_count = int(report.get("land_count") or 0)
     land_low, land_high = ROLE_QUOTAS["land"]
+    alert = report.get("land_alert") or land_alert(land_count)
+    severity_scale = LAND_SEVERITY_SCALE.get(alert.get("severity"), 1.0)
 
     if is_land_card(tl):
-        if land_count < land_low:
-            land_bonus = 0.8
-        elif land_count >= land_high:
-            land_bonus = -1.5
+        if alert["status"] == "low":
+            land_bonus = 0.8 * severity_scale
+        elif alert["status"] == "high":
+            land_bonus = -1.5 * severity_scale
         needed = False
         min_src = int(report.get("min_sources") or min_sources_for(identity))
         sources = report.get("sources") or {}

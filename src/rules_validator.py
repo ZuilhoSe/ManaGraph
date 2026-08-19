@@ -4,6 +4,7 @@ import os
 from catalog import card_unit_price, enrich_deck, get_oracle_card
 from deck_state import MAIN_DECK_SIZE, DeckState
 from inventory import get_card as get_inventory_card
+from mana import land_alert
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(SCRIPT_DIR)
@@ -94,6 +95,15 @@ class CommanderValidator:
         owned_violations = []
         price_violations = []
         warnings = []
+
+        alert = land_alert(enrichment["land_count"])
+        if alert["severity"] in ("moderate", "severe"):
+            direction = "too few" if alert["status"] == "low" else "too many"
+            low, high = alert["quota"]
+            warnings.append(
+                f"Land count {alert['count']} is {direction} lands: off the {low}-{high} quota by "
+                f"{alert['delta']} ({alert['pct'] * 100:.0f}%, {alert['severity']})."
+            )
 
         for name, qty in deck.card_list().items():
             card_info = self.get_card_info(name)
@@ -187,6 +197,7 @@ class CommanderValidator:
             "currency": deck.currency,
             "curve": enrichment["curve"],
             "land_count": enrichment["land_count"],
+            "land_alert": alert,
             "commander_errors": commander_errors,
             "color_errors": color_violations,
             "singleton_errors": singleton_violations,
