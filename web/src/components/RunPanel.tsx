@@ -41,11 +41,18 @@ export default function RunPanel({ events, status, errorMessage }: RunPanelProps
   const errorNode = errorEvent?.node ? (NODE_LABEL[errorEvent.node] ?? errorEvent.node) : undefined
 
   function copyLog() {
-    const text = visible
+    const lines = errorEvent
+      ? [...visible, errorEvent]
+      : visible
+    const text = lines
       .map((e) => {
         const elapsed = e.ts !== undefined && startTs !== undefined ? `+${formatElapsed(e.ts - startTs)} ` : ''
         if (e.type === 'node_start') return `${elapsed}▶ ${NODE_LABEL[e.node as RunNode] ?? e.node} started`
         if (e.type === 'node') return `${elapsed}[${NODE_LABEL[e.node as RunNode] ?? e.node}]\n${e.text}`
+        if (e.type === 'error') {
+          const node = e.node ? `${NODE_LABEL[e.node] ?? e.node} failed: ` : ''
+          return `${elapsed}${node}${e.message}`
+        }
         return `${elapsed}${e.text}`
       })
       .join('\n')
@@ -152,13 +159,36 @@ export default function RunPanel({ events, status, errorMessage }: RunPanelProps
   )
 }
 
+function buildDecklistText(deck: Record<string, unknown> | undefined): string {
+  if (!deck) return ''
+  const commander = (deck.commander as string) || ''
+  const cards = (deck.cards as Record<string, number>) || {}
+  const sortedCards = Object.entries(cards)
+    .filter(([, qty]) => qty > 0)
+    .sort(([a], [b]) => a.localeCompare(b))
+
+  const sections: string[] = []
+  if (commander) sections.push(`Commander\n1 ${commander}`)
+  if (sortedCards.length > 0) {
+    sections.push(`Deck\n${sortedCards.map(([name, qty]) => `${qty} ${name}`).join('\n')}`)
+  }
+  return sections.join('\n\n')
+}
+
 function RunResult({ events }: { events: DeckRunEvent[] }) {
+  const [copied, setCopied] = useState(false)
   const reversed = [...events].reverse()
   const supervisorDecision = reversed.find((e) => e.supervisor_decision)?.supervisor_decision
   const validation = reversed.find((e) => e.validation)?.validation
   const deck = reversed.find((e) => e.deck)?.deck
   const cards = deck?.cards as Record<string, number> | undefined
   const cardCount = cards ? Object.values(cards).reduce((a, b) => a + b, 0) : undefined
+
+  function copyDecklist() {
+    navigator.clipboard.writeText(buildDecklistText(deck))
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
 
   return (
     <div className="mt-3 rounded-lg border border-surface-700 bg-surface-800/60 p-3 text-sm">
@@ -175,7 +205,18 @@ function RunResult({ events }: { events: DeckRunEvent[] }) {
         </span>
       </div>
       {cardCount !== undefined && (
-        <p className="mt-1 text-xs text-surface-400">{cardCount} cards in the final deck</p>
+        <div className="mt-1 flex items-center justify-between">
+          <p className="text-xs text-surface-400">{cardCount} cards in the final deck</p>
+          {cards && (
+            <button
+              type="button"
+              onClick={copyDecklist}
+              className="shrink-0 rounded-lg border border-surface-600 px-2.5 py-1 text-xs text-surface-300 hover:bg-surface-700"
+            >
+              {copied ? 'Copied!' : 'Copy decklist'}
+            </button>
+          )}
+        </div>
       )}
       {validation?.error && <p className="mt-2 text-xs text-red-400">{validation.error}</p>}
       {validation?.warnings && validation.warnings.length > 0 && (

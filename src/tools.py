@@ -1,3 +1,4 @@
+import contextvars
 import json
 from langchain.tools import tool
 from hybrid_search import RAGSearcher
@@ -6,6 +7,16 @@ from rules_validator import CommanderValidator
 from deck_state import DeckState
 
 _searcher = None
+
+# Fallback for search_cards' owned_only when the model's tool call omits it.
+# Whoever starts a run should call set_deck_owned_only(deck.owned_only) once
+# beforehand; defaults to False (matching DeckState.owned_only's own default)
+# if nobody does, so this is a strict improvement over a hardcoded literal.
+_deck_owned_only: contextvars.ContextVar[bool] = contextvars.ContextVar("deck_owned_only", default=False)
+
+
+def set_deck_owned_only(value: bool) -> None:
+    _deck_owned_only.set(bool(value))
 
 
 def _get_searcher():
@@ -23,7 +34,7 @@ def _json(data) -> str:
 def search_cards(
     query: str,
     colors: list,
-    owned_only: bool = True,
+    owned_only: bool | None = None,
     limit: int = 5,
     max_card_price: float | None = None,
     currency: str = "usd",
@@ -39,6 +50,7 @@ def search_cards(
         query: Semantic description of the card effect.
         colors: Allowed color identity, e.g. ["R", "U"].
         owned_only: True to search only owned cards, False for the full catalog.
+            Leave unset to use the deck's own owned_only setting.
         limit: Maximum number of cards to return.
         max_card_price: Optional per-card price cap in `currency`. Owned copies are still returned.
         currency: usd or eur.
@@ -46,6 +58,8 @@ def search_cards(
         cmc_max: Optional inclusive mana-value ceiling.
         role: Optional role class: land, ramp, draw, interaction, threat, token_producer, token_payoff.
     """
+    if owned_only is None:
+        owned_only = _deck_owned_only.get()
     results = _get_searcher().search_cards(
         query=query,
         allowed_colors=colors,

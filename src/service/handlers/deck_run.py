@@ -20,6 +20,7 @@ from langchain_core.globals import set_debug
 from catalog import DB_NAME
 from main_agent import app as agent_graph, initial_graph_state, to_text
 from scryfall_download import download_and_process_scryfall
+from tools import set_deck_owned_only
 from vectorize_cards import CHROMA_DIR, COLLECTION, generate_embeddings
 
 # Makes LangChain print each tool call / LLM step to stdout as it happens, which
@@ -41,7 +42,7 @@ def _put(q: "queue.Queue", event: dict) -> None:
 class _QueueWriter:
     """A stdout-like object that turns each printed line into a queued log event.
 
-    Two things keep this readable instead of a wall of text:
+    Three things keep this readable instead of a wall of text:
     - Splits on \\r too, not just \\n, so tqdm-style progress bars (e.g. the
       embedding step below) show up as a live-updating stream of lines instead
       of one giant buffered line dumped at the end.
@@ -50,12 +51,27 @@ class _QueueWriter:
       that's exactly "{" or "[" and ends on an unindented "}" / "]" -- the
       header line right before it (e.g. "[llm/end] ... [15.16s] Exiting LLM
       run...") is what actually matters for "is this stuck", so that's kept.
+    - Except: a block following an "[llm/end]" header is parsed instead of
+      dropped, to pull out just the tool call(s) the model made (name + exact
+      args) as a compact "-> search_cards({...})" line. That's the one part of
+      the raw dump worth keeping -- it's what answers "did the agent actually
+      pass owned_only, or did it omit it and fall back to the tool's default".
+    - A "[.../error]" header (LLM/chain/tool failure) is followed not by a
+      bracketed block but by one single, often huge, line: repr(exception)
+      turns the traceback's real newlines into literal backslash-n text, so
+      the brace-based swallow never triggers on it. That one line is dropped
+      outright -- the header already says what failed, and the concise
+      message ends up in the "error" event anyway once the exception
+      propagates out of the stream loop.
     """
 
     def __init__(self, q: "queue.Queue"):
         self._q = q
         self._buffer = ""
         self._swallowing = False
+        self._capturing: list[str] | None = None
+        self._swallow_next_line = False
+        self._last_header = ""
 
     def write(self, text: str) -> int:
         self._buffer += text
@@ -68,15 +84,39 @@ class _QueueWriter:
         return len(text)
 
     def _handle_line(self, line: str) -> None:
+        if self._swallow_next_line:
+            self._swallow_next_line = False
+            return
         if self._swallowing:
+            if self._capturing is not None:
+                self._capturing.append(line)
             if line in ("}", "]"):
                 self._swallowing = False
+                if self._capturing is not None:
+                    self._emit_tool_calls("\n".join(self._capturing))
+                    self._capturing = None
             return
         if line.strip() in ("{", "["):
             self._swallowing = True
+            if "[llm/end]" in self._last_header:
+                self._capturing = [line]
             return
         if line:
             _put(self._q, {"type": "log", "text": line})
+            if "/error]" in line:
+                self._swallow_next_line = True
+        self._last_header = line
+
+    def _emit_tool_calls(self, blob: str) -> None:
+        try:
+            data = json.loads(blob)
+            message = data["generations"][0][0]["message"]["kwargs"]
+        except Exception:
+            return
+        for call in message.get("tool_calls") or []:
+            name = call.get("name", "?")
+            args = json.dumps(call.get("args", {}), default=str)
+            _put(self._q, {"type": "log", "text": f"→ {name}({args})"})
 
     def flush(self) -> None:
         pass
@@ -146,6 +186,10 @@ def _run(query: str, deck: dict | None, q: "queue.Queue") -> None:
         with contextlib.redirect_stdout(writer):
             _ensure_data_ready()
             state = initial_graph_state(query, deck)
+            # owned_only is constant for the whole run (agents don't mutate it),
+            # so setting this once here covers every search_cards call the
+            # Architect makes across every iteration of this run.
+            set_deck_owned_only(state["deck"].get("owned_only", False))
             _put(q, {"type": "start", "deck": state["deck"]})
             # stream_mode=["updates", "debug"]: "debug" adds a "task" event the
             # instant a node starts (before it produces any output), so we know
