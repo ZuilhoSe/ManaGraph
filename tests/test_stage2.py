@@ -234,6 +234,11 @@ class Stage2Tests(unittest.TestCase):
             identity=["R"],
             cards={"Lightning Bolt": 1, "Grizzly Bears": 1, "Mountain": 10},
             candidate_pool={"Sol Ring": 1, "Mountain": 20},
+            # Editing an existing partial list, not a from-scratch build -- intent
+            # must not default to "build" here, or the low land count (10, well
+            # under quota) triggers a full rebuild-to-99 instead of just replacing
+            # the one stripped card, which isn't what this scenario is testing.
+            intent="improve",
         )
         started = deck.slot_count()
         report = self.solver.solve(deck, query="goblin tokens", fill_to_99=False)
@@ -259,6 +264,75 @@ class Stage2Tests(unittest.TestCase):
         report = self.solver.solve(deck, query="goblin tokens", fill_to_99=True)
         self.assertEqual(deck.slot_count(), 99)
         self.assertTrue((report.get("cut") or {}).get("swapped") or "Goblin Recruiter" in deck.cards)
+
+    def test_solve_reflows_land_flood_with_no_stripped_cards_or_pool(self):
+        """A legal-but-land-flooded 99 (the '67 lands' bug) must still get seeded and cut."""
+
+        class _StubSearcher:
+            def search_cards(self, **_kwargs):
+                return [{"name": "Goblin Recruiter", "distance": 0.1}]
+
+        self.solver.searcher = _StubSearcher()
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            cards={"Mountain": 67, "Test Swarm": 31, "Lightning Bolt": 1},
+        )
+        self.assertEqual(deck.slot_count(), 99)
+        report = self.solver.solve(deck, query="goblin tokens", fill_to_99=False)
+        self.assertEqual(report["stripped"]["removed"], [])
+        self.assertEqual(report["land_alert"]["severity"], "severe")
+        self.assertIsNotNone(report["cut"])
+        self.assertLess(deck.cards.get("Mountain", 0), 67)
+        self.assertIn("Goblin Recruiter", deck.cards)
+        self.assertEqual(deck.slot_count(), 99)
+
+    def test_solve_does_not_auto_cut_land_flood_on_improve_intent(self):
+        """A land-heavy 99 that's intentional (Azusa, extra-land-drop shells) must survive
+        an unrelated 'improve'/'substitute' request untouched by the land-shape auto-cut."""
+
+        class _StubSearcher:
+            def search_cards(self, **_kwargs):
+                return [{"name": "Goblin Recruiter", "distance": 0.1}]
+
+        self.solver.searcher = _StubSearcher()
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            cards={"Mountain": 67, "Test Swarm": 31, "Lightning Bolt": 1},
+            intent="improve",
+        )
+        report = self.solver.solve(deck, query="goblin tokens", fill_to_99=False)
+        self.assertEqual(report["stripped"]["removed"], [])
+        self.assertEqual(report["land_alert"]["severity"], "severe")
+        self.assertIsNone(report["cut"])
+        self.assertEqual(deck.cards.get("Mountain"), 67)
+
+    def test_solve_fills_incomplete_build_with_severe_land_shortage(self):
+        """A near-empty 'build' request must actually reach 99, not stop early.
+
+        Regression for a real run: a from-scratch build landed at 12/99 cards
+        because should_fix_shape seeded the candidate_pool (0 lands is a severe
+        shortage) but need_fill's condition didn't know about should_fix_shape,
+        so fill() was never called to spend that pool down.
+        """
+
+        class _StubSearcher:
+            def search_cards(self, **_kwargs):
+                return [{"name": "Goblin Recruiter", "distance": 0.1}]
+
+        self.solver.searcher = _StubSearcher()
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            cards={"Sol Ring": 1},
+            intent="build",
+        )
+        report = self.solver.solve(deck, query="goblin tokens", fill_to_99=False)
+        self.assertEqual(report["land_alert"]["severity"], "severe")
+        self.assertIsNotNone(report["fill"])
+        self.assertTrue(report["fill"]["added"])
+        self.assertEqual(deck.slot_count(), 99)
 
 
 if __name__ == "__main__":

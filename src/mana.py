@@ -107,9 +107,17 @@ CURVE_TARGETS = CURVE_PROFILES["mid"]["targets"]
 AVG_CMC_BAND = CURVE_PROFILES["mid"]["avg"]
 PIP_PER_SOURCE_WARN = 2.0
 MIN_SOURCES = {1: 14, 2: 10, 3: 7, 4: 6, 5: 5}
-# Land count off-quota, as a fraction of the breached bound: <15% mild, 15-40% moderate, >40% severe.
-LAND_SEVERITY_BANDS = (0.15, 0.40)
-LAND_SEVERITY_SCALE = {"none": 0.0, "mild": 1.0, "moderate": 1.8, "severe": 3.0}
+# Land count off-quota, as a fraction of the breached bound: <5% mild, 5-10% moderate, >=10% severe.
+# Severe threshold confirmed explicitly at 10% (~3 lands off the 34 low bound) -- a build
+# landing even a handful of lands short of quota is not a minor issue. The mild/moderate
+# split below that is provisional pending a separate pass on the moderate multiplier.
+LAND_SEVERITY_BANDS = (0.05, 0.10)
+# A land card's pull toward the quota is this scale times a flat 0.8 (shape_bonus), stacked
+# on top of role_need_bonus's flat +2.5 for the "land" role while under quota (roles.py).
+# Raised from the original 1.0/1.8/3.0 scale after a real build stalled short of quota --
+# a well-matched nonland card's synergy score kept outscoring more lands once the count
+# got close but not yet at the target. Expect further tuning as this keeps getting exercised.
+LAND_SEVERITY_SCALE = {"none": 0.0, "mild": 1.5, "moderate": 2.5, "severe": 4.0}
 
 
 def land_alert(land_count: int) -> dict:

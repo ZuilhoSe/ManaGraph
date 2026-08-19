@@ -86,6 +86,24 @@ def lookup_inventory(card_name: str) -> str:
 
 
 @tool
+def get_card_info(name: str) -> str:
+    """
+    Look up one card by its exact name in the Oracle catalog (not the inventory --
+    this checks whether the card exists at all, regardless of ownership). Returns JSON.
+
+    Use this to confirm a commander or card name before assuming it's invalid. A
+    search_cards miss is NOT proof the name is wrong -- that's a semantic search over
+    card text and can miss an exact, real card. This is an exact lookup.
+    """
+    from catalog import get_oracle_card
+
+    info = get_oracle_card(name)
+    if not info:
+        return _json({"ok": False, "error": f"'{name}' was not found in the catalog."})
+    return _json({"ok": True, "card": info})
+
+
+@tool
 def list_inventory_cards(location: str = "") -> str:
     """
     List cards in the physical collection. Returns JSON.

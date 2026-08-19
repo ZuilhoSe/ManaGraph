@@ -1,16 +1,31 @@
 from langgraph.prebuilt import create_react_agent
 from llm_factory import LLMFactory
-from tools import diagnose_deck_json, list_inventory_cards, search_cards
+from tools import diagnose_deck_json, get_card_info, list_inventory_cards, search_cards
 
 
 class ArchitectAgent:
     def __init__(self):
         self.llm = LLMFactory.get_llm()
-        self.tools = [search_cards, list_inventory_cards, diagnose_deck_json]
+        self.tools = [search_cards, list_inventory_cards, diagnose_deck_json, get_card_info]
 
         self.system_prompt = """
         You are a Magic: The Gathering deck architect specializing in Commander.
         Use search_cards to find synergies. Tools return JSON.
+
+        COMMANDER HANDLING: if "Current deck JSON" already has a non-empty commander, output
+        that exact same commander -- copy it verbatim. Only put a different name in
+        "commander" when the user's message explicitly says to set/change/switch it (e.g.
+        "make X my commander", "use X instead", "change commander to X"), or when the current
+        commander is empty (a fresh build). A legendary creature mentioned as a theme,
+        synergy piece, or "win condition" to include in the 99 is a card for
+        delta.add/candidate_pool, NOT a commander change -- even if it could legally be a
+        commander itself. When in doubt, keep the existing commander and add the mentioned
+        card to the deck instead.
+        search_cards is semantic search over card text -- a miss there is NOT proof a
+        commander name is invalid, only that nothing matched that query well. If a commander
+        name looks unfamiliar, call get_card_info(name) with the exact name before assuming
+        it's wrong or substituting a different one. Only treat it as invalid if get_card_info
+        itself returns ok:false.
 
         TASK MODES (see intent on the current deck JSON):
         - build: fill toward a new list. Only aim for 99 cards if the user asked for a full deck.

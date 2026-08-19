@@ -8,6 +8,7 @@ work on those files free to happen in parallel without touching the web service.
 
 import contextlib
 import json
+import logging
 import queue
 import re
 import sqlite3
@@ -17,7 +18,7 @@ import time
 import chromadb
 from langchain_core.globals import set_debug
 
-from catalog import DB_NAME
+from catalog import DB_NAME, get_oracle_card
 from main_agent import app as agent_graph, initial_graph_state, to_text
 from scryfall_download import download_and_process_scryfall
 from tools import set_deck_owned_only
@@ -29,9 +30,30 @@ from vectorize_cards import CHROMA_DIR, COLLECTION, generate_embeddings
 # graph-node updates (which can each take many seconds on their own).
 set_debug(True)
 
+# The debug tracer's ConsoleCallbackHandler assumes every tool call has a single
+# string input (run.inputs["input"]); our multi-arg tools (search_cards(colors=,
+# role=, query=), etc.) don't have that key, so it logs a swallowed KeyError via
+# Python's logging module on every such call. Harmless -- the run itself isn't
+# affected, and this never reaches the stdout stream _QueueWriter captures for the
+# UI -- but it floods the raw server console, so drop it below warning level.
+logging.getLogger("langchain_core.callbacks.manager").setLevel(logging.ERROR)
+# One-time informational notice from the google-genai SDK itself (langchain_google_genai
+# calls Models.generate_content directly instead of through Chat.send_message, which is
+# their recommended AFC entrypoint) -- not something we control from this codebase.
+logging.getLogger("google_genai.models").setLevel(logging.ERROR)
+
 _LINE_BREAK_RE = re.compile(r"[\r\n]")
 _ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 _SENTINEL = object()
+
+# Generic LangChain chain-wrapper start/end (chain:LangGraph, chain:agent,
+# chain:call_model, chain:RunnableSequence, chain:Prompt, chain:tools, ...).
+# Unlike [llm/*] and [tool/*], these never carry real content -- LangChain's
+# debug tracer prints the literal placeholder "[inputs]" / "[outputs]" for
+# them instead of the actual payload -- and the same underlying event repeats
+# once per nesting level (5-7+ deep here), so one LLM/tool call produces a
+# dozen-plus of these carrying zero unique information between them.
+_CHAIN_WRAPPER_RE = re.compile(r"^\[chain/(start|end)\]")
 
 
 def _put(q: "queue.Queue", event: dict) -> None:
@@ -101,6 +123,11 @@ class _QueueWriter:
             if "[llm/end]" in self._last_header:
                 self._capturing = [line]
             return
+        if _CHAIN_WRAPPER_RE.match(line):
+            # Drop the header and the "[inputs]"/"[outputs]" placeholder
+            # line that always follows it -- neither carries information.
+            self._swallow_next_line = True
+            return
         if line:
             _put(self._q, {"type": "log", "text": line})
             if "/error]" in line:
@@ -153,17 +180,23 @@ def _ensure_search_index() -> None:
     """Build the Chroma card-search index on first use instead of failing.
 
     Calls vectorize_cards.generate_embeddings() (unmodified) rather than
-    duplicating its logic; only runs when the collection is actually missing,
-    so normal runs pay no extra cost.
+    duplicating its logic; only runs when the collection is missing *or*
+    empty. A present-but-empty collection (partial run, dir wiped and
+    recreated, etc.) used to pass the "does it exist" check and silently
+    leave every search_cards call returning zero hits forever.
     """
     client = chromadb.PersistentClient(path=CHROMA_DIR)
     existing = {c.name for c in client.list_collections()}
     if COLLECTION in existing:
-        return
-    print(
-        f"Search index '{COLLECTION}' not found — building it now from the card catalog "
-        "(first run only, can take a few minutes)..."
-    )
+        collection = client.get_collection(COLLECTION)
+        if collection.count() > 0:
+            return
+        print(f"Search index '{COLLECTION}' exists but is empty — rebuilding it...")
+    else:
+        print(
+            f"Search index '{COLLECTION}' not found — building it now from the card catalog "
+            "(first run only, can take a few minutes)..."
+        )
     generate_embeddings()
 
 
@@ -186,6 +219,19 @@ def _run(query: str, deck: dict | None, q: "queue.Queue") -> None:
         with contextlib.redirect_stdout(writer):
             _ensure_data_ready()
             state = initial_graph_state(query, deck)
+            # Fail in milliseconds, not after an ~8-minute run: if a commander
+            # is already set (autocomplete, a saved deck being edited) but
+            # doesn't resolve in the catalog, don't let the graph start at
+            # all. This does NOT cover a free-text request ("build me a deck
+            # for Teval") where no commander is set yet -- there, the
+            # Architect infers one itself, and a typo/hallucinated name can
+            # still silently resolve to a *different real* commander with no
+            # error raised anywhere; that's a separate, harder problem.
+            commander_name = (state["deck"] or {}).get("commander")
+            if commander_name and not get_oracle_card(commander_name):
+                raise ValueError(
+                    f"Commander '{commander_name}' was not found in the catalog."
+                )
             # owned_only is constant for the whole run (agents don't mutate it),
             # so setting this once here covers every search_cards call the
             # Architect makes across every iteration of this run.

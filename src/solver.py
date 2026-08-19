@@ -387,17 +387,38 @@ class DeckSolver:
         """Strip illegal 99 cards, retrieve extras into the pool, fill holes, then cut."""
         stripped = self.strip_illegal(deck)
         n_stripped = sum(item["quantity"] for item in stripped["removed"])
-        should_retrieve = bool(deck.commander) and (fill_to_99 or n_stripped > 0)
+
+        land_status = {}
+        if deck.commander:
+            self._rebuild_context(deck, query)
+            land_status = (self._ctx.get("mana") or {}).get("land_alert") or {}
+        # Only auto-cut on a shape complaint when the user's own intent is to build/fix the
+        # deck. A targeted "swap this card" on an intentionally land-heavy list (Azusa,
+        # Lord Windgrace, extra-land-drop shells) must not trigger a land purge nobody asked
+        # for; the quota is also a flat heuristic that doesn't know those archetypes exist.
+        should_fix_shape = (
+            land_status.get("severity") in ("moderate", "severe")
+            and deck.intent in ("build", "cut")
+        )
+
+        should_retrieve = bool(deck.commander) and (fill_to_99 or n_stripped > 0 or should_fix_shape)
         if should_retrieve:
             self._seed_pool_from_retrieve(deck, query)
 
         fill_report = None
+        # Mirrors should_retrieve: retrieving into the pool for a reason and then not
+        # spending it down leaves a seeded-but-unused pool and a deck that stays short
+        # (a real incident: a "build" request landed with only 12/99 cards because the
+        # pool got seeded here but fill() was never triggered to consume it).
         need_fill = bool(deck.commander) and deck.remaining_slots() > 0 and (
-            fill_to_99 or n_stripped > 0 or (deck.intent == "cut" and bool(deck.candidate_pool))
+            fill_to_99
+            or n_stripped > 0
+            or should_fix_shape
+            or (deck.intent == "cut" and bool(deck.candidate_pool))
         )
         if need_fill:
-            max_adds = None if fill_to_99 else n_stripped
-            print(f"[Solver] Filling to {'99' if fill_to_99 else 'replace stripped'} "
+            max_adds = None if (fill_to_99 or should_fix_shape) else n_stripped
+            print(f"[Solver] Filling to {'99' if fill_to_99 or should_fix_shape else 'replace stripped'} "
                   f"(max_adds={max_adds}, slots_left={deck.remaining_slots()})...")
             fill_report = self.fill(
                 deck, query=query, retrieve=False, max_adds=max_adds
@@ -415,10 +436,22 @@ class DeckSolver:
 
         cut_report = None
         if deck.slot_count() == MAIN_DECK_SIZE and deck.candidate_pool:
-            print("[Solver] Cutting / swapping from candidate_pool...")
-            cut_report = self.cut(deck, query=query)
+            # A severe land excess needs many 1-for-1 swaps in one pass, or it just
+            # limps toward correct over several architect round-trips instead of one.
+            max_swaps = 12
+            if should_fix_shape:
+                max_swaps = max(max_swaps, min(40, int(land_status.get("delta") or 0) + 4))
+            print(f"[Solver] Cutting / swapping from candidate_pool (max_swaps={max_swaps})...")
+            cut_report = self.cut(deck, query=query, max_swaps=max_swaps)
 
-        return {"stripped": stripped, "fill": fill_report, "cut": cut_report}
+        if deck.commander and (fill_report or cut_report):
+            # Re-read land count after fill/cut actually changed the deck, not before —
+            # mirrors how a human checks land count only once the deck is settled, not
+            # off the pre-fill snapshot that triggered the fix in the first place.
+            self._rebuild_context(deck, query)
+            land_status = (self._ctx.get("mana") or {}).get("land_alert") or {}
+
+        return {"stripped": stripped, "fill": fill_report, "cut": cut_report, "land_alert": land_status}
 
     def can_add(self, deck: DeckState, name: str, quantity: int = 1) -> tuple[bool, str]:
         if deck.remaining_slots() < quantity:
