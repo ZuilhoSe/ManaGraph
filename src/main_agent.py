@@ -1,5 +1,7 @@
 from typing import TypedDict, Annotated, List, Any
 import json
+import os
+import re
 from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
 from langchain_core.messages import AIMessage
@@ -7,11 +9,15 @@ from langchain_core.messages import AIMessage
 from architect_agent import ArchitectAgent
 from inventory_agent import InventoryAgent
 from supervisor_agent import SupervisorAgent
-from deck_state import MAIN_DECK_SIZE, DeckState, extract_json, infer_task, proposal_has_work
+from deck_state import DeckState, extract_json, infer_task, proposal_has_work
 from catalog import enrich_deck, get_oracle_card
 from mana import diagnose_deck
 from rules_validator import CommanderValidator
 from solver import DeckSolver
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(SCRIPT_DIR)
+DATA_DIR = os.path.join(BASE_DIR, "data")
 
 
 def to_text(content: Any) -> str:
@@ -34,8 +40,23 @@ def to_text(content: Any) -> str:
     return str(content)
 
 
-def infer_constraints(query: str, has_cards: bool = False) -> dict:
-    return infer_task(query, has_cards)
+def write_deck_output(deck: DeckState, extra: dict | None = None) -> tuple[str, str]:
+    """Write a Moxfield-style list and a JSON dump under data/."""
+    os.makedirs(DATA_DIR, exist_ok=True)
+    slug = re.sub(r"[^a-z0-9]+", "_", (deck.commander or "deck").lower()).strip("_") or "deck"
+    txt_path = os.path.join(DATA_DIR, f"deck_{slug}.txt")
+    json_path = os.path.join(DATA_DIR, f"deck_{slug}.json")
+    lines = []
+    if deck.commander:
+        lines.append(f"1 {deck.commander}")
+    for name, qty in sorted(deck.card_list().items(), key=lambda kv: (-kv[1], kv[0])):
+        lines.append(f"{qty} {name}")
+    with open(txt_path, "w", encoding="utf-8") as handle:
+        handle.write("\n".join(lines) + ("\n" if lines else ""))
+    payload = {"deck": deck.to_dict(), **(extra or {})}
+    with open(json_path, "w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2, default=str)
+    return txt_path, json_path
 
 
 class GraphState(TypedDict):
@@ -146,33 +167,18 @@ def inventory_node(state: GraphState):
 
 
 def solver_node(state: GraphState):
-    print("\n[Node: Solver] Fill/cut...")
+    print("\n[Node: Solver] Repair / fill / cut...")
     deck = DeckState.from_dict(state.get("deck"))
     solver = DeckSolver()
     query = state.get("user_query") or ""
-    report = {"fill": None, "cut": None}
-
-    if deck.require_complete and deck.commander:
-        print("[Solver] Filling to 99, then cutting...")
-        report["fill"] = solver.fill(deck, query=query, retrieve=True)
-        report["cut"] = solver.cut(deck, query=query)
-    elif deck.intent == "cut" and deck.commander:
-        print("[Solver] Cutting / swapping from pool...")
-        report["cut"] = solver.cut(deck, query=query)
-        if deck.remaining_slots() and deck.candidate_pool:
-            report["fill"] = solver.fill(deck, query=query, retrieve=False)
-    else:
-        if deck.remaining_slots() and deck.candidate_pool:
-            print("[Solver] Filling remaining slots from candidate_pool...")
-            report["fill"] = solver.fill(deck, query=query, retrieve=False)
-        if deck.slot_count() == MAIN_DECK_SIZE and deck.candidate_pool:
-            print("[Solver] Swapping pool cards into the 99...")
-            report["cut"] = solver.cut(deck, query=query)
-
+    report = solver.solve(
+        deck, query=query, fill_to_99=bool(deck.require_complete and deck.commander)
+    )
     payload = json.dumps(report, default=str)
+    stripped = len((report.get("stripped") or {}).get("removed") or [])
     added = len((report.get("fill") or {}).get("added") or [])
     swapped = len((report.get("cut") or {}).get("swapped") or [])
-    print(f"[Solver] slots={deck.slot_count()} added={added} swapped={swapped}")
+    print(f"[Solver] slots={deck.slot_count()} stripped={stripped} added={added} swapped={swapped}")
     return {
         "messages": [AIMessage(content=payload, name="solver")],
         "deck": deck.to_dict(),
@@ -186,7 +192,8 @@ def supervisor_node(state: GraphState):
     proposal = state.get("proposal") or {}
     solver_report = state.get("solver_report") or {}
     solver_did = bool(
-        ((solver_report.get("fill") or {}).get("added"))
+        ((solver_report.get("stripped") or {}).get("removed"))
+        or ((solver_report.get("fill") or {}).get("added"))
         or ((solver_report.get("cut") or {}).get("swapped"))
         or ((solver_report.get("cut") or {}).get("removed"))
     )
@@ -289,12 +296,63 @@ def initial_graph_state(query: str, deck: DeckState | dict | None = None) -> dic
 
 
 if __name__ == "__main__":
-    print("Initializing ManaGraph Multi-Agent System...\n")
+    import argparse
 
-    query = "I need 3 blue and red cards to deal global damage, focus on cards I already own."
+    parser = argparse.ArgumentParser(
+        description="Run the ManaGraph multi-agent Commander builder."
+    )
+    parser.add_argument(
+        "query",
+        nargs="*",
+        help='Natural-language request, e.g. "Build me a full deck for Ertai Resurrected."',
+    )
+    parser.add_argument(
+        "--commander",
+        default="",
+        help='Seed the commander, e.g. "Ertai Resurrected".',
+    )
+    parser.add_argument(
+        "--owned-only",
+        action="store_true",
+        help="Prefer cards from the local inventory.",
+    )
+    args = parser.parse_args()
+
+    commander = args.commander.strip()
+    query = " ".join(args.query).strip()
+    if not query:
+        if commander:
+            query = f"Build me a full deck for {commander}."
+        else:
+            parser.error(
+                'Pass a request, or --commander "Ertai Resurrected".\n'
+                'Example: python src/main_agent.py --commander "Ertai Resurrected"'
+            )
+    if args.owned_only and "i own" not in query.lower() and "owned" not in query.lower():
+        query += " Focus on cards I already own."
+
+    print("Initializing ManaGraph Multi-Agent System...\n")
     print(f"User: {query}")
 
-    final_state = app.invoke(initial_graph_state(query))
+    seed = None
+    if commander:
+        info = get_oracle_card(commander)
+        if not info:
+            raise SystemExit(
+                f"Commander '{commander}' was not found in the catalog. "
+                "Run: python src/build_dataset.py"
+            )
+        print(f"Commander: {info['name']}  identity={info['color_identity']}")
+        flags = infer_task(query)
+        seed = DeckState(
+            commander=info["name"],
+            identity=list(info["color_identity"]),
+            owned_only=args.owned_only or flags["owned_only"],
+            require_complete=flags["require_complete"],
+            intent=flags["intent"],
+        )
+
+    final_state = app.invoke(initial_graph_state(query, seed))
 
     print("\n=== FINAL DECK ===")
     print(json.dumps(final_state.get("deck"), indent=2, default=str))
@@ -307,3 +365,16 @@ if __name__ == "__main__":
     if final_state.get("architect_reply"):
         print("\n=== ARCHITECT ===")
         print(final_state["architect_reply"])
+
+    deck = DeckState.from_dict(final_state.get("deck"))
+    txt_path, json_path = write_deck_output(
+        deck,
+        extra={
+            "query": query,
+            "supervisor_decision": final_state.get("supervisor_decision"),
+            "validation": final_state.get("validation"),
+            "solver_report": final_state.get("solver_report"),
+        },
+    )
+    print(f"\nWrote decklist to {txt_path}")
+    print(f"Wrote run log to {json_path}")

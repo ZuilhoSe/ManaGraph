@@ -223,6 +223,43 @@ class Stage2Tests(unittest.TestCase):
         self.assertLess(br["synergy"], br["chroma_synergy"])
         self.assertGreater(goblin, fake)
 
+    def test_solve_strips_off_identity_and_refills_from_pool(self):
+        class _SilentSearcher:
+            def search_cards(self, **_kwargs):
+                return []
+
+        self.solver.searcher = _SilentSearcher()
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            cards={"Lightning Bolt": 1, "Grizzly Bears": 1, "Mountain": 10},
+            candidate_pool={"Sol Ring": 1, "Mountain": 20},
+        )
+        started = deck.slot_count()
+        report = self.solver.solve(deck, query="goblin tokens", fill_to_99=False)
+        stripped_names = [item["name"] for item in report["stripped"]["removed"]]
+        self.assertIn("Grizzly Bears", stripped_names)
+        self.assertNotIn("Grizzly Bears", deck.cards)
+        self.assertEqual(deck.slot_count(), started)
+        self.assertTrue(report["fill"] and report["fill"]["added"])
+
+    def test_solve_cuts_when_99_and_pool(self):
+        class _SilentSearcher:
+            def search_cards(self, **_kwargs):
+                return []
+
+        self.solver.searcher = _SilentSearcher()
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            cards={"Mountain": 98, "Lightning Bolt": 1},
+            candidate_pool={"Goblin Recruiter": 1},
+            require_complete=True,
+        )
+        report = self.solver.solve(deck, query="goblin tokens", fill_to_99=True)
+        self.assertEqual(deck.slot_count(), 99)
+        self.assertTrue((report.get("cut") or {}).get("swapped") or "Goblin Recruiter" in deck.cards)
+
 
 if __name__ == "__main__":
     unittest.main()

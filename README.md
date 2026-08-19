@@ -158,5 +158,11 @@ python -m unittest tests.test_stage1 tests.test_stage2 tests.test_stage3 tests.t
 5. **Run the multi-agent loop** (JSON delta → inventory → fill/cut → symbolic supervisor):
 
 ```bash
-python src/main_agent.py
+python src/main_agent.py --commander "Ertai Resurrected"
+```
+
+Phrases like `build me a deck`, `full deck`, or `99 cards` tell the solver to fill to 99. `--owned-only` prefers cards in your inventory. You can also pass a free-text request:
+
+```bash
+python src/main_agent.py "Build me a full Dimir control deck for Ertai Resurrected with counters and removal."
 ```

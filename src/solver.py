@@ -309,47 +309,130 @@ class DeckSolver:
             "pool_count": deck.pool_count(),
         }
 
+    def _legality_reason(self, deck: DeckState, name: str, new_qty: int) -> str | None:
+        """Hard-rule reasons a card cannot occupy `new_qty` copies in this deck."""
+        info = self._info(name)
+        if not info:
+            return "unknown card"
+        if info["name"].lower() == (deck.commander or "").lower():
+            return "commander"
+        identity = set(deck.identity or [])
+        if not set(info["color_identity"]).issubset(identity):
+            return "color identity"
+        status = commander_format_status(info)
+        if status in ILLEGAL_COMMANDER_STATUS:
+            return f"format {status}"
+        if new_qty > 1 and not is_basic_land(info["type_line"]) and not allows_any_number(
+            info["oracle_text"]
+        ):
+            return "singleton"
+        owned_qty = self._owned_qty(info["name"])
+        if deck.owned_only and owned_qty < new_qty:
+            return "not owned"
+        unit = card_unit_price(info, deck.currency)
+        current = 0
+        key = deck._key(info["name"]) or deck._key(name)
+        if key:
+            current = deck.cards[key]
+        add_qty = max(new_qty - current, 0)
+        cost, _owned_used, buy_qty, unknown = acquisition_cost(
+            add_qty, max(owned_qty - current, 0), unit, deck.owned_cost_zero
+        )
+        if deck.max_card_price is not None and buy_qty > 0:
+            if unit is None:
+                return "unknown price"
+            if unit > deck.max_card_price:
+                return "over P_max"
+        if deck.budget_cap is not None and add_qty > 0:
+            if unknown:
+                return "unknown price"
+            used = (self._ctx or {}).get("budget")
+            if used is None:
+                used = enrich_deck(deck, self.db_path)["budget_used"]
+            if cost is not None and used + cost > deck.budget_cap:
+                return "over budget"
+        return None
+
+    def strip_illegal(self, deck: DeckState) -> dict:
+        """Drop committed cards that break identity, format, singleton, or owned/price rules."""
+        if deck.commander and not deck.identity:
+            cmd = self._info(deck.commander)
+            if cmd:
+                deck.identity = list(cmd["color_identity"])
+        removed = []
+        for name, qty in list(deck.card_list().items()):
+            reason = self._legality_reason(deck, name, qty)
+            if not reason:
+                continue
+            deck.remove_card(name, qty)
+            removed.append({"name": name, "quantity": qty, "reason": reason})
+        if removed:
+            print(f"[Solver] stripped {len(removed)} illegal cards: "
+                  + ", ".join(f"{x['name']} ({x['reason']})" for x in removed[:8]))
+        return {"removed": removed}
+
+    def _seed_pool_from_retrieve(self, deck: DeckState, query: str) -> int:
+        added = 0
+        for name in self._retrieve(deck, query):
+            if deck._key(name):
+                continue
+            before = deck.pool_count()
+            deck.add_to_pool(name, 1)
+            if deck.pool_count() > before:
+                added += 1
+        print(f"[Solver] seeded candidate_pool with {added} retrieved cards (pool={deck.pool_count()})")
+        return added
+
+    def solve(self, deck: DeckState, query: str = "", fill_to_99: bool = False) -> dict:
+        """Strip illegal 99 cards, retrieve extras into the pool, fill holes, then cut."""
+        stripped = self.strip_illegal(deck)
+        n_stripped = sum(item["quantity"] for item in stripped["removed"])
+        should_retrieve = bool(deck.commander) and (fill_to_99 or n_stripped > 0)
+        if should_retrieve:
+            self._seed_pool_from_retrieve(deck, query)
+
+        fill_report = None
+        need_fill = bool(deck.commander) and deck.remaining_slots() > 0 and (
+            fill_to_99 or n_stripped > 0 or (deck.intent == "cut" and bool(deck.candidate_pool))
+        )
+        if need_fill:
+            max_adds = None if fill_to_99 else n_stripped
+            print(f"[Solver] Filling to {'99' if fill_to_99 else 'replace stripped'} "
+                  f"(max_adds={max_adds}, slots_left={deck.remaining_slots()})...")
+            fill_report = self.fill(
+                deck, query=query, retrieve=False, max_adds=max_adds
+            )
+            if fill_to_99 and deck.remaining_slots() > 0:
+                extra = self.fill(deck, query=query, retrieve=True)
+                fill_report = {
+                    "ok": extra.get("ok", True),
+                    "added": (fill_report.get("added") or []) + (extra.get("added") or []),
+                    "skipped": extra.get("skipped") or fill_report.get("skipped"),
+                    "slot_count": extra.get("slot_count", deck.slot_count()),
+                    "remaining_slots": extra.get("remaining_slots", deck.remaining_slots()),
+                    "pool_count": extra.get("pool_count", deck.pool_count()),
+                }
+
+        cut_report = None
+        if deck.slot_count() == MAIN_DECK_SIZE and deck.candidate_pool:
+            print("[Solver] Cutting / swapping from candidate_pool...")
+            cut_report = self.cut(deck, query=query)
+
+        return {"stripped": stripped, "fill": fill_report, "cut": cut_report}
+
     def can_add(self, deck: DeckState, name: str, quantity: int = 1) -> tuple[bool, str]:
         if deck.remaining_slots() < quantity:
             return False, "no remaining slots"
         info = self._info(name)
         if not info:
             return False, "unknown card"
-        if info["name"].lower() == (deck.commander or "").lower():
-            return False, "commander"
-        identity = set(deck.identity or [])
-        if not set(info["color_identity"]).issubset(identity):
-            return False, "color identity"
-        status = commander_format_status(info)
-        if status in ILLEGAL_COMMANDER_STATUS:
-            return False, f"format {status}"
         current = 0
         key = deck._key(info["name"]) or deck._key(name)
         if key:
             current = deck.cards[key]
-        new_qty = current + quantity
-        if new_qty > 1 and not is_basic_land(info["type_line"]) and not allows_any_number(info["oracle_text"]):
-            return False, "singleton"
-        owned_qty = self._owned_qty(info["name"])
-        if deck.owned_only and owned_qty < new_qty:
-            return False, "not owned"
-        unit = card_unit_price(info, deck.currency)
-        cost, _owned_used, buy_qty, unknown = acquisition_cost(
-            quantity, max(owned_qty - current, 0), unit, deck.owned_cost_zero
-        )
-        if deck.max_card_price is not None and buy_qty > 0:
-            if unit is None:
-                return False, "unknown price"
-            if unit > deck.max_card_price:
-                return False, "over P_max"
-        if deck.budget_cap is not None:
-            if unknown:
-                return False, "unknown price"
-            used = (self._ctx or {}).get("budget")
-            if used is None:
-                used = enrich_deck(deck, self.db_path)["budget_used"]
-            if cost is not None and used + cost > deck.budget_cap:
-                return False, "over budget"
+        reason = self._legality_reason(deck, name, current + quantity)
+        if reason:
+            return False, reason
         return True, "ok"
 
     def _warm_embeddings(self, names: list[str | None]):

@@ -97,9 +97,20 @@ def infer_task(query: str, has_cards: bool = False) -> dict:
             "focus on cards i own",
         )
     )
-    full_build = intent == "build" and any(
-        phrase in q
-        for phrase in ("full deck", "99 cards", "complete deck", "build me a deck", "build a deck", "from scratch")
+    full_build = intent == "build" and (
+        any(
+            phrase in q
+            for phrase in (
+                "full deck",
+                "99 cards",
+                "complete deck",
+                "build me a deck",
+                "build a deck",
+                "from scratch",
+            )
+        )
+        or bool(re.search(r"\bfull\b.{0,40}\bdeck\b", q))
+        or bool(re.search(r"\bbuild\b.{0,80}\bdeck\b", q))
     )
     return {
         "intent": intent,

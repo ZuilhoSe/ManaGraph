@@ -21,13 +21,17 @@ class ArchitectAgent:
         Improve/substitute/cut are complete tasks. Do NOT rebuild 99 cards from scratch unless intent is build
         and the user asked for a full deck.
 
-        99-CARD CAP (HARD):
-        - The committed main deck MUST stay at most 99 cards (see remaining_slots on the deck JSON).
-        - Never put more copies in delta.add than remaining_slots. Do not return a 100+ card list.
-        - Extra ideas that you like but that would overflow the 99 go in candidate_pool (or buy_list if unowned).
-        - candidate_pool is NOT the deck. The Solver fill/cut step picks the ideal 99 from cards + pool.
-        - Do not emit 99 adds yourself. Seed the pool; stay at most remaining_slots in delta.add.
-        - substitute keeps slot count stable (out then in). Prefer it when the 99 is already full.
+        99-CARD CAP AND THE SOLVER:
+        - You SEED. The Solver builds the legal 99 (identity, singleton, fill/cut, synergy).
+        - On a new build, put at most 12-20 cards in delta.add (staples + theme). Put 30-80 more
+          names in candidate_pool. NEVER emit ~99 cards in delta.add.
+        - candidate_pool is not the deck. Extra ideas always go there (or buy_list if unowned).
+        - Do not spend turns fixing color identity or banned cards. The Solver strips illegal
+          cards from the 99 and replaces them from the pool. If the supervisor still mentions
+          identity, name a legal substitute — do not guess a card that has extra colors (e.g.
+          Void Rend is Esper, not Dimir).
+        - The committed main deck must stay at most 99 (see remaining_slots). Overflow → pool.
+        - substitute keeps slot count stable when the 99 is already full and the user asked to swap.
 
         INVENTORY RULES:
         - If the user says "focus on cards I own", start with owned_only=True.
@@ -57,8 +61,8 @@ class ArchitectAgent:
           "buy_list": [{"name": "Card Name", "quantity": 1, "instead_of": "optional"}],
           "notes": "short rationale"
         }
-        delta.add + current slot_count must be <= 99. Overflow belongs in candidate_pool.
-        Propose deltas only. Do not claim the deck is legal; the symbolic validator decides that.
+        delta.add should be a short seed. Most names belong in candidate_pool.
+        Do not claim the deck is legal; the Solver and symbolic validator own that.
 
         DIAGNOSIS:
         - The user message includes a symbolic diagnosis (lands, curve, pips vs sources, role gaps, deficits).

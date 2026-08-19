@@ -138,6 +138,11 @@ class Stage1Tests(unittest.TestCase):
         task = infer_task("suggest better cards for my Krenko list")
         self.assertEqual(task["intent"], "improve")
         self.assertFalse(task["require_complete"])
+        full = infer_task(
+            "Build me a full control deck for Ertai Resurrected with counters, bounce, and creature removal."
+        )
+        self.assertEqual(full["intent"], "build")
+        self.assertTrue(full["require_complete"])
         self.assertTrue(proposal_has_work({"buy_list": [{"name": "Goblin Bombardment"}]}))
         self.assertTrue(
             proposal_has_work({"delta": {"substitute": [{"out": "A", "in": "B"}]}})
