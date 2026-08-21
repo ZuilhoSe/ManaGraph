@@ -35,6 +35,19 @@ export async function searchCommanders(query: string, signal?: AbortSignal): Pro
 
 export type RunNode = 'architect' | 'inventory' | 'solver' | 'supervisor'
 
+export interface DeckDiffEntry {
+  name: string
+  quantity: number
+}
+
+export interface DeckDiff {
+  removed: DeckDiffEntry[]
+  added: DeckDiffEntry[]
+  commander_changed: { from: string; to: string } | null
+  removed_count: number
+  added_count: number
+}
+
 export interface DeckRunEvent {
   type: 'start' | 'log' | 'node_start' | 'node' | 'error' | 'done'
   /** Which node (architect/inventory/solver/supervisor) this event is about.
@@ -47,6 +60,7 @@ export interface DeckRunEvent {
   supervisor_decision?: string
   solver_report?: unknown
   message?: string
+  deck_diff?: DeckDiff
   /** Unix seconds — lets the UI show elapsed time so a slow step doesn't look frozen. */
   ts?: number
 }

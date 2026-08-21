@@ -9,7 +9,7 @@ from langchain_core.messages import AIMessage
 from architect_agent import ArchitectAgent
 from inventory_agent import InventoryAgent
 from supervisor_agent import SupervisorAgent
-from deck_state import DeckState, extract_json, infer_task, proposal_has_work
+from deck_state import DeckState, diff_decks, extract_json, infer_task, proposal_has_work
 from catalog import enrich_deck, get_oracle_card
 from mana import diagnose_deck
 from rules_validator import CommanderValidator
@@ -281,6 +281,10 @@ def initial_graph_state(query: str, deck: DeckState | dict | None = None) -> dic
             deck.intent = flags["intent"]
             if flags["intent"] != "build":
                 deck.require_complete = False
+    # Snapshot once, before any node touches the deck: this is what
+    # price_cap_new_only compares against for the whole run, regardless of
+    # how many architect/solver iterations follow.
+    deck.baseline_cards = dict(deck.cards)
     return {
         "messages": [],
         "user_query": query,
@@ -352,7 +356,8 @@ if __name__ == "__main__":
             intent=flags["intent"],
         )
 
-    final_state = app.invoke(initial_graph_state(query, seed))
+    init_state = initial_graph_state(query, seed)
+    final_state = app.invoke(init_state)
 
     print("\n=== FINAL DECK ===")
     print(json.dumps(final_state.get("deck"), indent=2, default=str))
@@ -366,6 +371,13 @@ if __name__ == "__main__":
         print("\n=== ARCHITECT ===")
         print(final_state["architect_reply"])
 
+    # Computed from the before/after card_list()s, not from any agent's
+    # self-reported delta -- the architect/solver "swap" notes can drift
+    # from what the deck state actually ended up with.
+    deck_diff = diff_decks(init_state["deck"], final_state.get("deck"))
+    print("\n=== SWAP (vs. starting deck) ===")
+    print(json.dumps(deck_diff, indent=2, default=str))
+
     deck = DeckState.from_dict(final_state.get("deck"))
     txt_path, json_path = write_deck_output(
         deck,
@@ -374,6 +386,7 @@ if __name__ == "__main__":
             "supervisor_decision": final_state.get("supervisor_decision"),
             "validation": final_state.get("validation"),
             "solver_report": final_state.get("solver_report"),
+            "deck_diff": deck_diff,
         },
     )
     print(f"\nWrote decklist to {txt_path}")

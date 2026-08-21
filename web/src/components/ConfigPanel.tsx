@@ -51,6 +51,17 @@ export default function ConfigPanel({ state, onChange }: ConfigPanelProps) {
               </select>
             }
           />
+          {state.maxCardPrice.trim() !== '' && (
+            <label className="mt-1.5 flex items-center gap-1.5 text-xs text-surface-400">
+              <input
+                type="checkbox"
+                checked={state.priceCapExisting}
+                onChange={(e) => onChange('priceCapExisting', e.target.checked)}
+                className="h-3.5 w-3.5 rounded border-surface-600 bg-surface-800"
+              />
+              Also cap cards already in the deck
+            </label>
+          )}
         </Field>
 
         <Field label="Total deck budget">

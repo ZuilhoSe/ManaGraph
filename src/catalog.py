@@ -3,7 +3,7 @@ import os
 import sqlite3
 from datetime import datetime, timezone
 
-from inventory import get_card as get_inventory_card
+from inventory import _split_face_query_name, get_card as get_inventory_card
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(SCRIPT_DIR)
@@ -143,6 +143,13 @@ def get_oracle_card(name: str, db_path: str = DB_NAME) -> dict | None:
                 "SELECT * FROM cards WHERE name LIKE ? COLLATE NOCASE",
                 (f"{name} //%",),
             ).fetchone()
+        if row is None:
+            normalized = _split_face_query_name(name)
+            if normalized:
+                row = conn.execute(
+                    "SELECT * FROM cards WHERE name = ? COLLATE NOCASE",
+                    (normalized,),
+                ).fetchone()
         if row is None:
             return None
         return _row_to_card(row)

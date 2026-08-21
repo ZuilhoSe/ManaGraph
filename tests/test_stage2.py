@@ -77,6 +77,22 @@ def _seed(path):
         conn, "bazaar", "Bazaar of Baghdad", "Land", [],
         oracle="{T}: Draw two cards, then discard three cards.", usd=0.5, cmc=0,
     )
+    # A commander that IS a creature type but never mentions it in its own
+    # oracle text -- e.g. the real Aminatou, Veil Piercer (Human Wizard, but
+    # her text is about surveil/miracle, never says "human" or "wizard").
+    # self_referential_types() should read this as "not a tribal commander".
+    _insert_card(
+        conn, "nontribal_cmd", "Test Nontribal Commander", "Legendary Creature — Human Wizard", ["U"],
+        oracle="Draw a card at the beginning of your upkeep.", usd=1.0, cmc=3,
+    )
+    _insert_card(
+        conn, "human_wizard", "Test Human Wizard", "Creature — Human Wizard", ["U"],
+        oracle="", usd=0.5, cmc=2,
+    )
+    _insert_card(
+        conn, "unrelated_creature", "Test Unrelated Creature", "Creature — Elf", ["U"],
+        oracle="", usd=0.5, cmc=2,
+    )
     conn.execute(
         "INSERT INTO inventory VALUES (?, ?, ?)",
         ("Sol Ring", 1, json.dumps({"free_pool": 1})),
@@ -206,6 +222,36 @@ class Stage2Tests(unittest.TestCase):
         self.solver.fill(deck, query="goblin tokens damage", retrieve=False, max_adds=2)
         self.assertIn("Goblin Recruiter", deck.cards)
         self.assertNotIn("Kumano Faces Kakkazan // Etching of Kumano", deck.cards)
+
+    def test_theme_gate_ignores_non_self_referential_commander(self):
+        """Inverse of test_off_tribe_creature_does_not_fill: a commander whose
+        own oracle text never mentions its own creature type (like the real
+        Aminatou, Veil Piercer -- Human Wizard, but her text is about
+        surveil/miracle) must not apply any tribal bonus or off-tribe filter,
+        not even to a card that shares its exact creature type."""
+        from solver import self_referential_types
+
+        deck = DeckState(commander="Test Nontribal Commander", identity=["U"])
+        self.solver._rebuild_context(deck, "")
+        cmd_info = self.solver._info("Test Nontribal Commander")
+        self.assertEqual(self_referential_types(cmd_info), set())
+
+        same_type = self.solver._info("Test Human Wizard")
+        unrelated = self.solver._info("Test Unrelated Creature")
+        self.assertEqual(self.solver._tribe_adj(same_type), 0.0)
+        self.assertEqual(self.solver._tribe_adj(unrelated), 0.0)
+        self.assertFalse(self.solver._off_tribe_creature(same_type))
+        self.assertFalse(self.solver._off_tribe_creature(unrelated))
+
+    def test_fill_allows_off_type_creature_for_non_tribal_commander(self):
+        deck = DeckState(
+            commander="Test Nontribal Commander",
+            identity=["U"],
+            candidate_pool={"Test Unrelated Creature": 1, "Test Human Wizard": 1},
+        )
+        self.solver.fill(deck, query="", retrieve=False, max_adds=2)
+        self.assertIn("Test Unrelated Creature", deck.cards)
+        self.assertIn("Test Human Wizard", deck.cards)
 
     def test_chroma_distance_does_not_fake_synergy(self):
         deck = DeckState(commander="Krenko, Mob Boss", identity=["R"])

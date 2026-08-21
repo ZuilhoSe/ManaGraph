@@ -72,6 +72,25 @@ def is_creature_card(type_line: str) -> bool:
     return any("creature" in face.lower() for face in (type_line or "").split("//"))
 
 
+def self_referential_types(cmd: dict | None) -> set[str]:
+    """Which of the commander's own creature-type words its own oracle_text
+    mentions -- e.g. Krenko is a Goblin and his text says "Goblins you
+    control...", so Goblin is a real tribal signal. Aminatou is a Human
+    Wizard but her text never says "human" or "wizard" -- being a creature
+    type isn't the same as a deck being built around it, so no tribal signal
+    fires for her. This is the single gate for the tribal bonus/penalty
+    (_tribe_adj/_theme_match), the off-tribe hard filter (_off_tribe_creature),
+    and the auto-generated tribal search query in _retrieve -- a commander
+    that fails this check gets none of the three."""
+    if not cmd:
+        return set()
+    types = creature_types(cmd.get("type_line") or "")
+    if not types:
+        return set()
+    text = (cmd.get("oracle_text") or "").lower()
+    return {t for t in types if re.search(rf"\b{re.escape(t)}s?\b", text)}
+
+
 CHROMA_JACCARD_GATE = 0.12
 TRIBE_MATCH_BONUS = 1.0
 TRIBE_MISS_PENALTY = -1.6
@@ -556,19 +575,21 @@ class DeckSolver:
         return 0.0
 
     def _theme_match(self, info: dict) -> bool:
-        """True if the card shares or names a commander creature type (Goblin, not 'creature')."""
+        """True if the card shares/names a creature type the commander is actually
+        built around (self_referential_types), or if the commander isn't a tribal
+        commander at all -- being a certain creature type isn't the same as
+        synergizing with it (see self_referential_types)."""
         cmd = (self._ctx or {}).get("cmd") or {}
-        cmd_types = creature_types(cmd.get("type_line") or "")
-        if not cmd_types:
+        tribal_types = self_referential_types(cmd)
+        if not tribal_types:
             return True
         blob = f"{info.get('name','')} {info.get('type_line','')} {info.get('oracle_text','')}".lower()
         card_types = creature_types(info.get("type_line") or "")
-        return bool(cmd_types & card_types) or any(t in blob for t in cmd_types)
+        return bool(tribal_types & card_types) or any(t in blob for t in tribal_types)
 
     def _tribe_adj(self, info: dict) -> float:
         cmd = (self._ctx or {}).get("cmd") or {}
-        cmd_types = creature_types(cmd.get("type_line") or "")
-        if not cmd_types:
+        if not self_referential_types(cmd):
             return 0.0
         if self._theme_match(info):
             return TRIBE_MATCH_BONUS if is_creature_card(info.get("type_line") or "") else 0.0
@@ -585,7 +606,7 @@ class DeckSolver:
 
     def _off_tribe_creature(self, info: dict) -> bool:
         cmd = (self._ctx or {}).get("cmd") or {}
-        if not creature_types(cmd.get("type_line") or ""):
+        if not self_referential_types(cmd):
             return False
         return is_creature_card(info.get("type_line") or "") and not self._theme_match(info)
 
@@ -879,9 +900,9 @@ class DeckSolver:
         cmd = self._info(deck.commander) if deck.commander else None
         queries = [q for q in [query, (cmd or {}).get("oracle_text")] if q]
         if cmd:
-            types = creature_types(cmd.get("type_line") or "")
-            if types:
-                queries.append(" ".join(sorted(types)) + " creature")
+            tribal_types = self_referential_types(cmd)
+            if tribal_types:
+                queries.append(" ".join(sorted(tribal_types)) + " creature")
         queries.extend(ROLE_QUERIES)
         colors = list(deck.identity or (cmd or {}).get("color_identity") or [])
         found = []

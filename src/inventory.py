@@ -47,6 +47,17 @@ def _clean_allocations(allocations: dict) -> dict:
     return cleaned
 
 
+def _split_face_query_name(card_name: str) -> str | None:
+    """Split/room/DFC names are sometimes pasted as 'Front/Back' (single slash,
+    no spaces) instead of Scryfall's 'Front // Back'. Normalize when unambiguous."""
+    if "//" in card_name or "/" not in card_name:
+        return None
+    parts = [part.strip() for part in card_name.split("/")]
+    if len(parts) != 2 or not all(parts):
+        return None
+    return f"{parts[0]} // {parts[1]}"
+
+
 def get_card(card_name: str, db_path: str = DB_NAME) -> dict | None:
     conn = _connect(db_path)
     try:
@@ -58,6 +69,17 @@ def get_card(card_name: str, db_path: str = DB_NAME) -> dict | None:
             """,
             (card_name,),
         ).fetchone()
+        if not row:
+            normalized = _split_face_query_name(card_name)
+            if normalized:
+                row = conn.execute(
+                    """
+                    SELECT card_name, total_quantity, allocations
+                    FROM inventory
+                    WHERE card_name = ? COLLATE NOCASE
+                    """,
+                    (normalized,),
+                ).fetchone()
         if not row:
             return None
         allocations = json.loads(row["allocations"] or "{}")

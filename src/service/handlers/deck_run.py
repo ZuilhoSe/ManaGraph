@@ -19,6 +19,7 @@ import chromadb
 from langchain_core.globals import set_debug
 
 from catalog import DB_NAME, get_oracle_card
+from deck_state import diff_decks
 from main_agent import app as agent_graph, initial_graph_state, to_text
 from scryfall_download import download_and_process_scryfall
 from tools import set_deck_owned_only
@@ -236,7 +237,9 @@ def _run(query: str, deck: dict | None, q: "queue.Queue") -> None:
             # so setting this once here covers every search_cards call the
             # Architect makes across every iteration of this run.
             set_deck_owned_only(state["deck"].get("owned_only", False))
-            _put(q, {"type": "start", "deck": state["deck"]})
+            initial_deck = state["deck"]
+            final_deck = initial_deck
+            _put(q, {"type": "start", "deck": initial_deck})
             # stream_mode=["updates", "debug"]: "debug" adds a "task" event the
             # instant a node starts (before it produces any output), so we know
             # which node -- and therefore which agent's LLM call -- is running
@@ -258,13 +261,18 @@ def _run(query: str, deck: dict | None, q: "queue.Queue") -> None:
                     for key in ("deck", "validation", "supervisor_decision", "solver_report"):
                         if key in partial:
                             event[key] = partial[key]
+                    if "deck" in partial:
+                        final_deck = partial["deck"]
                     _put(q, event)
         writer.flush_remainder()
     except Exception as exc:  # surface to the UI instead of a silent 500 mid-stream
         writer.flush_remainder()
         _put(q, {"type": "error", "message": str(exc), "node": current_node})
     else:
-        _put(q, {"type": "done"})
+        # Computed from the before/after card_list()s, not from any agent's
+        # self-reported delta -- the architect/solver "swap" notes can drift
+        # from what the deck state actually ended up with.
+        _put(q, {"type": "done", "deck_diff": diff_decks(initial_deck, final_deck)})
     finally:
         q.put(_SENTINEL)
 
