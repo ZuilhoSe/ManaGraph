@@ -42,6 +42,29 @@ ROLE_QUERIES = (
     "basic land",
 )
 
+# Known non-tribal deck themes: if the literal keyword shows up anywhere in the
+# commander's oracle_text, fire the theme's queries into retrieval. Only 3 for
+# now -- the ones we've actually seen misfire without this (see
+# eval/archetypes/aminatou_esper_enchantments.json). Add more as they come up.
+#
+# "enchantment" is down to its one query that's actually earned its keep on a
+# benchmark (see eval-harness-plan.md) -- bare "enchantment", constellation,
+# and eerie variants were cut for bringing zero good hits. artifact/graveyard
+# haven't been benchmarked yet, so treat those as unproven.
+THEME_QUERIES = {
+    "enchantment": (
+        "whenever you cast an enchantment or an enchantment enters the battlefield, draw a card",
+    ),
+    "artifact": (
+        "artifact",
+        "artifact synergy when artifact enters the battlefield",
+    ),
+    "graveyard": (
+        "graveyard",
+        "graveyard recursion reanimate self mill",
+    ),
+}
+
 
 def _tokens(text: str) -> set[str]:
     return set(re.findall(r"[a-z0-9]+", (text or "").lower())) - STOPWORDS
@@ -89,6 +112,20 @@ def self_referential_types(cmd: dict | None) -> set[str]:
         return set()
     text = (cmd.get("oracle_text") or "").lower()
     return {t for t in types if re.search(rf"\b{re.escape(t)}s?\b", text)}
+
+
+def detect_known_themes(cmd: dict | None) -> list[str]:
+    """Keyword-only theme detection: fires a THEME_QUERIES entry if its literal
+    name appears anywhere in the commander's oracle_text. Accepted risk, not
+    fixed: no polarity check, so a commander whose only mention is "destroy
+    target enchantment" fires the enchantment theme exactly like one that says
+    "whenever you cast an enchantment, draw a card". Cheap to accept because a
+    misfire only adds a couple of extra retrieval queries to a pool of
+    hundreds of candidates -- it's not a hard filter like the tribal one."""
+    if not cmd:
+        return []
+    text = (cmd.get("oracle_text") or "").lower()
+    return [theme for theme in THEME_QUERIES if re.search(rf"\b{theme}s?\b", text)]
 
 
 CHROMA_JACCARD_GATE = 0.12
@@ -962,10 +999,15 @@ class DeckSolver:
             tribal_types = self_referential_types(cmd)
             if tribal_types:
                 queries.append(" ".join(sorted(tribal_types)) + " creature")
+            for theme in detect_known_themes(cmd):
+                queries.extend(THEME_QUERIES[theme])
         queries.extend(ROLE_QUERIES)
         colors = list(deck.identity or (cmd or {}).get("color_identity") or [])
         found = []
-        for q in queries[:8]:
+        # Cap sized for the worst case: 2 base + 1 tribal + up to 5 theme
+        # queries (enchantment has 1, artifact/graveyard 2 each) + 5
+        # ROLE_QUERIES = 13. Left slack to 16 for headroom.
+        for q in queries[:16]:
             try:
                 hits = searcher.search_cards(
                     query=q,
