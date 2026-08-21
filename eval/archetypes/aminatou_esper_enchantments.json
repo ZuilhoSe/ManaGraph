@@ -1,0 +1,33 @@
+{
+  "name": "aminatou_esper_enchantments",
+  "commander": "Aminatou, Veil Piercer",
+  "identity": ["W", "U", "B"],
+  "query": "Quero 5 engines de draw e 5 counterspells para esse deck esper de encantamentos.",
+  "max_card_price": 5,
+  "currency": "usd",
+  "notes": "Tests only solver.py's _retrieve() (candidate_pool seeding), not selection/scoring -- deck.cards is deliberately empty because _retrieve() never reads it (see eval-harness discussion, 2026-08-21). good/bad judged against commander + query alone, not any specific deck state. For the deck-state-aware selection benchmark (score_candidate/fill/cut with a real ~96-card deck), use eval/scenarios/aminatou_esper_enchantments_full_deck.json instead -- the actual deck + original query from the 2026-08-20 run.",
+  "good": [
+    "Counterspell",
+    "Dovin's Veto",
+    "Negate",
+    "Arcane Denial",
+    "Muddle the Mixture",
+    "Mesa Enchantress",
+    "Entity Tracker",
+    "Enduring Innocence",
+    "Dawn of a New Age",
+    "Monastery Siege"
+  ],
+  "bad": [
+    "Foundry Assembler",
+    "Mausoleum Guard",
+    "Ormos, Archive Keeper",
+    "Reef Worm",
+    "Research Assistant",
+    "Vampire Hexmage",
+    "One with the Machine",
+    "Wanderer's Strike",
+    "Fabrication Foundry",
+    "The Mana Rig"
+  ]
+}
