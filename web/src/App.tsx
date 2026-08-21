@@ -6,6 +6,7 @@ import PlayBar from './components/PlayBar'
 import RunPanel from './components/RunPanel'
 import type { RunStatus } from './components/RunPanel'
 import CollectionView from './components/CollectionView'
+import ImportExportBar from './components/ImportExportBar'
 import { buildPayload } from './lib/buildPayload'
 import { cancelRun, runDeck } from './lib/api'
 import type { DeckRunEvent } from './lib/api'
@@ -79,11 +80,14 @@ export default function App() {
 
   return (
     <div className="mx-auto min-h-svh max-w-2xl px-4 py-6">
-      <header className="mb-5">
-        <h1 className="text-xl font-semibold tracking-tight text-surface-50">ManaGraph</h1>
-        <p className="mt-0.5 text-sm text-surface-400">
-          Set up the orchestrator's input before running the agent graph.
-        </p>
+      <header className="mb-5 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-surface-50">ManaGraph</h1>
+          <p className="mt-0.5 text-sm text-surface-400">
+            Set up the orchestrator's input before running the agent graph.
+          </p>
+        </div>
+        {tab === 'build' && <ImportExportBar form={form} onImport={setForm} />}
       </header>
 
       <div className="mb-5 flex gap-1 border-b border-surface-700">

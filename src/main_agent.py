@@ -320,26 +320,62 @@ if __name__ == "__main__":
         action="store_true",
         help="Prefer cards from the local inventory.",
     )
+    parser.add_argument(
+        "--import",
+        dest="import_path",
+        default="",
+        metavar="PATH",
+        help="Load query + deck + configs from a JSON file (see --export) instead of "
+        "typing/pasting them. {\"query\": ..., \"deck\": {...DeckState fields...}}.",
+    )
+    parser.add_argument(
+        "--export",
+        dest="export_path",
+        default="",
+        metavar="PATH",
+        help="Write the resolved query + deck + configs to a JSON file for later --import, "
+        "before invoking the agent graph.",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Resolve the initial condition (and write --export, if given) without running "
+        "the agent graph. Handy for generating a template to hand-edit.",
+    )
     args = parser.parse_args()
 
     commander = args.commander.strip()
     query = " ".join(args.query).strip()
+
+    seed = None
+    if args.import_path:
+        try:
+            with open(args.import_path, "r", encoding="utf-8") as handle:
+                loaded = json.load(handle)
+        except OSError as exc:
+            raise SystemExit(f"Could not read --import '{args.import_path}': {exc}")
+        except json.JSONDecodeError as exc:
+            raise SystemExit(f"--import '{args.import_path}' is not valid JSON: {exc}")
+        if not query:
+            query = (loaded.get("query") or "").strip()
+        seed = DeckState.from_dict(loaded.get("deck") or {})
+        print(f"Loaded initial condition from {args.import_path}")
+
     if not query:
-        if commander:
-            query = f"Build me a full deck for {commander}."
+        if commander or (seed and seed.commander):
+            query = f"Build me a full deck for {commander or seed.commander}."
         else:
             parser.error(
-                'Pass a request, or --commander "Ertai Resurrected".\n'
-                'Example: python src/main_agent.py --commander "Ertai Resurrected"'
+                'Pass a request, --commander "Ertai Resurrected", or --import a saved '
+                "condition.\nExample: python src/main_agent.py --commander \"Ertai Resurrected\""
             )
     if args.owned_only and "i own" not in query.lower() and "owned" not in query.lower():
         query += " Focus on cards I already own."
 
-    print("Initializing ManaGraph Multi-Agent System...\n")
-    print(f"User: {query}")
-
-    seed = None
-    if commander:
+    # --commander (explicit CLI flag) always wins; otherwise fall back to whatever
+    # --import loaded. Only re-resolve against the catalog when there's an actual
+    # commander to set or the imported deck is missing its color identity.
+    if commander and (not seed or commander.lower() != (seed.commander or "").lower()):
         info = get_oracle_card(commander)
         if not info:
             raise SystemExit(
@@ -347,14 +383,51 @@ if __name__ == "__main__":
                 "Run: python src/build_dataset.py"
             )
         print(f"Commander: {info['name']}  identity={info['color_identity']}")
-        flags = infer_task(query)
-        seed = DeckState(
-            commander=info["name"],
-            identity=list(info["color_identity"]),
-            owned_only=args.owned_only or flags["owned_only"],
-            require_complete=flags["require_complete"],
-            intent=flags["intent"],
-        )
+        if seed is None:
+            flags = infer_task(query)
+            seed = DeckState(
+                commander=info["name"],
+                identity=list(info["color_identity"]),
+                owned_only=flags["owned_only"],
+                require_complete=flags["require_complete"],
+                intent=flags["intent"],
+            )
+        else:
+            # set_commander() (not a raw attribute assignment) so that if the
+            # imported deck's 99 happens to contain a card with this exact name,
+            # it gets popped out of `cards` instead of being double-counted as
+            # both the commander and a deck slot.
+            seed.set_commander(info["name"])
+            seed.identity = list(info["color_identity"])
+    elif seed and seed.commander and not seed.identity:
+        info = get_oracle_card(seed.commander)
+        if not info:
+            raise SystemExit(
+                f"Commander '{seed.commander}' (from --import) was not found in the catalog. "
+                "Run: python src/build_dataset.py"
+            )
+        seed.identity = list(info["color_identity"])
+
+    # Single place that applies --owned-only, whether seed came from --import
+    # or was just built above (its owned_only there reflects only the inferred
+    # flags["owned_only"], not the CLI flag).
+    if seed and args.owned_only:
+        seed.owned_only = True
+
+    if args.export_path:
+        export_deck = seed if seed is not None else DeckState(**infer_task(query, False))
+        export_dir = os.path.dirname(os.path.abspath(args.export_path))
+        if export_dir:
+            os.makedirs(export_dir, exist_ok=True)
+        with open(args.export_path, "w", encoding="utf-8") as handle:
+            json.dump({"query": query, "deck": export_deck.to_dict()}, handle, indent=2, default=str)
+        print(f"Wrote initial condition to {args.export_path}")
+
+    if args.dry_run:
+        raise SystemExit(0)
+
+    print("Initializing ManaGraph Multi-Agent System...\n")
+    print(f"User: {query}")
 
     init_state = initial_graph_state(query, seed)
     final_state = app.invoke(init_state)
