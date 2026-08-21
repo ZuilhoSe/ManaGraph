@@ -221,6 +221,46 @@ class Stage2Tests(unittest.TestCase):
         self.assertNotIn("Gilded Lotus", removed_names)
         self.assertIn("Gilded Lotus", deck.cards)
 
+    def test_cut_still_swaps_non_protected_weak_card(self):
+        # Control for the regression below: with no last_delta, a weak,
+        # off-theme card with no role quota to shield it (Gilded Lotus has no
+        # ramp/draw/interaction/threat signal, so it classifies as "other") is
+        # a normal cut() victim once a stronger pool candidate is available.
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            cards={"Mountain": 34, "Gilded Lotus": 1},
+            candidate_pool={"Goblin Recruiter": 1},
+        )
+        report = self.solver.cut(deck, query="goblin tokens")
+        self.assertTrue(report["ok"])
+        self.assertNotIn("Gilded Lotus", deck.cards)
+        self.assertIn("Goblin Recruiter", deck.cards)
+
+    def test_cut_protects_freshly_substituted_card_same_pass(self):
+        # Regression for a real run: the Architect substituted a card into
+        # deck.cards, and cut() -- triggered in the same solve() pass by an
+        # unrelated stripped card populating candidate_pool -- swapped it back
+        # out because it scored worse than a pool candidate, with no notion
+        # that it had just been deliberately chosen. last_delta is the
+        # round's record of what the Architect touched; cut() must treat
+        # those names as protected against its own same-pass swap loop.
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            cards={"Mountain": 34, "Gilded Lotus": 1},
+            candidate_pool={"Goblin Recruiter": 1},
+        )
+        deck.last_delta = {
+            "substituted": [
+                {"out": "Sol Ring", "in": "Gilded Lotus", "quantity": 1, "reason": "ramp"}
+            ]
+        }
+        report = self.solver.cut(deck, query="goblin tokens")
+        self.assertTrue(report["ok"])
+        self.assertIn("Gilded Lotus", deck.cards)
+        self.assertEqual(report["swapped"], [])
+
     def test_cut_swaps_pool_into_land_heavy_99(self):
         deck = DeckState(
             commander="Krenko, Mob Boss",

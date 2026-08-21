@@ -402,6 +402,7 @@ class DeckState:
             candidate_pool=_clean_qty_map(data.get("candidate_pool")),
             price_cap_new_only=bool(data.get("price_cap_new_only", True)),
             baseline_cards=_clean_qty_map(data.get("baseline_cards")),
+            last_delta=dict(data.get("last_delta") or {}),
         )
         if deck.commander:
             deck.set_commander(deck.commander)

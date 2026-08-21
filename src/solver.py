@@ -288,10 +288,11 @@ class DeckSolver:
             removed.append({"name": victim, "reason": "over_99"})
             self._rebuild_context(deck, query)
 
+        protected_names = self._freshly_touched_names(deck)
         for _ in range(max_swaps):
             if not deck.candidate_pool or deck.slot_count() == 0:
                 break
-            worst = self._worst_cut(deck, query, prefer_expensive=False)
+            worst = self._worst_cut(deck, query, prefer_expensive=False, protected_names=protected_names)
             if not worst:
                 break
             trial = DeckState.from_dict(deck.to_dict())
@@ -835,7 +836,30 @@ class DeckSolver:
             cards.append({**info, "quantity": qty})
         return cards
 
-    def _worst_cut(self, deck: DeckState, query: str, prefer_expensive: bool) -> str | None:
+    def _freshly_touched_names(self, deck: DeckState) -> set[str]:
+        """Cards the Architect placed into deck.cards this round (via last_delta) --
+        protected from cut()'s same-pass pool sweep, so a deliberate addition/
+        substitution can't be undone in the very round it was made by a scoring
+        pass that has no notion of what was just deliberately chosen."""
+        delta = deck.last_delta or {}
+        names = set()
+        for item in delta.get("added") or []:
+            name = item.get("name")
+            if name:
+                names.add(str(name).lower())
+        for item in delta.get("substituted") or []:
+            name = item.get("in")
+            if name:
+                names.add(str(name).lower())
+        return names
+
+    def _worst_cut(
+        self,
+        deck: DeckState,
+        query: str,
+        prefer_expensive: bool,
+        protected_names: set[str] | None = None,
+    ) -> str | None:
         if self._ctx is None:
             self._rebuild_context(deck, query)
         deck_cards = self._ctx["deck_cards"]
@@ -845,6 +869,8 @@ class DeckSolver:
         worst_score = None
         for card in deck_cards:
             name = card["name"]
+            if protected_names and name.lower() in protected_names:
+                continue
             roles = self._card_roles(card)
             if "land" in roles and land_count <= ROLE_QUOTAS["land"][0]:
                 continue
