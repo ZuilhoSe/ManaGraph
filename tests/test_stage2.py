@@ -190,6 +190,37 @@ class Stage2Tests(unittest.TestCase):
         self.solver.fill(deck, retrieve=False)
         self.assertNotIn("Gilded Lotus", deck.cards)
 
+    def test_strip_illegal_catches_freshly_substituted_over_price_card(self):
+        # Simulates what apply_delta does: a substitute lands directly in
+        # deck.cards, not through the price-filtered candidate_pool. Gilded
+        # Lotus was never in baseline_cards, so it must still be caught.
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            cards={"Mountain": 98, "Gilded Lotus": 1},
+            max_card_price=3.0,
+            baseline_cards={"Mountain": 98},
+        )
+        report = self.solver.strip_illegal(deck)
+        removed_names = [r["name"] for r in report["removed"]]
+        self.assertIn("Gilded Lotus", removed_names)
+        self.assertNotIn("Gilded Lotus", deck.cards)
+
+    def test_strip_illegal_exempts_baseline_over_price_card(self):
+        # A pricey card the user already had in the decklist before this run
+        # (price_cap_new_only's whole point) must survive strip_illegal.
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            cards={"Mountain": 98, "Gilded Lotus": 1},
+            max_card_price=3.0,
+            baseline_cards={"Mountain": 98, "Gilded Lotus": 1},
+        )
+        report = self.solver.strip_illegal(deck)
+        removed_names = [r["name"] for r in report["removed"]]
+        self.assertNotIn("Gilded Lotus", removed_names)
+        self.assertIn("Gilded Lotus", deck.cards)
+
     def test_cut_swaps_pool_into_land_heavy_99(self):
         deck = DeckState(
             commander="Krenko, Mob Boss",

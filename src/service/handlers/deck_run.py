@@ -14,6 +14,7 @@ import re
 import sqlite3
 import threading
 import time
+import uuid
 
 import chromadb
 from langchain_core.globals import set_debug
@@ -42,6 +43,35 @@ logging.getLogger("langchain_core.callbacks.manager").setLevel(logging.ERROR)
 # calls Models.generate_content directly instead of through Chat.send_message, which is
 # their recommended AFC entrypoint) -- not something we control from this codebase.
 logging.getLogger("google_genai.models").setLevel(logging.ERROR)
+
+
+class _PrintHandler(logging.Handler):
+    """Emits via print() instead of a captured stream. A plain logging.StreamHandler
+    binds to whatever sys.stdout *object* was current at construction time; print()
+    looks up sys.stdout fresh on every call, so this keeps following
+    contextlib.redirect_stdout(writer) inside _run() below and lands in the same
+    event queue the UI reads from, instead of the real server console."""
+
+    def emit(self, record: logging.LogRecord) -> None:
+        try:
+            print(self.format(record))
+        except Exception:
+            self.handleError(record)
+
+
+# llm_factory.py sets max_retries=8 on the Gemini client specifically to survive
+# the free tier's 429s. google-genai retries those (and 408/500/502/503/504) via
+# tenacity with exponential backoff (1s doubling, capped at 60s -- up to ~2min of
+# pure backoff across 8 attempts, before whatever each attempt's own request time
+# adds on top). tenacity already logs "retrying in Xs" before every wait via
+# before_sleep_log(logger, logging.INFO) -- that's this exact logger -- but
+# nothing configured a handler for it, so a stalled run showed total silence
+# between "[llm/start]" and the next line instead of the retries actually
+# happening. INFO here (not the module's usual ERROR-only loggers above) is
+# deliberate: this is the one signal that answers "is it retrying or is it stuck".
+_retry_logger = logging.getLogger("google_genai._api_client")
+_retry_logger.setLevel(logging.INFO)
+_retry_logger.addHandler(_PrintHandler())
 
 _LINE_BREAK_RE = re.compile(r"[\r\n]")
 _ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
@@ -213,12 +243,39 @@ def _ensure_data_ready() -> None:
         _ensure_search_index()
 
 
-def _run(query: str, deck: dict | None, q: "queue.Queue") -> None:
+# run_id -> "please stop" flag, so POST /api/deck/run/{run_id}/cancel (below) can
+# reach a run's background thread without any other shared state between the two.
+# Best-effort by construction: agent_graph.stream() only yields once per finished
+# graph node (a whole Architect ReAct loop, not each LLM call inside it), so this
+# flag is only checked -- see the loop below -- at node boundaries. It cannot abort
+# a single LLM call already in flight (e.g. an Architect turn stuck retrying a 429).
+# That's fine: the client aborts its fetch the instant Stop is clicked regardless,
+# which is what actually makes the UI stop waiting; this registry only exists to
+# also stop burning further LLM calls (Inventory/Solver/Supervisor) server-side
+# after the user has walked away.
+_cancel_flags: dict[str, threading.Event] = {}
+_cancel_flags_lock = threading.Lock()
+
+
+def cancel_deck_run(run_id: str) -> bool:
+    with _cancel_flags_lock:
+        flag = _cancel_flags.get(run_id)
+    if flag is None:
+        return False
+    flag.set()
+    return True
+
+
+def _run(query: str, deck: dict | None, q: "queue.Queue", cancel_flag: threading.Event) -> None:
     writer = _QueueWriter(q)
     current_node: str | None = None
+    cancelled = False
     try:
         with contextlib.redirect_stdout(writer):
             _ensure_data_ready()
+            if cancel_flag.is_set():
+                _put(q, {"type": "cancelled", "node": current_node})
+                return
             state = initial_graph_state(query, deck)
             # Fail in milliseconds, not after an ~8-minute run: if a commander
             # is already set (autocomplete, a saved deck being edited) but
@@ -245,6 +302,9 @@ def _run(query: str, deck: dict | None, q: "queue.Queue") -> None:
             # which node -- and therefore which agent's LLM call -- is running
             # even if it never finishes (e.g. it hits a rate limit mid-call).
             for mode, payload in agent_graph.stream(state, stream_mode=["updates", "debug"]):
+                if cancel_flag.is_set():
+                    cancelled = True
+                    break
                 if mode == "debug" and payload.get("type") == "task":
                     current_node = payload["payload"]["name"]
                     _put(q, {"type": "node_start", "node": current_node})
@@ -269,29 +329,49 @@ def _run(query: str, deck: dict | None, q: "queue.Queue") -> None:
         writer.flush_remainder()
         _put(q, {"type": "error", "message": str(exc), "node": current_node})
     else:
-        # Computed from the before/after card_list()s, not from any agent's
-        # self-reported delta -- the architect/solver "swap" notes can drift
-        # from what the deck state actually ended up with.
-        _put(q, {"type": "done", "deck_diff": diff_decks(initial_deck, final_deck)})
+        if cancelled:
+            _put(q, {"type": "cancelled", "node": current_node})
+        else:
+            # Computed from the before/after card_list()s, not from any agent's
+            # self-reported delta -- the architect/solver "swap" notes can drift
+            # from what the deck state actually ended up with.
+            _put(q, {"type": "done", "deck_diff": diff_decks(initial_deck, final_deck)})
     finally:
         q.put(_SENTINEL)
 
 
 def stream_deck_run(query: str, deck: dict | None):
-    """Yields NDJSON lines: log lines as they're printed, a "node" event each
-    time a graph node finishes, then a closing "done"/"error" event. Every
-    event carries a "ts" (unix seconds) so the UI can show elapsed time.
+    """Yields NDJSON lines: a "run_id" line first (so the caller can POST
+    /api/deck/run/{run_id}/cancel), then log lines as they're printed, a "node"
+    event each time a graph node finishes, then a closing "done"/"cancelled"/
+    "error" event. Every event carries a "ts" (unix seconds) so the UI can show
+    elapsed time.
 
     Runs the (blocking, multi-LLM-call) graph on a worker thread so log lines
     can be forwarded to the caller as soon as they're printed, rather than only
     after each node fully completes.
     """
+    run_id = uuid.uuid4().hex
+    cancel_flag = threading.Event()
+    with _cancel_flags_lock:
+        _cancel_flags[run_id] = cancel_flag
+
     q: "queue.Queue" = queue.Queue()
-    thread = threading.Thread(target=_run, args=(query, deck, q), daemon=True)
+    thread = threading.Thread(target=_run, args=(query, deck, q, cancel_flag), daemon=True)
     thread.start()
 
-    while True:
-        item = q.get()
-        if item is _SENTINEL:
-            break
-        yield json.dumps(item, default=str) + "\n"
+    try:
+        yield json.dumps({"type": "run_id", "run_id": run_id, "ts": time.time()}) + "\n"
+        while True:
+            item = q.get()
+            if item is _SENTINEL:
+                break
+            yield json.dumps(item, default=str) + "\n"
+    finally:
+        # Doesn't fire reliably on a client-side abort (the worker thread may
+        # still be blocked in q.get() with nothing consuming it), so a
+        # cancelled-but-still-hung run can leave its flag here indefinitely --
+        # a bounded, harmless leak for a single-process dev server, not worth
+        # a reaper thread for.
+        with _cancel_flags_lock:
+            _cancel_flags.pop(run_id, None)

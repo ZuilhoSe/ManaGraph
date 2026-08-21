@@ -105,6 +105,7 @@ class DeckSolver:
         self.searcher = searcher
         self._oracle: dict[str, dict | None] = {}
         self._owned: dict[str, int] = {}
+        self._baseline_lookup: dict[str, int] | None = None
         self._ctx: dict | None = None
         self._emb: dict[str, object] = {}
         self._views: dict[str, dict] = {}
@@ -328,6 +329,26 @@ class DeckSolver:
             "pool_count": deck.pool_count(),
         }
 
+    def _baseline_qty(self, deck: DeckState, canonical_name: str) -> int:
+        """How many copies of `canonical_name` were already in the deck before this
+        run started -- exempt from max_card_price under price_cap_new_only, same
+        baseline-name matching rules_validator uses for the final gate. Computed once
+        per DeckSolver instance: baseline_cards never changes mid-run, and (like
+        _oracle/_owned above) a single instance only ever processes one run's deck
+        and its trial clones -- cut()'s swap loop clones the deck every iteration
+        (`DeckState.from_dict(deck.to_dict())`), so keying this by deck identity
+        would recompute on every clone for no reason."""
+        if not deck.price_cap_new_only or not deck.baseline_cards:
+            return 0
+        if self._baseline_lookup is None:
+            lookup: dict[str, int] = {}
+            for raw_name, qty in deck.baseline_cards.items():
+                info = self._info(raw_name)
+                key = (info["name"] if info else raw_name).lower()
+                lookup[key] = lookup.get(key, 0) + qty
+            self._baseline_lookup = lookup
+        return self._baseline_lookup.get(canonical_name.lower(), 0)
+
     def _legality_reason(self, deck: DeckState, name: str, new_qty: int) -> str | None:
         """Hard-rule reasons a card cannot occupy `new_qty` copies in this deck."""
         info = self._info(name)
@@ -357,11 +378,23 @@ class DeckSolver:
         cost, _owned_used, buy_qty, unknown = acquisition_cost(
             add_qty, max(owned_qty - current, 0), unit, deck.owned_cost_zero
         )
-        if deck.max_card_price is not None and buy_qty > 0:
-            if unit is None:
-                return "unknown price"
-            if unit > deck.max_card_price:
-                return "over P_max"
+        if deck.max_card_price is not None:
+            # `current` above is the *live* deck count, which is the wrong baseline
+            # for "is this new": a card already committed (e.g. strip_illegal
+            # checking a card the Architect just substituted in) has current ==
+            # new_qty, so add_qty would always be 0 and silently skip this gate.
+            # Gate against the pre-run baseline instead, so a freshly substituted
+            # card can't hide behind its own placement.
+            price_current = self._baseline_qty(deck, info["name"])
+            price_add_qty = max(new_qty - price_current, 0)
+            _, _, price_buy_qty, _ = acquisition_cost(
+                price_add_qty, max(owned_qty - price_current, 0), unit, deck.owned_cost_zero
+            )
+            if price_buy_qty > 0:
+                if unit is None:
+                    return "unknown price"
+                if unit > deck.max_card_price:
+                    return "over P_max"
         if deck.budget_cap is not None and add_qty > 0:
             if unknown:
                 return "unknown price"

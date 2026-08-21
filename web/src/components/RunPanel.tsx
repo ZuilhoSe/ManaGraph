@@ -23,7 +23,7 @@ const NODE_COLOR: Record<RunNode, string> = {
   supervisor: 'border-fuchsia-500/50 text-fuchsia-400',
 }
 
-export type RunStatus = 'running' | 'done' | 'error'
+export type RunStatus = 'running' | 'done' | 'error' | 'stopped'
 
 interface RunPanelProps {
   events: DeckRunEvent[]
@@ -78,7 +78,15 @@ export default function RunPanel({ events, status, errorMessage }: RunPanelProps
   return (
     <Section
       title="Agent run"
-      subtitle={status === 'running' ? 'Working…' : status === 'error' ? 'Failed' : 'Finished'}
+      subtitle={
+        status === 'running'
+          ? 'Working…'
+          : status === 'error'
+            ? 'Failed'
+            : status === 'stopped'
+              ? 'Stopped'
+              : 'Finished'
+      }
       actions={
         visible.length > 0 && (
           <button
@@ -153,6 +161,8 @@ export default function RunPanel({ events, status, errorMessage }: RunPanelProps
           {errorMessage}
         </p>
       )}
+
+      {status === 'stopped' && <p className="mt-2 text-sm text-surface-400">Stopped by you.</p>}
 
       {status === 'done' && <RunResult events={events} />}
     </Section>

@@ -2,7 +2,7 @@ import contextvars
 import json
 from langchain.tools import tool
 from hybrid_search import RAGSearcher
-from inventory import get_card, list_inventory, move_card, FREE_POOL
+from inventory import get_cards, list_inventory, move_card, FREE_POOL
 from rules_validator import CommanderValidator
 from deck_state import DeckState
 
@@ -77,12 +77,17 @@ def search_cards(
 
 
 @tool
-def lookup_inventory(card_name: str) -> str:
-    """Look up one owned card: total copies and where they are allocated (free pool vs decks). Returns JSON."""
-    card = get_card(card_name)
-    if not card:
-        return _json({"ok": False, "error": f"'{card_name}' is not in the inventory."})
-    return _json({"ok": True, "card": card, "free_pool": FREE_POOL})
+def lookup_inventory(card_names: list[str]) -> str:
+    """
+    Look up owned cards in one call: total copies and where each is allocated
+    (free pool vs decks). Pass every name you need in a single list instead of
+    calling this once per card. Returns JSON keyed by the names you passed in;
+    a name not owned maps to null.
+    """
+    if not card_names:
+        return _json({"ok": False, "error": "card_names must be a non-empty list."})
+    found = get_cards(card_names)
+    return _json({"ok": True, "cards": found, "free_pool": FREE_POOL})
 
 
 @tool
