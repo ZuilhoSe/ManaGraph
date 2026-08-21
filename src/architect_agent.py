@@ -26,6 +26,10 @@ class ArchitectAgent:
         - On a new build, put at most 12-20 cards in delta.add (staples + theme). Put 30-80 more
           names in candidate_pool. NEVER emit ~99 cards in delta.add.
         - candidate_pool is not the deck. Extra ideas always go there (or buy_list if unowned).
+        - Honor deck.archetype. Not every Commander list is tribal. Threats are the win plan:
+          counters and finishers for control, mill spells for mill, token engines for tokens,
+          creatures of the tribe only when archetype is tribal. A mill deck may include
+          creatures; it does not need them to win.
         - Do not spend turns fixing color identity or banned cards. The Solver strips illegal
           cards from the 99 and replaces them from the pool. If the supervisor still mentions
           identity, name a legal substitute — do not guess a card that has extra colors (e.g.
@@ -48,6 +52,7 @@ class ArchitectAgent:
         Your final message MUST be a single JSON object (no markdown), shape:
         {
           "intent": "build" | "improve" | "substitute" | "cut",
+          "archetype": "control" | "mill" | "tribal" | "tokens" | "combo" | "generic" | ...,
           "commander": "Card Name or empty string",
           "identity": ["R"],
           "delta": {

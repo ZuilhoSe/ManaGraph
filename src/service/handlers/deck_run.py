@@ -14,14 +14,13 @@ import sqlite3
 import threading
 import time
 
-import chromadb
 from langchain_core.globals import set_debug
 
 from catalog import DB_NAME
 from main_agent import app as agent_graph, initial_graph_state, to_text
 from scryfall_download import download_and_process_scryfall
 from tools import set_deck_owned_only
-from vectorize_cards import CHROMA_DIR, COLLECTION, generate_embeddings
+from vectorize_cards import COLLECTION, generate_embeddings
 
 # Makes LangChain print each tool call / LLM step to stdout as it happens, which
 # _QueueWriter below turns into "log" events -- this is what makes the run
@@ -156,7 +155,9 @@ def _ensure_search_index() -> None:
     duplicating its logic; only runs when the collection is actually missing,
     so normal runs pay no extra cost.
     """
-    client = chromadb.PersistentClient(path=CHROMA_DIR)
+    from hybrid_search import get_chroma_client
+
+    client = get_chroma_client()
     existing = {c.name for c in client.list_collections()}
     if COLLECTION in existing:
         return

@@ -113,6 +113,8 @@ def architect_node(state: GraphState):
         )
         if diagnosis
     }
+    if deck.archetype:
+        diag_view["archetype"] = deck.archetype
     context = (
         f"User request: {state['user_query']}\n\n"
         f"Current deck JSON:\n{json.dumps(deck.summary(), indent=2)}\n\n"
@@ -273,10 +275,16 @@ def initial_graph_state(query: str, deck: DeckState | dict | None = None) -> dic
         if flags["owned_only"]:
             merged["owned_only"] = True
         merged["require_complete"] = flags["require_complete"]
+        if flags.get("archetype") and flags["archetype"] != "generic":
+            merged["archetype"] = flags["archetype"]
         deck = DeckState.from_dict(merged)
     else:
         deck.owned_only = deck.owned_only or flags["owned_only"]
         deck.require_complete = deck.require_complete or flags["require_complete"]
+        if flags.get("archetype") and (
+            not deck.archetype or deck.archetype == "generic"
+        ):
+            deck.archetype = flags["archetype"]
         if flags["intent"] != "build" or deck.slot_count() > 0:
             deck.intent = flags["intent"]
             if flags["intent"] != "build":
@@ -350,7 +358,13 @@ if __name__ == "__main__":
             owned_only=args.owned_only or flags["owned_only"],
             require_complete=flags["require_complete"],
             intent=flags["intent"],
+            archetype=flags["archetype"],
         )
+
+    from hybrid_search import RAGSearcher
+
+    print("Opening card index (once, not per search)...")
+    RAGSearcher.shared()
 
     final_state = app.invoke(initial_graph_state(query, seed))
 

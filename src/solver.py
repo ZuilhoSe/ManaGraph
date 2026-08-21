@@ -9,11 +9,18 @@ from catalog import (
     enrich_deck,
     get_oracle_card,
 )
+from archetypes import (
+    infer_archetype,
+    planned_roles,
+    profile_for,
+    quotas_for,
+    search_queries_for,
+)
 from deck_state import MAIN_DECK_SIZE, DeckState
 from geometry import cosine, load_card_views, multi_view_cosine
 from inventory import get_card as get_inventory_card
 from mana import cmc_bucket, diagnose, produces_mana, shape_bonus
-from roles import ROLE_QUOTAS, classify_roles, role_counts, role_need_bonus, token_classes
+from roles import role_counts, role_need_bonus, token_classes
 from rules_validator import (
     ILLEGAL_COMMANDER_STATUS,
     allows_any_number,
@@ -33,14 +40,6 @@ IDENTITY_BASICS = {
     "R": "Mountain",
     "G": "Forest",
 }
-
-ROLE_QUERIES = (
-    "add mana ramp artifact",
-    "draw a card",
-    "destroy target exile counter",
-    "creature tokens",
-    "basic land",
-)
 
 
 def _tokens(text: str) -> set[str]:
@@ -106,8 +105,15 @@ class DeckSolver:
             self._owned[key] = inv["total_quantity"] if inv else 0
         return self._owned[key]
 
+    def _plan(self, deck: DeckState, query: str = "") -> str:
+        from_query = infer_archetype(query)
+        if from_query != "generic":
+            return from_query
+        return getattr(deck, "archetype", None) or "generic"
+
     def _rebuild_context(self, deck: DeckState, query: str = ""):
         cmd = self._info(deck.commander) if deck.commander else None
+        arch = self._plan(deck, query)
         deck_cards = []
         other_toks = []
         curve = {str(i): 0 for i in range(0, 7)}
@@ -138,9 +144,13 @@ class DeckSolver:
             slot_count=deck.slot_count(),
             budget_cap=deck.budget_cap,
             budget_used=budget if deck.budget_cap is not None else None,
+            archetype=arch,
         )
         self._ctx = {
             "cmd": cmd,
+            "archetype": arch,
+            "profile": profile_for(arch),
+            "quotas": quotas_for(arch),
             "target": _tokens(
                 " ".join(
                     filter(
@@ -150,7 +160,7 @@ class DeckSolver:
                 )
             ),
             "deck_cards": deck_cards,
-            "counts": role_counts(deck_cards),
+            "counts": role_counts(deck_cards, arch),
             "other_toks": other_toks,
             "curve": curve,
             "budget": budget,
@@ -290,6 +300,9 @@ class DeckSolver:
             if self.score_candidate(trial, best, query) <= self.score_candidate(trial, worst, query):
                 self._rebuild_context(deck, query)
                 break
+            if not self._swap_ok(self._info(worst) or {}, self._info(best) or {}):
+                self._rebuild_context(deck, query)
+                break
             ok, _reason = self.can_add(trial, best)
             if not ok:
                 deck.take_from_pool(best, 1)
@@ -308,6 +321,19 @@ class DeckSolver:
             "slot_count": deck.slot_count(),
             "pool_count": deck.pool_count(),
         }
+
+    def _swap_ok(self, worst: dict, best: dict) -> bool:
+        ctx = self._ctx or {}
+        profile = ctx.get("profile") or profile_for("generic")
+        quotas = ctx.get("quotas") or quotas_for(ctx.get("archetype"))
+        counts = ctx.get("counts") or {}
+        worst_roles = self._card_roles(worst)
+        best_roles = self._card_roles(best)
+        for role in profile.protect_roles:
+            high = (quotas.get(role) or (0, 0))[1]
+            if role in worst_roles and role not in best_roles and counts.get(role, 0) <= high:
+                return False
+        return True
 
     def _legality_reason(self, deck: DeckState, name: str, new_qty: int) -> str | None:
         """Hard-rule reasons a card cannot occupy `new_qty` copies in this deck."""
@@ -506,10 +532,12 @@ class DeckSolver:
         return out
 
     def _card_roles(self, info: dict) -> set[str]:
-        return classify_roles(
+        arch = (self._ctx or {}).get("archetype") or "generic"
+        return planned_roles(
             info.get("type_line") or "",
             info.get("oracle_text") or "",
             info.get("keywords"),
+            arch,
         )
 
     def _token_adj(self, info: dict) -> float:
@@ -533,6 +561,9 @@ class DeckSolver:
         return bool(cmd_types & card_types) or any(t in blob for t in cmd_types)
 
     def _tribe_adj(self, info: dict) -> float:
+        profile = (self._ctx or {}).get("profile") or profile_for("generic")
+        if not profile.enforce_tribe:
+            return 0.0
         cmd = (self._ctx or {}).get("cmd") or {}
         cmd_types = creature_types(cmd.get("type_line") or "")
         if not cmd_types:
@@ -551,6 +582,9 @@ class DeckSolver:
         return None
 
     def _off_tribe_creature(self, info: dict) -> bool:
+        profile = (self._ctx or {}).get("profile") or profile_for("generic")
+        if not profile.enforce_tribe:
+            return False
         cmd = (self._ctx or {}).get("cmd") or {}
         if not creature_types(cmd.get("type_line") or ""):
             return False
@@ -606,7 +640,10 @@ class DeckSolver:
                 synergy = max(jaccard, chroma_synergy)
 
         roles = self._card_roles(info)
-        role_bonuses = {role: role_need_bonus(role, ctx["counts"]) for role in sorted(roles)}
+        quotas = ctx["quotas"] if ctx.get("quotas") else quotas_for(ctx.get("archetype"))
+        role_bonuses = {
+            role: role_need_bonus(role, ctx["counts"], quotas) for role in sorted(roles)
+        }
         others = [role_bonuses[r] for r in role_bonuses if r != "land"]
         role_score = max(others, default=0.0) if others else 0.0
         if "land" in role_bonuses:
@@ -633,6 +670,22 @@ class DeckSolver:
         unit = card_unit_price(info, deck.currency) or 0.0
         value = synergy / (unit + 0.5) if deck.budget_cap is not None else 0.0
         total = 2.0 * synergy + role_score + tribe + token_align - 1.4 * redundancy + value + shape["total"]
+        profile = ctx.get("profile") or profile_for(ctx.get("archetype"))
+        cap = profile.max_creatures
+        if cap is not None and is_creature_card(info.get("type_line") or ""):
+            bodies = sum(
+                int(c.get("quantity") or 1)
+                for c in ctx["deck_cards"]
+                if is_creature_card(c.get("type_line") or "")
+            )
+            if skip_self and any(
+                (c.get("name") or "").lower() == info["name"].lower() for c in ctx["deck_cards"]
+            ):
+                bodies = max(0, bodies - 1)
+            if bodies >= cap:
+                total -= 2.2
+            elif bodies >= int(cap * 0.7):
+                total -= 0.8
         return {
             "name": info["name"],
             "type_line": info.get("type_line") or "",
@@ -753,17 +806,23 @@ class DeckSolver:
             self._rebuild_context(deck, query)
         deck_cards = self._ctx["deck_cards"]
         counts = self._ctx["counts"]
+        quotas = self._ctx.get("quotas") or quotas_for(self._ctx.get("archetype"))
+        profile = self._ctx.get("profile") or profile_for("generic")
         land_count = counts.get("land", 0)
         worst_name = None
         worst_score = None
         for card in deck_cards:
             name = card["name"]
             roles = self._card_roles(card)
-            if "land" in roles and land_count <= ROLE_QUOTAS["land"][0]:
+            if "land" in roles and land_count <= quotas["land"][0]:
                 continue
             protected = False
             for role in roles:
-                if role in ROLE_QUOTAS and counts.get(role, 0) <= ROLE_QUOTAS[role][0]:
+                if role in quotas and counts.get(role, 0) <= quotas[role][0]:
+                    protected = True
+                    break
+            for role in profile.protect_roles:
+                if role in roles and counts.get(role, 0) <= (quotas.get(role) or (0, 0))[1]:
                     protected = True
                     break
             if protected and not prefer_expensive:
@@ -838,18 +897,20 @@ class DeckSolver:
             searcher = self.searcher
             if searcher is None:
                 from hybrid_search import RAGSearcher
-                searcher = RAGSearcher()
+                searcher = RAGSearcher.shared()
                 self.searcher = searcher
         except Exception as exc:
             print(f"[Solver] retrieval unavailable ({type(exc).__name__}: {exc})")
             return []
         cmd = self._info(deck.commander) if deck.commander else None
+        arch = self._plan(deck, query)
+        profile = profile_for(arch)
         queries = [q for q in [query, (cmd or {}).get("oracle_text")] if q]
-        if cmd:
+        if profile.retrieve_tribe and cmd:
             types = creature_types(cmd.get("type_line") or "")
             if types:
                 queries.append(" ".join(sorted(types)) + " creature")
-        queries.extend(ROLE_QUERIES)
+        queries.extend(search_queries_for(arch))
         colors = list(deck.identity or (cmd or {}).get("color_identity") or [])
         found = []
         for q in queries[:8]:

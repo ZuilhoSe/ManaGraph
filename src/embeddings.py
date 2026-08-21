@@ -1,7 +1,9 @@
+import threading
 from chromadb.utils import embedding_functions
 
 _MODEL_NAME = "all-MiniLM-L6-v2"
 _cached_function = None
+_cache_lock = threading.Lock()
 
 
 def embedding_device() -> str:
@@ -75,14 +77,15 @@ class EmbeddingStrategy:
 class MiniLMStrategy(EmbeddingStrategy):
     def get_function(self):
         global _cached_function
-        if _cached_function is None:
-            device = embedding_device()
-            _cached_function = embedding_functions.SentenceTransformerEmbeddingFunction(
-                model_name=_MODEL_NAME,
-                device=device,
-            )
-            place_model_on_device(_cached_function._model)
-        return _cached_function
+        with _cache_lock:
+            if _cached_function is None:
+                device = embedding_device()
+                _cached_function = embedding_functions.SentenceTransformerEmbeddingFunction(
+                    model_name=_MODEL_NAME,
+                    device=device,
+                )
+                place_model_on_device(_cached_function._model)
+            return _cached_function
 
 
 # Later you can add another provider here:

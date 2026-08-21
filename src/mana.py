@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 
+from archetypes import quotas_for
 from catalog import DB_NAME, enrich_deck, get_oracle_card
 from roles import ROLE_QUOTAS, role_counts
 
@@ -371,8 +372,10 @@ def diagnose(
     slot_count: int = 0,
     budget_cap: float | None = None,
     budget_used: float | None = None,
+    archetype: str | None = None,
 ) -> dict:
     """Deck shape report. Soft diagnosis — not a legality gate."""
+    quotas = quotas_for(archetype)
     identity = list(identity or (commander or {}).get("color_identity") or [])
     pips = empty_pips()
     sources = empty_sources()
@@ -410,7 +413,7 @@ def diagnose(
         pool = sources[color] + sources["any"]
         pips_per_source[color] = round(pips[color] / max(pool, 0.5), 3)
 
-    roles = role_counts(cards)
+    roles = role_counts(cards, archetype)
     cheat_count = 0
     for card in cards:
         if is_cheat_card(card.get("type_line") or "", card.get("oracle_text") or ""):
@@ -421,7 +424,7 @@ def diagnose(
     avg_band = plan["avg"]
 
     deficits: list[str] = []
-    land_low, land_high = ROLE_QUOTAS["land"]
+    land_low, land_high = quotas["land"]
     alert = land_alert(land_count)
     if alert["status"] != "ok":
         direction = "too few" if alert["status"] == "low" else "too many"
@@ -460,7 +463,7 @@ def diagnose(
             )
 
     role_gaps = []
-    for role, (low, high) in ROLE_QUOTAS.items():
+    for role, (low, high) in quotas.items():
         n = roles.get(role, 0)
         status = "ok"
         if n < low:
@@ -482,7 +485,8 @@ def diagnose(
         "avg_cmc": avg_cmc,
         "avg_cmc_band": list(avg_band),
         "land_count": land_count,
-        "land_quota": list(ROLE_QUOTAS["land"]),
+        "land_quota": list(quotas["land"]),
+        "archetype": archetype or "generic",
         "nonlands": nonlands,
         "fast_mana": fast_mana,
         "cheat_count": cheat_count,
@@ -528,6 +532,7 @@ def diagnose_deck(deck, db_path: str = DB_NAME) -> dict:
         slot_count=deck.slot_count(),
         budget_cap=deck.budget_cap,
         budget_used=budget_used,
+        archetype=getattr(deck, "archetype", None),
     )
 
 
