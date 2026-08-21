@@ -12,13 +12,13 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from service.handlers.commanders import search_commanders
-from service.handlers.deck_run import stream_deck_run
+from service.handlers.deck_run import cancel_deck_run, stream_deck_run
 from service.handlers.inventory import list_inventory_cards
 
 app = FastAPI(title="ManaGraph API")
@@ -48,7 +48,18 @@ class DeckRunRequest(BaseModel):
 
 @app.post("/api/deck/run")
 def run_deck(payload: DeckRunRequest):
-    """Streams newline-delimited JSON: log lines as they're printed, one "node"
-    event per finished agent node, then a closing "done"/"error" event.
+    """Streams newline-delimited JSON: a "run_id" line first, then log lines as
+    they're printed, one "node" event per finished agent node, then a closing
+    "done"/"cancelled"/"error" event.
     """
     return StreamingResponse(stream_deck_run(payload.query, payload.deck), media_type="application/x-ndjson")
+
+
+@app.post("/api/deck/run/{run_id}/cancel")
+def cancel_run(run_id: str):
+    """Best-effort: flags the run to stop before its next graph node, it can't
+    abort an LLM call already in flight. The client aborts its own fetch the
+    instant Stop is clicked regardless, which is what actually frees the UI."""
+    if not cancel_deck_run(run_id):
+        raise HTTPException(status_code=404, detail="Unknown or already-finished run_id.")
+    return {"ok": True}

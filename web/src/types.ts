@@ -20,6 +20,7 @@ export interface DeckFormState {
   ownedCostZero: boolean
   currency: Currency
   maxCardPrice: string
+  priceCapExisting: boolean
   budgetCap: string
   cards: DeckCardEntry[]
 }
@@ -33,6 +34,7 @@ export const emptyFormState: DeckFormState = {
   ownedCostZero: true,
   currency: 'usd',
   maxCardPrice: '',
+  priceCapExisting: false,
   budgetCap: '',
   cards: [],
 }

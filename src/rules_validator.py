@@ -146,10 +146,24 @@ class CommanderValidator:
 
         budget_used = enrichment["budget_used"]
         if deck.max_card_price is not None:
+            # price_cap_new_only (default True): a card already sitting in the
+            # decklist before this run started doesn't need to satisfy P_max --
+            # the cap is a guard on what the agent is about to add/buy, not a
+            # demand to rip out a pricey staple the user brought in themselves.
+            # Resolved through the catalog (not a raw string match) so a
+            # baseline card pasted as "Front/Back" still matches the canonical
+            # "Front // Back" name enrich_deck reports.
+            baseline_keys = set()
+            if deck.price_cap_new_only:
+                for name in deck.baseline_cards or {}:
+                    info = self.get_card_info(name)
+                    baseline_keys.add((info["name"] if info else name).lower())
             for detail in enrichment["details"]:
                 if detail["is_commander"]:
                     continue
                 if detail["buy_qty"] <= 0:
+                    continue
+                if detail["name"].lower() in baseline_keys:
                     continue
                 unit = detail["unit_price"]
                 if unit is None:

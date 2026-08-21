@@ -16,6 +16,9 @@ export function buildPayload(state: DeckFormState) {
     owned_only: state.ownedOnly,
     require_complete: state.requireComplete,
     owned_cost_zero: state.ownedCostZero,
+    // Inverted on purpose: the checkbox asks "also cap cards already in the
+    // deck", the backend field asks "cap new cards only" (its safer default).
+    price_cap_new_only: !state.priceCapExisting,
     currency: state.currency,
   }
 

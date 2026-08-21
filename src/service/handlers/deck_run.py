@@ -8,15 +8,18 @@ work on those files free to happen in parallel without touching the web service.
 
 import contextlib
 import json
+import logging
 import queue
 import re
 import sqlite3
 import threading
 import time
+import uuid
 
 from langchain_core.globals import set_debug
 
-from catalog import DB_NAME
+from catalog import DB_NAME, get_oracle_card
+from deck_state import diff_decks
 from main_agent import app as agent_graph, initial_graph_state, to_text
 from scryfall_download import download_and_process_scryfall
 from tools import set_deck_owned_only
@@ -28,9 +31,59 @@ from vectorize_cards import COLLECTION, generate_embeddings
 # graph-node updates (which can each take many seconds on their own).
 set_debug(True)
 
+# The debug tracer's ConsoleCallbackHandler assumes every tool call has a single
+# string input (run.inputs["input"]); our multi-arg tools (search_cards(colors=,
+# role=, query=), etc.) don't have that key, so it logs a swallowed KeyError via
+# Python's logging module on every such call. Harmless -- the run itself isn't
+# affected, and this never reaches the stdout stream _QueueWriter captures for the
+# UI -- but it floods the raw server console, so drop it below warning level.
+logging.getLogger("langchain_core.callbacks.manager").setLevel(logging.ERROR)
+# One-time informational notice from the google-genai SDK itself (langchain_google_genai
+# calls Models.generate_content directly instead of through Chat.send_message, which is
+# their recommended AFC entrypoint) -- not something we control from this codebase.
+logging.getLogger("google_genai.models").setLevel(logging.ERROR)
+
+
+class _PrintHandler(logging.Handler):
+    """Emits via print() instead of a captured stream. A plain logging.StreamHandler
+    binds to whatever sys.stdout *object* was current at construction time; print()
+    looks up sys.stdout fresh on every call, so this keeps following
+    contextlib.redirect_stdout(writer) inside _run() below and lands in the same
+    event queue the UI reads from, instead of the real server console."""
+
+    def emit(self, record: logging.LogRecord) -> None:
+        try:
+            print(self.format(record))
+        except Exception:
+            self.handleError(record)
+
+
+# llm_factory.py sets max_retries=8 on the Gemini client specifically to survive
+# the free tier's 429s. google-genai retries those (and 408/500/502/503/504) via
+# tenacity with exponential backoff (1s doubling, capped at 60s -- up to ~2min of
+# pure backoff across 8 attempts, before whatever each attempt's own request time
+# adds on top). tenacity already logs "retrying in Xs" before every wait via
+# before_sleep_log(logger, logging.INFO) -- that's this exact logger -- but
+# nothing configured a handler for it, so a stalled run showed total silence
+# between "[llm/start]" and the next line instead of the retries actually
+# happening. INFO here (not the module's usual ERROR-only loggers above) is
+# deliberate: this is the one signal that answers "is it retrying or is it stuck".
+_retry_logger = logging.getLogger("google_genai._api_client")
+_retry_logger.setLevel(logging.INFO)
+_retry_logger.addHandler(_PrintHandler())
+
 _LINE_BREAK_RE = re.compile(r"[\r\n]")
 _ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 _SENTINEL = object()
+
+# Generic LangChain chain-wrapper start/end (chain:LangGraph, chain:agent,
+# chain:call_model, chain:RunnableSequence, chain:Prompt, chain:tools, ...).
+# Unlike [llm/*] and [tool/*], these never carry real content -- LangChain's
+# debug tracer prints the literal placeholder "[inputs]" / "[outputs]" for
+# them instead of the actual payload -- and the same underlying event repeats
+# once per nesting level (5-7+ deep here), so one LLM/tool call produces a
+# dozen-plus of these carrying zero unique information between them.
+_CHAIN_WRAPPER_RE = re.compile(r"^\[chain/(start|end)\]")
 
 
 def _put(q: "queue.Queue", event: dict) -> None:
@@ -100,6 +153,11 @@ class _QueueWriter:
             if "[llm/end]" in self._last_header:
                 self._capturing = [line]
             return
+        if _CHAIN_WRAPPER_RE.match(line):
+            # Drop the header and the "[inputs]"/"[outputs]" placeholder
+            # line that always follows it -- neither carries information.
+            self._swallow_next_line = True
+            return
         if line:
             _put(self._q, {"type": "log", "text": line})
             if "/error]" in line:
@@ -152,19 +210,25 @@ def _ensure_search_index() -> None:
     """Build the Chroma card-search index on first use instead of failing.
 
     Calls vectorize_cards.generate_embeddings() (unmodified) rather than
-    duplicating its logic; only runs when the collection is actually missing,
-    so normal runs pay no extra cost.
+    duplicating its logic; only runs when the collection is missing *or*
+    empty. A present-but-empty collection (partial run, dir wiped and
+    recreated, etc.) used to pass the "does it exist" check and silently
+    leave every search_cards call returning zero hits forever.
     """
     from hybrid_search import get_chroma_client
 
     client = get_chroma_client()
     existing = {c.name for c in client.list_collections()}
     if COLLECTION in existing:
-        return
-    print(
-        f"Search index '{COLLECTION}' not found — building it now from the card catalog "
-        "(first run only, can take a few minutes)..."
-    )
+        collection = client.get_collection(COLLECTION)
+        if collection.count() > 0:
+            return
+        print(f"Search index '{COLLECTION}' exists but is empty — rebuilding it...")
+    else:
+        print(
+            f"Search index '{COLLECTION}' not found — building it now from the card catalog "
+            "(first run only, can take a few minutes)..."
+        )
     generate_embeddings()
 
 
@@ -180,23 +244,68 @@ def _ensure_data_ready() -> None:
         _ensure_search_index()
 
 
-def _run(query: str, deck: dict | None, q: "queue.Queue") -> None:
+# run_id -> "please stop" flag, so POST /api/deck/run/{run_id}/cancel (below) can
+# reach a run's background thread without any other shared state between the two.
+# Best-effort by construction: agent_graph.stream() only yields once per finished
+# graph node (a whole Architect ReAct loop, not each LLM call inside it), so this
+# flag is only checked -- see the loop below -- at node boundaries. It cannot abort
+# a single LLM call already in flight (e.g. an Architect turn stuck retrying a 429).
+# That's fine: the client aborts its fetch the instant Stop is clicked regardless,
+# which is what actually makes the UI stop waiting; this registry only exists to
+# also stop burning further LLM calls (Inventory/Solver/Supervisor) server-side
+# after the user has walked away.
+_cancel_flags: dict[str, threading.Event] = {}
+_cancel_flags_lock = threading.Lock()
+
+
+def cancel_deck_run(run_id: str) -> bool:
+    with _cancel_flags_lock:
+        flag = _cancel_flags.get(run_id)
+    if flag is None:
+        return False
+    flag.set()
+    return True
+
+
+def _run(query: str, deck: dict | None, q: "queue.Queue", cancel_flag: threading.Event) -> None:
     writer = _QueueWriter(q)
     current_node: str | None = None
+    cancelled = False
     try:
         with contextlib.redirect_stdout(writer):
             _ensure_data_ready()
+            if cancel_flag.is_set():
+                _put(q, {"type": "cancelled", "node": current_node})
+                return
             state = initial_graph_state(query, deck)
+            # Fail in milliseconds, not after an ~8-minute run: if a commander
+            # is already set (autocomplete, a saved deck being edited) but
+            # doesn't resolve in the catalog, don't let the graph start at
+            # all. This does NOT cover a free-text request ("build me a deck
+            # for Teval") where no commander is set yet -- there, the
+            # Architect infers one itself, and a typo/hallucinated name can
+            # still silently resolve to a *different real* commander with no
+            # error raised anywhere; that's a separate, harder problem.
+            commander_name = (state["deck"] or {}).get("commander")
+            if commander_name and not get_oracle_card(commander_name):
+                raise ValueError(
+                    f"Commander '{commander_name}' was not found in the catalog."
+                )
             # owned_only is constant for the whole run (agents don't mutate it),
             # so setting this once here covers every search_cards call the
             # Architect makes across every iteration of this run.
             set_deck_owned_only(state["deck"].get("owned_only", False))
-            _put(q, {"type": "start", "deck": state["deck"]})
+            initial_deck = state["deck"]
+            final_deck = initial_deck
+            _put(q, {"type": "start", "deck": initial_deck})
             # stream_mode=["updates", "debug"]: "debug" adds a "task" event the
             # instant a node starts (before it produces any output), so we know
             # which node -- and therefore which agent's LLM call -- is running
             # even if it never finishes (e.g. it hits a rate limit mid-call).
             for mode, payload in agent_graph.stream(state, stream_mode=["updates", "debug"]):
+                if cancel_flag.is_set():
+                    cancelled = True
+                    break
                 if mode == "debug" and payload.get("type") == "task":
                     current_node = payload["payload"]["name"]
                     _put(q, {"type": "node_start", "node": current_node})
@@ -213,32 +322,57 @@ def _run(query: str, deck: dict | None, q: "queue.Queue") -> None:
                     for key in ("deck", "validation", "supervisor_decision", "solver_report"):
                         if key in partial:
                             event[key] = partial[key]
+                    if "deck" in partial:
+                        final_deck = partial["deck"]
                     _put(q, event)
         writer.flush_remainder()
     except Exception as exc:  # surface to the UI instead of a silent 500 mid-stream
         writer.flush_remainder()
         _put(q, {"type": "error", "message": str(exc), "node": current_node})
     else:
-        _put(q, {"type": "done"})
+        if cancelled:
+            _put(q, {"type": "cancelled", "node": current_node})
+        else:
+            # Computed from the before/after card_list()s, not from any agent's
+            # self-reported delta -- the architect/solver "swap" notes can drift
+            # from what the deck state actually ended up with.
+            _put(q, {"type": "done", "deck_diff": diff_decks(initial_deck, final_deck)})
     finally:
         q.put(_SENTINEL)
 
 
 def stream_deck_run(query: str, deck: dict | None):
-    """Yields NDJSON lines: log lines as they're printed, a "node" event each
-    time a graph node finishes, then a closing "done"/"error" event. Every
-    event carries a "ts" (unix seconds) so the UI can show elapsed time.
+    """Yields NDJSON lines: a "run_id" line first (so the caller can POST
+    /api/deck/run/{run_id}/cancel), then log lines as they're printed, a "node"
+    event each time a graph node finishes, then a closing "done"/"cancelled"/
+    "error" event. Every event carries a "ts" (unix seconds) so the UI can show
+    elapsed time.
 
     Runs the (blocking, multi-LLM-call) graph on a worker thread so log lines
     can be forwarded to the caller as soon as they're printed, rather than only
     after each node fully completes.
     """
+    run_id = uuid.uuid4().hex
+    cancel_flag = threading.Event()
+    with _cancel_flags_lock:
+        _cancel_flags[run_id] = cancel_flag
+
     q: "queue.Queue" = queue.Queue()
-    thread = threading.Thread(target=_run, args=(query, deck, q), daemon=True)
+    thread = threading.Thread(target=_run, args=(query, deck, q, cancel_flag), daemon=True)
     thread.start()
 
-    while True:
-        item = q.get()
-        if item is _SENTINEL:
-            break
-        yield json.dumps(item, default=str) + "\n"
+    try:
+        yield json.dumps({"type": "run_id", "run_id": run_id, "ts": time.time()}) + "\n"
+        while True:
+            item = q.get()
+            if item is _SENTINEL:
+                break
+            yield json.dumps(item, default=str) + "\n"
+    finally:
+        # Doesn't fire reliably on a client-side abort (the worker thread may
+        # still be blocked in q.get() with nothing consuming it), so a
+        # cancelled-but-still-hung run can leave its flag here indefinitely --
+        # a bounded, harmless leak for a single-process dev server, not worth
+        # a reaper thread for.
+        with _cancel_flags_lock:
+            _cancel_flags.pop(run_id, None)

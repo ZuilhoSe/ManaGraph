@@ -2,7 +2,7 @@ import contextvars
 import json
 from langchain.tools import tool
 from hybrid_search import RAGSearcher
-from inventory import get_card, list_inventory, move_card, FREE_POOL
+from inventory import get_cards, list_inventory, move_card, FREE_POOL
 from rules_validator import CommanderValidator
 from deck_state import DeckState
 
@@ -72,12 +72,35 @@ def search_cards(
 
 
 @tool
-def lookup_inventory(card_name: str) -> str:
-    """Look up one owned card: total copies and where they are allocated (free pool vs decks). Returns JSON."""
-    card = get_card(card_name)
-    if not card:
-        return _json({"ok": False, "error": f"'{card_name}' is not in the inventory."})
-    return _json({"ok": True, "card": card, "free_pool": FREE_POOL})
+def lookup_inventory(card_names: list[str]) -> str:
+    """
+    Look up owned cards in one call: total copies and where each is allocated
+    (free pool vs decks). Pass every name you need in a single list instead of
+    calling this once per card. Returns JSON keyed by the names you passed in;
+    a name not owned maps to null.
+    """
+    if not card_names:
+        return _json({"ok": False, "error": "card_names must be a non-empty list."})
+    found = get_cards(card_names)
+    return _json({"ok": True, "cards": found, "free_pool": FREE_POOL})
+
+
+@tool
+def get_card_info(name: str) -> str:
+    """
+    Look up one card by its exact name in the Oracle catalog (not the inventory --
+    this checks whether the card exists at all, regardless of ownership). Returns JSON.
+
+    Use this to confirm a commander or card name before assuming it's invalid. A
+    search_cards miss is NOT proof the name is wrong -- that's a semantic search over
+    card text and can miss an exact, real card. This is an exact lookup.
+    """
+    from catalog import get_oracle_card
+
+    info = get_oracle_card(name)
+    if not info:
+        return _json({"ok": False, "error": f"'{name}' was not found in the catalog."})
+    return _json({"ok": True, "card": info})
 
 
 @tool

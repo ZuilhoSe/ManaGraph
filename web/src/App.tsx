@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import PromptPanel from './components/PromptPanel'
 import ConfigPanel from './components/ConfigPanel'
 import DeckCardList from './components/DeckCardList'
@@ -6,8 +6,9 @@ import PlayBar from './components/PlayBar'
 import RunPanel from './components/RunPanel'
 import type { RunStatus } from './components/RunPanel'
 import CollectionView from './components/CollectionView'
+import ImportExportBar from './components/ImportExportBar'
 import { buildPayload } from './lib/buildPayload'
-import { runDeck } from './lib/api'
+import { cancelRun, runDeck } from './lib/api'
 import type { DeckRunEvent } from './lib/api'
 import { emptyFormState } from './types'
 import type { DeckFormState } from './types'
@@ -20,6 +21,10 @@ export default function App() {
   const [runEvents, setRunEvents] = useState<DeckRunEvent[]>([])
   const [runStatus, setRunStatus] = useState<RunStatus | 'idle'>('idle')
   const [runError, setRunError] = useState<string | undefined>()
+  // Both are per-run and only read from handleStop, so a ref (not state) is enough --
+  // they never need to trigger a re-render on their own.
+  const abortRef = useRef<AbortController | null>(null)
+  const runIdRef = useRef<string | null>(null)
 
   function set<K extends keyof DeckFormState>(key: K, value: DeckFormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -30,33 +35,59 @@ export default function App() {
   async function handlePlay() {
     if (!canPlay) return
     const payload = buildPayload(form)
+    const controller = new AbortController()
+    abortRef.current = controller
+    runIdRef.current = null
     setRunEvents([])
     setRunError(undefined)
     setRunStatus('running')
     try {
-      await runDeck(payload, (event) => {
-        setRunEvents((prev) => [...prev, event])
-        if (event.type === 'error') {
-          setRunError(event.message)
-          setRunStatus('error')
-        }
-      })
+      await runDeck(
+        payload,
+        (event) => {
+          if (event.type === 'run_id' && event.run_id) runIdRef.current = event.run_id
+          setRunEvents((prev) => [...prev, event])
+          if (event.type === 'error') {
+            setRunError(event.message)
+            setRunStatus('error')
+          }
+        },
+        controller.signal,
+      )
       setRunStatus((prev) => (prev === 'error' ? prev : 'done'))
     } catch (err) {
-      setRunError(err instanceof Error ? err.message : String(err))
-      setRunStatus('error')
+      if (controller.signal.aborted) {
+        setRunStatus('stopped')
+      } else {
+        setRunError(err instanceof Error ? err.message : String(err))
+        setRunStatus('error')
+      }
+    } finally {
+      abortRef.current = null
     }
+  }
+
+  // Stops the UI from waiting instantly (aborting the fetch), and best-effort
+  // asks the server to stop starting further graph nodes for this run -- it
+  // can't interrupt an LLM call already in flight, only the fetch abort is
+  // instant and guaranteed; see cancelRun()'s and deck_run.py's own comments.
+  function handleStop() {
+    if (runIdRef.current) cancelRun(runIdRef.current)
+    abortRef.current?.abort()
   }
 
   const isRunning = runStatus === 'running'
 
   return (
     <div className="mx-auto min-h-svh max-w-2xl px-4 py-6">
-      <header className="mb-5">
-        <h1 className="text-xl font-semibold tracking-tight text-surface-50">ManaGraph</h1>
-        <p className="mt-0.5 text-sm text-surface-400">
-          Set up the orchestrator's input before running the agent graph.
-        </p>
+      <header className="mb-5 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-surface-50">ManaGraph</h1>
+          <p className="mt-0.5 text-sm text-surface-400">
+            Set up the orchestrator's input before running the agent graph.
+          </p>
+        </div>
+        {tab === 'build' && <ImportExportBar form={form} onImport={setForm} />}
       </header>
 
       <div className="mb-5 flex gap-1 border-b border-surface-700">
@@ -99,6 +130,7 @@ export default function App() {
               disabledReason={!canPlay ? 'Describe what you want to do to enable play' : undefined}
               loading={isRunning}
               onPlay={handlePlay}
+              onStop={handleStop}
             />
           </div>
         </>

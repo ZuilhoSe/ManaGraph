@@ -41,6 +41,29 @@ IDENTITY_BASICS = {
     "G": "Forest",
 }
 
+# Known non-tribal deck themes: if the literal keyword shows up anywhere in the
+# commander's oracle_text, fire the theme's queries into retrieval. Only 3 for
+# now -- the ones we've actually seen misfire without this (see
+# eval/archetypes/aminatou_esper_enchantments.json). Add more as they come up.
+#
+# "enchantment" is down to its one query that's actually earned its keep on a
+# benchmark (see eval-harness-plan.md) -- bare "enchantment", constellation,
+# and eerie variants were cut for bringing zero good hits. artifact/graveyard
+# haven't been benchmarked yet, so treat those as unproven.
+THEME_QUERIES = {
+    "enchantment": (
+        "whenever you cast an enchantment or an enchantment enters the battlefield, draw a card",
+    ),
+    "artifact": (
+        "artifact",
+        "artifact synergy when artifact enters the battlefield",
+    ),
+    "graveyard": (
+        "graveyard",
+        "graveyard recursion reanimate self mill",
+    ),
+}
+
 
 def _tokens(text: str) -> set[str]:
     return set(re.findall(r"[a-z0-9]+", (text or "").lower())) - STOPWORDS
@@ -71,6 +94,39 @@ def is_creature_card(type_line: str) -> bool:
     return any("creature" in face.lower() for face in (type_line or "").split("//"))
 
 
+def self_referential_types(cmd: dict | None) -> set[str]:
+    """Which of the commander's own creature-type words its own oracle_text
+    mentions -- e.g. Krenko is a Goblin and his text says "Goblins you
+    control...", so Goblin is a real tribal signal. Aminatou is a Human
+    Wizard but her text never says "human" or "wizard" -- being a creature
+    type isn't the same as a deck being built around it, so no tribal signal
+    fires for her. This is the single gate for the tribal bonus/penalty
+    (_tribe_adj/_theme_match), the off-tribe hard filter (_off_tribe_creature),
+    and the auto-generated tribal search query in _retrieve -- a commander
+    that fails this check gets none of the three."""
+    if not cmd:
+        return set()
+    types = creature_types(cmd.get("type_line") or "")
+    if not types:
+        return set()
+    text = (cmd.get("oracle_text") or "").lower()
+    return {t for t in types if re.search(rf"\b{re.escape(t)}s?\b", text)}
+
+
+def detect_known_themes(cmd: dict | None) -> list[str]:
+    """Keyword-only theme detection: fires a THEME_QUERIES entry if its literal
+    name appears anywhere in the commander's oracle_text. Accepted risk, not
+    fixed: no polarity check, so a commander whose only mention is "destroy
+    target enchantment" fires the enchantment theme exactly like one that says
+    "whenever you cast an enchantment, draw a card". Cheap to accept because a
+    misfire only adds a couple of extra retrieval queries to a pool of
+    hundreds of candidates -- it's not a hard filter like the tribal one."""
+    if not cmd:
+        return []
+    text = (cmd.get("oracle_text") or "").lower()
+    return [theme for theme in THEME_QUERIES if re.search(rf"\b{theme}s?\b", text)]
+
+
 CHROMA_JACCARD_GATE = 0.12
 TRIBE_MATCH_BONUS = 1.0
 TRIBE_MISS_PENALTY = -1.6
@@ -85,6 +141,7 @@ class DeckSolver:
         self.searcher = searcher
         self._oracle: dict[str, dict | None] = {}
         self._owned: dict[str, int] = {}
+        self._baseline_lookup: dict[str, int] | None = None
         self._ctx: dict | None = None
         self._emb: dict[str, object] = {}
         self._views: dict[str, dict] = {}
@@ -278,10 +335,11 @@ class DeckSolver:
             removed.append({"name": victim, "reason": "over_99"})
             self._rebuild_context(deck, query)
 
+        protected_names = self._freshly_touched_names(deck)
         for _ in range(max_swaps):
             if not deck.candidate_pool or deck.slot_count() == 0:
                 break
-            worst = self._worst_cut(deck, query, prefer_expensive=False)
+            worst = self._worst_cut(deck, query, prefer_expensive=False, protected_names=protected_names)
             if not worst:
                 break
             trial = DeckState.from_dict(deck.to_dict())
@@ -335,6 +393,26 @@ class DeckSolver:
                 return False
         return True
 
+    def _baseline_qty(self, deck: DeckState, canonical_name: str) -> int:
+        """How many copies of `canonical_name` were already in the deck before this
+        run started -- exempt from max_card_price under price_cap_new_only, same
+        baseline-name matching rules_validator uses for the final gate. Computed once
+        per DeckSolver instance: baseline_cards never changes mid-run, and (like
+        _oracle/_owned above) a single instance only ever processes one run's deck
+        and its trial clones -- cut()'s swap loop clones the deck every iteration
+        (`DeckState.from_dict(deck.to_dict())`), so keying this by deck identity
+        would recompute on every clone for no reason."""
+        if not deck.price_cap_new_only or not deck.baseline_cards:
+            return 0
+        if self._baseline_lookup is None:
+            lookup: dict[str, int] = {}
+            for raw_name, qty in deck.baseline_cards.items():
+                info = self._info(raw_name)
+                key = (info["name"] if info else raw_name).lower()
+                lookup[key] = lookup.get(key, 0) + qty
+            self._baseline_lookup = lookup
+        return self._baseline_lookup.get(canonical_name.lower(), 0)
+
     def _legality_reason(self, deck: DeckState, name: str, new_qty: int) -> str | None:
         """Hard-rule reasons a card cannot occupy `new_qty` copies in this deck."""
         info = self._info(name)
@@ -364,11 +442,23 @@ class DeckSolver:
         cost, _owned_used, buy_qty, unknown = acquisition_cost(
             add_qty, max(owned_qty - current, 0), unit, deck.owned_cost_zero
         )
-        if deck.max_card_price is not None and buy_qty > 0:
-            if unit is None:
-                return "unknown price"
-            if unit > deck.max_card_price:
-                return "over P_max"
+        if deck.max_card_price is not None:
+            # `current` above is the *live* deck count, which is the wrong baseline
+            # for "is this new": a card already committed (e.g. strip_illegal
+            # checking a card the Architect just substituted in) has current ==
+            # new_qty, so add_qty would always be 0 and silently skip this gate.
+            # Gate against the pre-run baseline instead, so a freshly substituted
+            # card can't hide behind its own placement.
+            price_current = self._baseline_qty(deck, info["name"])
+            price_add_qty = max(new_qty - price_current, 0)
+            _, _, price_buy_qty, _ = acquisition_cost(
+                price_add_qty, max(owned_qty - price_current, 0), unit, deck.owned_cost_zero
+            )
+            if price_buy_qty > 0:
+                if unit is None:
+                    return "unknown price"
+                if unit > deck.max_card_price:
+                    return "over P_max"
         if deck.budget_cap is not None and add_qty > 0:
             if unknown:
                 return "unknown price"
@@ -413,17 +503,38 @@ class DeckSolver:
         """Strip illegal 99 cards, retrieve extras into the pool, fill holes, then cut."""
         stripped = self.strip_illegal(deck)
         n_stripped = sum(item["quantity"] for item in stripped["removed"])
-        should_retrieve = bool(deck.commander) and (fill_to_99 or n_stripped > 0)
+
+        land_status = {}
+        if deck.commander:
+            self._rebuild_context(deck, query)
+            land_status = (self._ctx.get("mana") or {}).get("land_alert") or {}
+        # Only auto-cut on a shape complaint when the user's own intent is to build/fix the
+        # deck. A targeted "swap this card" on an intentionally land-heavy list (Azusa,
+        # Lord Windgrace, extra-land-drop shells) must not trigger a land purge nobody asked
+        # for; the quota is also a flat heuristic that doesn't know those archetypes exist.
+        should_fix_shape = (
+            land_status.get("severity") in ("moderate", "severe")
+            and deck.intent in ("build", "cut")
+        )
+
+        should_retrieve = bool(deck.commander) and (fill_to_99 or n_stripped > 0 or should_fix_shape)
         if should_retrieve:
             self._seed_pool_from_retrieve(deck, query)
 
         fill_report = None
+        # Mirrors should_retrieve: retrieving into the pool for a reason and then not
+        # spending it down leaves a seeded-but-unused pool and a deck that stays short
+        # (a real incident: a "build" request landed with only 12/99 cards because the
+        # pool got seeded here but fill() was never triggered to consume it).
         need_fill = bool(deck.commander) and deck.remaining_slots() > 0 and (
-            fill_to_99 or n_stripped > 0 or (deck.intent == "cut" and bool(deck.candidate_pool))
+            fill_to_99
+            or n_stripped > 0
+            or should_fix_shape
+            or (deck.intent == "cut" and bool(deck.candidate_pool))
         )
         if need_fill:
-            max_adds = None if fill_to_99 else n_stripped
-            print(f"[Solver] Filling to {'99' if fill_to_99 else 'replace stripped'} "
+            max_adds = None if (fill_to_99 or should_fix_shape) else n_stripped
+            print(f"[Solver] Filling to {'99' if fill_to_99 or should_fix_shape else 'replace stripped'} "
                   f"(max_adds={max_adds}, slots_left={deck.remaining_slots()})...")
             fill_report = self.fill(
                 deck, query=query, retrieve=False, max_adds=max_adds
@@ -441,10 +552,22 @@ class DeckSolver:
 
         cut_report = None
         if deck.slot_count() == MAIN_DECK_SIZE and deck.candidate_pool:
-            print("[Solver] Cutting / swapping from candidate_pool...")
-            cut_report = self.cut(deck, query=query)
+            # A severe land excess needs many 1-for-1 swaps in one pass, or it just
+            # limps toward correct over several architect round-trips instead of one.
+            max_swaps = 12
+            if should_fix_shape:
+                max_swaps = max(max_swaps, min(40, int(land_status.get("delta") or 0) + 4))
+            print(f"[Solver] Cutting / swapping from candidate_pool (max_swaps={max_swaps})...")
+            cut_report = self.cut(deck, query=query, max_swaps=max_swaps)
 
-        return {"stripped": stripped, "fill": fill_report, "cut": cut_report}
+        if deck.commander and (fill_report or cut_report):
+            # Re-read land count after fill/cut actually changed the deck, not before —
+            # mirrors how a human checks land count only once the deck is settled, not
+            # off the pre-fill snapshot that triggered the fix in the first place.
+            self._rebuild_context(deck, query)
+            land_status = (self._ctx.get("mana") or {}).get("land_alert") or {}
+
+        return {"stripped": stripped, "fill": fill_report, "cut": cut_report, "land_alert": land_status}
 
     def can_add(self, deck: DeckState, name: str, quantity: int = 1) -> tuple[bool, str]:
         if deck.remaining_slots() < quantity:
@@ -551,22 +674,24 @@ class DeckSolver:
         return 0.0
 
     def _theme_match(self, info: dict) -> bool:
-        """True if the card shares or names a commander creature type (Goblin, not 'creature')."""
+        """True if the card shares/names a creature type the commander is actually
+        built around (self_referential_types), or if the commander isn't a tribal
+        commander at all -- being a certain creature type isn't the same as
+        synergizing with it (see self_referential_types)."""
         cmd = (self._ctx or {}).get("cmd") or {}
-        cmd_types = creature_types(cmd.get("type_line") or "")
-        if not cmd_types:
+        tribal_types = self_referential_types(cmd)
+        if not tribal_types:
             return True
         blob = f"{info.get('name','')} {info.get('type_line','')} {info.get('oracle_text','')}".lower()
         card_types = creature_types(info.get("type_line") or "")
-        return bool(cmd_types & card_types) or any(t in blob for t in cmd_types)
+        return bool(tribal_types & card_types) or any(t in blob for t in tribal_types)
 
     def _tribe_adj(self, info: dict) -> float:
         profile = (self._ctx or {}).get("profile") or profile_for("generic")
         if not profile.enforce_tribe:
             return 0.0
         cmd = (self._ctx or {}).get("cmd") or {}
-        cmd_types = creature_types(cmd.get("type_line") or "")
-        if not cmd_types:
+        if not self_referential_types(cmd):
             return 0.0
         if self._theme_match(info):
             return TRIBE_MATCH_BONUS if is_creature_card(info.get("type_line") or "") else 0.0
@@ -586,7 +711,7 @@ class DeckSolver:
         if not profile.enforce_tribe:
             return False
         cmd = (self._ctx or {}).get("cmd") or {}
-        if not creature_types(cmd.get("type_line") or ""):
+        if not self_referential_types(cmd):
             return False
         return is_creature_card(info.get("type_line") or "") and not self._theme_match(info)
 
@@ -801,7 +926,30 @@ class DeckSolver:
             cards.append({**info, "quantity": qty})
         return cards
 
-    def _worst_cut(self, deck: DeckState, query: str, prefer_expensive: bool) -> str | None:
+    def _freshly_touched_names(self, deck: DeckState) -> set[str]:
+        """Cards the Architect placed into deck.cards this round (via last_delta) --
+        protected from cut()'s same-pass pool sweep, so a deliberate addition/
+        substitution can't be undone in the very round it was made by a scoring
+        pass that has no notion of what was just deliberately chosen."""
+        delta = deck.last_delta or {}
+        names = set()
+        for item in delta.get("added") or []:
+            name = item.get("name")
+            if name:
+                names.add(str(name).lower())
+        for item in delta.get("substituted") or []:
+            name = item.get("in")
+            if name:
+                names.add(str(name).lower())
+        return names
+
+    def _worst_cut(
+        self,
+        deck: DeckState,
+        query: str,
+        prefer_expensive: bool,
+        protected_names: set[str] | None = None,
+    ) -> str | None:
         if self._ctx is None:
             self._rebuild_context(deck, query)
         deck_cards = self._ctx["deck_cards"]
@@ -813,6 +961,8 @@ class DeckSolver:
         worst_score = None
         for card in deck_cards:
             name = card["name"]
+            if protected_names and name.lower() in protected_names:
+                continue
             roles = self._card_roles(card)
             if "land" in roles and land_count <= quotas["land"][0]:
                 continue
@@ -907,13 +1057,18 @@ class DeckSolver:
         profile = profile_for(arch)
         queries = [q for q in [query, (cmd or {}).get("oracle_text")] if q]
         if profile.retrieve_tribe and cmd:
-            types = creature_types(cmd.get("type_line") or "")
-            if types:
-                queries.append(" ".join(sorted(types)) + " creature")
+            tribal_types = self_referential_types(cmd)
+            if tribal_types:
+                queries.append(" ".join(sorted(tribal_types)) + " creature")
+        if cmd:
+            for theme in detect_known_themes(cmd):
+                queries.extend(THEME_QUERIES[theme])
         queries.extend(search_queries_for(arch))
         colors = list(deck.identity or (cmd or {}).get("color_identity") or [])
         found = []
-        for q in queries[:8]:
+        # Cap sized for the worst case: 2 base + 1 tribal + theme queries
+        # + archetype search queries. Left slack to 16 for headroom.
+        for q in queries[:16]:
             try:
                 hits = searcher.search_cards(
                     query=q,

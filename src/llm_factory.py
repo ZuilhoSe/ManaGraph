@@ -12,23 +12,25 @@ class LLMFactory:
         model_name = os.getenv("LLM_MODEL")
 
         if provider == "google":
-            llm = ChatGoogleGenerativeAI(model=model_name, google_api_key=os.getenv("GOOGLE_API_KEY"))
-            # The free tier's 429 replies name a retryDelay around 45-60s (a
-            # per-minute token quota, not a short blip), so the default
-            # exponential backoff -- which starts at 1s -- gives up long before
-            # that. Wait a flat 60s between attempts instead: up to 2 retries,
-            # each preceded by a real 60s pause, so a same-run retry actually
-            # has a shot at landing after the quota window rolls over.
-            return llm.bind(
-                http_options={
-                    "retry_options": {
-                        "attempts": 3,
-                        "initial_delay": 60.0,
-                        "max_delay": 60.0,
-                        "exp_base": 1.0,
-                        "jitter": 0.0,
-                    }
-                }
+            # max_retries must be a constructor field, not a `.bind(http_options=...)`
+            # kwarg: every caller of this factory (ArchitectAgent, InventoryAgent) hands
+            # the model to langgraph's create_react_agent, which calls .bind_tools(tools)
+            # on it. RunnableBinding.__getattr__ delegates that call straight to the
+            # wrapped model and returns a *fresh* binding carrying only {"tools": [...]}
+            # -- any earlier `.bind(http_options=...)` kwargs are silently dropped, so a
+            # bound retry config never actually reached a single request. Confirmed empirically:
+            # `model.bind(http_options={...}).bind_tools([]).kwargs` == {"tools": [...]},
+            # the http_options key is just gone. max_retries survives because it's a real
+            # field on the model instance itself, not a runtime-only bound kwarg.
+            # The free tier's 429 replies name a retryDelay of ~5-60s (a per-minute
+            # token quota, not a short blip); the default exponential backoff (1s
+            # doubling, 60s cap) needs several attempts before a wait is even in that
+            # range, so bump the attempt count well past the SDK default (6) instead of
+            # trying to force a flat delay we can't actually configure from here.
+            return ChatGoogleGenerativeAI(
+                model=model_name,
+                google_api_key=os.getenv("GOOGLE_API_KEY"),
+                max_retries=8,
             )
 
         elif provider == "anthropic":

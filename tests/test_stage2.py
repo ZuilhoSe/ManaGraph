@@ -100,6 +100,22 @@ def _seed(path):
         conn, "millsp", "Test Mill", "Sorcery", ["U", "B"],
         oracle="Each opponent mills eight cards.", usd=0.5, cmc=3,
     )
+    # A commander that IS a creature type but never mentions it in its own
+    # oracle text -- e.g. the real Aminatou, Veil Piercer (Human Wizard, but
+    # her text is about surveil/miracle, never says "human" or "wizard").
+    # self_referential_types() should read this as "not a tribal commander".
+    _insert_card(
+        conn, "nontribal_cmd", "Test Nontribal Commander", "Legendary Creature — Human Wizard", ["U"],
+        oracle="Draw a card at the beginning of your upkeep.", usd=1.0, cmc=3,
+    )
+    _insert_card(
+        conn, "human_wizard", "Test Human Wizard", "Creature — Human Wizard", ["U"],
+        oracle="", usd=0.5, cmc=2,
+    )
+    _insert_card(
+        conn, "unrelated_creature", "Test Unrelated Creature", "Creature — Elf", ["U"],
+        oracle="", usd=0.5, cmc=2,
+    )
     conn.execute(
         "INSERT INTO inventory VALUES (?, ?, ?)",
         ("Sol Ring", 1, json.dumps({"free_pool": 1})),
@@ -197,6 +213,77 @@ class Stage2Tests(unittest.TestCase):
         self.solver.fill(deck, retrieve=False)
         self.assertNotIn("Gilded Lotus", deck.cards)
 
+    def test_strip_illegal_catches_freshly_substituted_over_price_card(self):
+        # Simulates what apply_delta does: a substitute lands directly in
+        # deck.cards, not through the price-filtered candidate_pool. Gilded
+        # Lotus was never in baseline_cards, so it must still be caught.
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            cards={"Mountain": 98, "Gilded Lotus": 1},
+            max_card_price=3.0,
+            baseline_cards={"Mountain": 98},
+        )
+        report = self.solver.strip_illegal(deck)
+        removed_names = [r["name"] for r in report["removed"]]
+        self.assertIn("Gilded Lotus", removed_names)
+        self.assertNotIn("Gilded Lotus", deck.cards)
+
+    def test_strip_illegal_exempts_baseline_over_price_card(self):
+        # A pricey card the user already had in the decklist before this run
+        # (price_cap_new_only's whole point) must survive strip_illegal.
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            cards={"Mountain": 98, "Gilded Lotus": 1},
+            max_card_price=3.0,
+            baseline_cards={"Mountain": 98, "Gilded Lotus": 1},
+        )
+        report = self.solver.strip_illegal(deck)
+        removed_names = [r["name"] for r in report["removed"]]
+        self.assertNotIn("Gilded Lotus", removed_names)
+        self.assertIn("Gilded Lotus", deck.cards)
+
+    def test_cut_still_swaps_non_protected_weak_card(self):
+        # Control for the regression below: with no last_delta, a weak,
+        # off-theme card with no role quota to shield it (Gilded Lotus has no
+        # ramp/draw/interaction/threat signal, so it classifies as "other") is
+        # a normal cut() victim once a stronger pool candidate is available.
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            cards={"Mountain": 34, "Gilded Lotus": 1},
+            candidate_pool={"Goblin Recruiter": 1},
+        )
+        report = self.solver.cut(deck, query="goblin tokens")
+        self.assertTrue(report["ok"])
+        self.assertNotIn("Gilded Lotus", deck.cards)
+        self.assertIn("Goblin Recruiter", deck.cards)
+
+    def test_cut_protects_freshly_substituted_card_same_pass(self):
+        # Regression for a real run: the Architect substituted a card into
+        # deck.cards, and cut() -- triggered in the same solve() pass by an
+        # unrelated stripped card populating candidate_pool -- swapped it back
+        # out because it scored worse than a pool candidate, with no notion
+        # that it had just been deliberately chosen. last_delta is the
+        # round's record of what the Architect touched; cut() must treat
+        # those names as protected against its own same-pass swap loop.
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            cards={"Mountain": 34, "Gilded Lotus": 1},
+            candidate_pool={"Goblin Recruiter": 1},
+        )
+        deck.last_delta = {
+            "substituted": [
+                {"out": "Sol Ring", "in": "Gilded Lotus", "quantity": 1, "reason": "ramp"}
+            ]
+        }
+        report = self.solver.cut(deck, query="goblin tokens")
+        self.assertTrue(report["ok"])
+        self.assertIn("Gilded Lotus", deck.cards)
+        self.assertEqual(report["swapped"], [])
+
     def test_cut_swaps_pool_into_land_heavy_99(self):
         deck = DeckState(
             commander="Krenko, Mob Boss",
@@ -230,6 +317,36 @@ class Stage2Tests(unittest.TestCase):
         self.assertIn("Goblin Recruiter", deck.cards)
         self.assertNotIn("Kumano Faces Kakkazan // Etching of Kumano", deck.cards)
 
+    def test_theme_gate_ignores_non_self_referential_commander(self):
+        """Inverse of test_off_tribe_creature_does_not_fill: a commander whose
+        own oracle text never mentions its own creature type (like the real
+        Aminatou, Veil Piercer -- Human Wizard, but her text is about
+        surveil/miracle) must not apply any tribal bonus or off-tribe filter,
+        not even to a card that shares its exact creature type."""
+        from solver import self_referential_types
+
+        deck = DeckState(commander="Test Nontribal Commander", identity=["U"])
+        self.solver._rebuild_context(deck, "")
+        cmd_info = self.solver._info("Test Nontribal Commander")
+        self.assertEqual(self_referential_types(cmd_info), set())
+
+        same_type = self.solver._info("Test Human Wizard")
+        unrelated = self.solver._info("Test Unrelated Creature")
+        self.assertEqual(self.solver._tribe_adj(same_type), 0.0)
+        self.assertEqual(self.solver._tribe_adj(unrelated), 0.0)
+        self.assertFalse(self.solver._off_tribe_creature(same_type))
+        self.assertFalse(self.solver._off_tribe_creature(unrelated))
+
+    def test_fill_allows_off_type_creature_for_non_tribal_commander(self):
+        deck = DeckState(
+            commander="Test Nontribal Commander",
+            identity=["U"],
+            candidate_pool={"Test Unrelated Creature": 1, "Test Human Wizard": 1},
+        )
+        self.solver.fill(deck, query="", retrieve=False, max_adds=2)
+        self.assertIn("Test Unrelated Creature", deck.cards)
+        self.assertIn("Test Human Wizard", deck.cards)
+
     def test_chroma_distance_does_not_fake_synergy(self):
         deck = DeckState(commander="Krenko, Mob Boss", identity=["R"])
         self.solver._rebuild_context(deck, "goblin tokens damage")
@@ -257,6 +374,11 @@ class Stage2Tests(unittest.TestCase):
             identity=["R"],
             cards={"Lightning Bolt": 1, "Grizzly Bears": 1, "Mountain": 10},
             candidate_pool={"Sol Ring": 1, "Mountain": 20},
+            # Editing an existing partial list, not a from-scratch build -- intent
+            # must not default to "build" here, or the low land count (10, well
+            # under quota) triggers a full rebuild-to-99 instead of just replacing
+            # the one stripped card, which isn't what this scenario is testing.
+            intent="improve",
         )
         started = deck.slot_count()
         report = self.solver.solve(deck, query="goblin tokens", fill_to_99=False)
@@ -338,6 +460,75 @@ class Stage2Tests(unittest.TestCase):
         self.assertIsNotNone(wizard)
         body = self.solver._card_roles(wizard)
         self.assertNotIn("threat", body)
+
+    def test_solve_reflows_land_flood_with_no_stripped_cards_or_pool(self):
+        """A legal-but-land-flooded 99 (the '67 lands' bug) must still get seeded and cut."""
+
+        class _StubSearcher:
+            def search_cards(self, **_kwargs):
+                return [{"name": "Goblin Recruiter", "distance": 0.1}]
+
+        self.solver.searcher = _StubSearcher()
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            cards={"Mountain": 67, "Test Swarm": 31, "Lightning Bolt": 1},
+        )
+        self.assertEqual(deck.slot_count(), 99)
+        report = self.solver.solve(deck, query="goblin tokens", fill_to_99=False)
+        self.assertEqual(report["stripped"]["removed"], [])
+        self.assertEqual(report["land_alert"]["severity"], "severe")
+        self.assertIsNotNone(report["cut"])
+        self.assertLess(deck.cards.get("Mountain", 0), 67)
+        self.assertIn("Goblin Recruiter", deck.cards)
+        self.assertEqual(deck.slot_count(), 99)
+
+    def test_solve_does_not_auto_cut_land_flood_on_improve_intent(self):
+        """A land-heavy 99 that's intentional (Azusa, extra-land-drop shells) must survive
+        an unrelated 'improve'/'substitute' request untouched by the land-shape auto-cut."""
+
+        class _StubSearcher:
+            def search_cards(self, **_kwargs):
+                return [{"name": "Goblin Recruiter", "distance": 0.1}]
+
+        self.solver.searcher = _StubSearcher()
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            cards={"Mountain": 67, "Test Swarm": 31, "Lightning Bolt": 1},
+            intent="improve",
+        )
+        report = self.solver.solve(deck, query="goblin tokens", fill_to_99=False)
+        self.assertEqual(report["stripped"]["removed"], [])
+        self.assertEqual(report["land_alert"]["severity"], "severe")
+        self.assertIsNone(report["cut"])
+        self.assertEqual(deck.cards.get("Mountain"), 67)
+
+    def test_solve_fills_incomplete_build_with_severe_land_shortage(self):
+        """A near-empty 'build' request must actually reach 99, not stop early.
+
+        Regression for a real run: a from-scratch build landed at 12/99 cards
+        because should_fix_shape seeded the candidate_pool (0 lands is a severe
+        shortage) but need_fill's condition didn't know about should_fix_shape,
+        so fill() was never called to spend that pool down.
+        """
+
+        class _StubSearcher:
+            def search_cards(self, **_kwargs):
+                return [{"name": "Goblin Recruiter", "distance": 0.1}]
+
+        self.solver.searcher = _StubSearcher()
+        deck = DeckState(
+            commander="Krenko, Mob Boss",
+            identity=["R"],
+            cards={"Sol Ring": 1},
+            intent="build",
+        )
+        report = self.solver.solve(deck, query="goblin tokens", fill_to_99=False)
+        self.assertEqual(report["land_alert"]["severity"], "severe")
+        self.assertIsNotNone(report["fill"])
+        self.assertTrue(report["fill"]["added"])
+        self.assertEqual(deck.slot_count(), 99)
 
 
 if __name__ == "__main__":

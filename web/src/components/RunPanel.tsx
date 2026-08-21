@@ -23,7 +23,7 @@ const NODE_COLOR: Record<RunNode, string> = {
   supervisor: 'border-fuchsia-500/50 text-fuchsia-400',
 }
 
-export type RunStatus = 'running' | 'done' | 'error'
+export type RunStatus = 'running' | 'done' | 'error' | 'stopped'
 
 interface RunPanelProps {
   events: DeckRunEvent[]
@@ -78,7 +78,15 @@ export default function RunPanel({ events, status, errorMessage }: RunPanelProps
   return (
     <Section
       title="Agent run"
-      subtitle={status === 'running' ? 'Working…' : status === 'error' ? 'Failed' : 'Finished'}
+      subtitle={
+        status === 'running'
+          ? 'Working…'
+          : status === 'error'
+            ? 'Failed'
+            : status === 'stopped'
+              ? 'Stopped'
+              : 'Finished'
+      }
       actions={
         visible.length > 0 && (
           <button
@@ -154,6 +162,8 @@ export default function RunPanel({ events, status, errorMessage }: RunPanelProps
         </p>
       )}
 
+      {status === 'stopped' && <p className="mt-2 text-sm text-surface-400">Stopped by you.</p>}
+
       {status === 'done' && <RunResult events={events} />}
     </Section>
   )
@@ -181,6 +191,7 @@ function RunResult({ events }: { events: DeckRunEvent[] }) {
   const supervisorDecision = reversed.find((e) => e.supervisor_decision)?.supervisor_decision
   const validation = reversed.find((e) => e.validation)?.validation
   const deck = reversed.find((e) => e.deck)?.deck
+  const diff = reversed.find((e) => e.deck_diff)?.deck_diff
   const cards = deck?.cards as Record<string, number> | undefined
   const cardCount = cards ? Object.values(cards).reduce((a, b) => a + b, 0) : undefined
 
@@ -225,6 +236,49 @@ function RunResult({ events }: { events: DeckRunEvent[] }) {
             <li key={i}>{w}</li>
           ))}
         </ul>
+      )}
+      {diff && (diff.removed.length > 0 || diff.added.length > 0 || diff.commander_changed) && (
+        <div className="mt-3 border-t border-surface-700 pt-3">
+          <p className="text-xs font-medium text-surface-300">
+            Changes vs. the deck you started with ({diff.removed_count} out / {diff.added_count} in)
+          </p>
+          {diff.commander_changed && (
+            <p className="mt-1.5 text-xs text-surface-400">
+              Commander: <span className="text-red-400 line-through">{diff.commander_changed.from || '—'}</span>{' '}
+              → <span className="text-emerald-400">{diff.commander_changed.to || '—'}</span>
+            </p>
+          )}
+          {(diff.removed.length > 0 || diff.added.length > 0) && (
+            <div className="mt-1.5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {diff.removed.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-red-400">Out</p>
+                  <ul className="mt-1 space-y-0.5 text-xs text-surface-300">
+                    {diff.removed.map((c, i) => (
+                      <li key={i}>
+                        {c.quantity > 1 ? `${c.quantity}x ` : ''}
+                        {c.name}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {diff.added.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-emerald-400">In</p>
+                  <ul className="mt-1 space-y-0.5 text-xs text-surface-300">
+                    {diff.added.map((c, i) => (
+                      <li key={i}>
+                        {c.quantity > 1 ? `${c.quantity}x ` : ''}
+                        {c.name}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       )}
     </div>
   )

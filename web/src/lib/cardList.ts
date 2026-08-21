@@ -6,10 +6,19 @@ function makeId(): string {
   return `c${nextId}`
 }
 
+// Moxfield/ManaBox exports append the printing after the name, e.g.
+// "1 Sol Ring (C21) 263" or "Temple of Enlightenment (PTHB) 246p" -- strip it
+// before it becomes part of the "card name" we send the backend. Left in place,
+// none of these match anything in the Oracle catalog (which only knows plain
+// names): the solver reads the whole list as unrecognized, strips nearly all
+// of it as illegal, and silently refills every freed slot from generic search
+// results -- from the user's side, "the whole deck changed" for no reason.
+const PRINTING_SUFFIX_RE = /\s+\([A-Za-z0-9]{2,6}\)\s+[A-Za-z0-9-]+$/
+
 /**
  * Accepts a pasted list like a ManaBox/Moxfield export:
- * "2x Sol Ring", "2 Sol Ring", "Sol Ring x2", or just "Sol Ring" (qty 1).
- * Empty lines are ignored.
+ * "2x Sol Ring", "2 Sol Ring", "Sol Ring x2", "1 Sol Ring (C21) 263", or just
+ * "Sol Ring" (qty 1). Empty lines are ignored.
  */
 export function parseCardListText(text: string): DeckCardEntry[] {
   const lines = text
@@ -30,6 +39,7 @@ export function parseCardListText(text: string): DeckCardEntry[] {
       name = trailing[1].trim()
       quantity = parseInt(trailing[2], 10)
     }
+    name = name.replace(PRINTING_SUFFIX_RE, '').trim()
     if (!name) continue
     entries.push({ id: makeId(), name, quantity: Math.max(1, quantity) })
   }

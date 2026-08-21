@@ -35,10 +35,23 @@ export async function searchCommanders(query: string, signal?: AbortSignal): Pro
 
 export type RunNode = 'architect' | 'inventory' | 'solver' | 'supervisor'
 
+export interface DeckDiffEntry {
+  name: string
+  quantity: number
+}
+
+export interface DeckDiff {
+  removed: DeckDiffEntry[]
+  added: DeckDiffEntry[]
+  commander_changed: { from: string; to: string } | null
+  removed_count: number
+  added_count: number
+}
+
 export interface DeckRunEvent {
-  type: 'start' | 'log' | 'node_start' | 'node' | 'error' | 'done'
+  type: 'run_id' | 'start' | 'log' | 'node_start' | 'node' | 'error' | 'done' | 'cancelled'
   /** Which node (architect/inventory/solver/supervisor) this event is about.
-   *  On an "error" event, this is the node that was running when it failed. */
+   *  On an "error"/"cancelled" event, this is the node that was running when it stopped. */
   node?: RunNode
   agent?: string
   text?: string
@@ -47,6 +60,9 @@ export interface DeckRunEvent {
   supervisor_decision?: string
   solver_report?: unknown
   message?: string
+  deck_diff?: DeckDiff
+  /** Only on the first ("run_id") event -- pass this to cancelRun() to stop the run server-side. */
+  run_id?: string
   /** Unix seconds — lets the UI show elapsed time so a slow step doesn't look frozen. */
   ts?: number
 }
@@ -92,4 +108,18 @@ export async function runDeck(
     }
   }
   flushLine(buffer)
+}
+
+// Best-effort: flags the run server-side to stop before its next graph node
+// (see deck_run.py's _cancel_flags) so it stops burning further LLM calls.
+// It cannot interrupt an LLM call already in flight -- the caller's own
+// AbortController on the runDeck() fetch is what actually frees the UI
+// instantly, this is purely a "stop wasting server-side work" courtesy call.
+export async function cancelRun(runId: string): Promise<void> {
+  try {
+    await fetch(`${API_BASE}/api/deck/run/${encodeURIComponent(runId)}/cancel`, { method: 'POST' })
+  } catch {
+    // The run may have already finished, or the network call itself can race
+    // with the fetch abort below -- either way there's nothing actionable here.
+  }
 }
