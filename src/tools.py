@@ -6,8 +6,6 @@ from inventory import get_cards, list_inventory, move_card, FREE_POOL
 from rules_validator import CommanderValidator
 from deck_state import DeckState
 
-_searcher = None
-
 # Fallback for search_cards' owned_only when the model's tool call omits it.
 # Whoever starts a run should call set_deck_owned_only(deck.owned_only) once
 # beforehand; defaults to False (matching DeckState.owned_only's own default)
@@ -20,10 +18,7 @@ def set_deck_owned_only(value: bool) -> None:
 
 
 def _get_searcher():
-    global _searcher
-    if _searcher is None:
-        _searcher = RAGSearcher()
-    return _searcher
+    return RAGSearcher.shared()
 
 
 def _json(data) -> str:

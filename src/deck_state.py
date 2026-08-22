@@ -4,6 +4,8 @@ import json
 import re
 from dataclasses import asdict, dataclass, field
 
+from archetypes import VALID_ARCHETYPES, infer_archetype
+
 
 COMMAND_ZONE_SIZE = 1
 MAIN_DECK_SIZE = 99
@@ -128,6 +130,7 @@ def infer_task(query: str, has_cards: bool = False) -> dict:
         "intent": intent,
         "owned_only": owned_only,
         "require_complete": full_build,
+        "archetype": infer_archetype(query),
     }
 
 
@@ -199,6 +202,7 @@ class DeckState:
     budget_cap: float | None = None
     owned_cost_zero: bool = True
     intent: str = "build"
+    archetype: str = "generic"
     last_delta: dict = field(default_factory=dict)
     candidate_pool: dict[str, int] = field(default_factory=dict)
     # Whether max_card_price gates only cards not already in baseline_cards
@@ -320,6 +324,9 @@ class DeckState:
         intent = delta.get("intent")
         if intent in VALID_INTENTS:
             self.intent = intent
+        plan = delta.get("archetype")
+        if plan in VALID_ARCHETYPES:
+            self.archetype = plan
         commander = delta.get("commander")
         if commander:
             self.set_commander(commander)
@@ -380,6 +387,7 @@ class DeckState:
             "owned_cost_zero": self.owned_cost_zero,
             "price_cap_new_only": self.price_cap_new_only,
             "intent": self.intent,
+            "archetype": self.archetype,
             "cards": self.card_list(),
             "candidate_pool": {name: qty for name, qty in self.candidate_pool.items() if qty > 0},
             "last_delta": self.last_delta,
@@ -399,6 +407,11 @@ class DeckState:
             budget_cap=data.get("budget_cap"),
             owned_cost_zero=bool(data.get("owned_cost_zero", True)),
             intent=data.get("intent") if data.get("intent") in VALID_INTENTS else "build",
+            archetype=(
+                data.get("archetype")
+                if data.get("archetype") in VALID_ARCHETYPES
+                else "generic"
+            ),
             candidate_pool=_clean_qty_map(data.get("candidate_pool")),
             price_cap_new_only=bool(data.get("price_cap_new_only", True)),
             baseline_cards=_clean_qty_map(data.get("baseline_cards")),

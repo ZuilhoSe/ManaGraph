@@ -17,6 +17,7 @@ if SCRIPT_DIR not in sys.path:
 
 from catalog import DB_NAME, get_meta, get_oracle_card
 from deck_state import DeckState
+from archetypes import infer_archetype
 from mana import diagnose_deck
 from rules_validator import CommanderValidator
 from solver import DeckSolver
@@ -123,6 +124,7 @@ def main():
         intent="improve",
         require_complete=True,
         candidate_pool=pool_cards,
+        archetype=infer_archetype("goblin tokens damage"),
     )
     if krenko:
         deck.identity = list(krenko["color_identity"])

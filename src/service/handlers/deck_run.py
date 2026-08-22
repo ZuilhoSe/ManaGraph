@@ -16,7 +16,6 @@ import threading
 import time
 import uuid
 
-import chromadb
 from langchain_core.globals import set_debug
 
 from catalog import DB_NAME, get_oracle_card
@@ -24,7 +23,7 @@ from deck_state import diff_decks
 from main_agent import app as agent_graph, initial_graph_state, to_text
 from scryfall_download import download_and_process_scryfall
 from tools import set_deck_owned_only
-from vectorize_cards import CHROMA_DIR, COLLECTION, generate_embeddings
+from vectorize_cards import COLLECTION, generate_embeddings
 
 # Makes LangChain print each tool call / LLM step to stdout as it happens, which
 # _QueueWriter below turns into "log" events -- this is what makes the run
@@ -216,7 +215,9 @@ def _ensure_search_index() -> None:
     recreated, etc.) used to pass the "does it exist" check and silently
     leave every search_cards call returning zero hits forever.
     """
-    client = chromadb.PersistentClient(path=CHROMA_DIR)
+    from hybrid_search import get_chroma_client
+
+    client = get_chroma_client()
     existing = {c.name for c in client.list_collections()}
     if COLLECTION in existing:
         collection = client.get_collection(COLLECTION)

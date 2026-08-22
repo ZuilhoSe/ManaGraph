@@ -143,6 +143,13 @@ class Stage1Tests(unittest.TestCase):
         )
         self.assertEqual(full["intent"], "build")
         self.assertTrue(full["require_complete"])
+        self.assertEqual(full["archetype"], "control")
+        mill = infer_task("Build a mill deck that decks the table")
+        self.assertEqual(mill["archetype"], "mill")
+        goblin = infer_task("goblin tokens damage")
+        self.assertEqual(goblin["archetype"], "tribal")
+        generic = infer_task("Build me a full deck for Ertai Resurrected.")
+        self.assertEqual(generic["archetype"], "generic")
         self.assertTrue(proposal_has_work({"buy_list": [{"name": "Goblin Bombardment"}]}))
         self.assertTrue(
             proposal_has_work({"delta": {"substitute": [{"out": "A", "in": "B"}]}})

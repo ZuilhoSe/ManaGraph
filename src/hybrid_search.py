@@ -1,6 +1,7 @@
 import sqlite3
 import json
 import os
+import threading
 import chromadb
 from catalog import ensure_schema
 from embeddings import MiniLMStrategy, describe_embedding_device, place_model_on_device
@@ -14,20 +15,42 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 DB_NAME = os.path.join(DATA_DIR, "managraph.db")
 CHROMA_DIR = os.path.join(DATA_DIR, "chroma_db")
 
+_client_lock = threading.Lock()
+_searcher_lock = threading.Lock()
+_query_lock = threading.Lock()
+_chroma_client = None
+_shared_searcher = None
+
+
+def get_chroma_client():
+    """One PersistentClient per process. Opening chroma_db from two threads crashes."""
+    global _chroma_client
+    with _client_lock:
+        if _chroma_client is None:
+            _chroma_client = chromadb.PersistentClient(path=CHROMA_DIR)
+        return _chroma_client
+
 
 class RAGSearcher:
-    def __init__(self):
+    def __init__(self, chroma_client=None):
         print(f"Loading the embedding model on {describe_embedding_device()}...")
         self.emb_fn = MiniLMStrategy().get_function()
         place_model_on_device(self.emb_fn._model)
-        self.chroma_client = chromadb.PersistentClient(path=CHROMA_DIR)
-
+        self.chroma_client = chroma_client or get_chroma_client()
         self.collection = self.chroma_client.get_collection(
             name="oracle_cards",
-            embedding_function=self.emb_fn
+            embedding_function=self.emb_fn,
         )
-        self.conn = sqlite3.connect(DB_NAME)
+        self.conn = sqlite3.connect(DB_NAME, check_same_thread=False)
         self.cursor = self.conn.cursor()
+
+    @classmethod
+    def shared(cls):
+        global _shared_searcher
+        with _searcher_lock:
+            if _shared_searcher is None:
+                _shared_searcher = cls(chroma_client=get_chroma_client())
+            return _shared_searcher
 
     def _has_identity_bits(self) -> bool:
         if getattr(self, "_identity_bits", None) is not None:
@@ -72,7 +95,8 @@ class RAGSearcher:
         if where and self._has_identity_bits():
             query_kwargs["where"] = where
 
-        results = self.collection.query(**query_kwargs)
+        with _query_lock:
+            results = self.collection.query(**query_kwargs)
 
         found_cards = []
 

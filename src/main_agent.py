@@ -113,6 +113,8 @@ def architect_node(state: GraphState):
         )
         if diagnosis
     }
+    if deck.archetype:
+        diag_view["archetype"] = deck.archetype
     context = (
         f"User request: {state['user_query']}\n\n"
         f"Current deck JSON:\n{json.dumps(deck.summary(), indent=2)}\n\n"
@@ -273,10 +275,16 @@ def initial_graph_state(query: str, deck: DeckState | dict | None = None) -> dic
         if flags["owned_only"]:
             merged["owned_only"] = True
         merged["require_complete"] = flags["require_complete"]
+        if flags.get("archetype") and flags["archetype"] != "generic":
+            merged["archetype"] = flags["archetype"]
         deck = DeckState.from_dict(merged)
     else:
         deck.owned_only = deck.owned_only or flags["owned_only"]
         deck.require_complete = deck.require_complete or flags["require_complete"]
+        if flags.get("archetype") and (
+            not deck.archetype or deck.archetype == "generic"
+        ):
+            deck.archetype = flags["archetype"]
         if flags["intent"] != "build" or deck.slot_count() > 0:
             deck.intent = flags["intent"]
             if flags["intent"] != "build":
@@ -383,14 +391,15 @@ if __name__ == "__main__":
                 "Run: python src/build_dataset.py"
             )
         print(f"Commander: {info['name']}  identity={info['color_identity']}")
+        flags = infer_task(query)
         if seed is None:
-            flags = infer_task(query)
             seed = DeckState(
                 commander=info["name"],
                 identity=list(info["color_identity"]),
                 owned_only=flags["owned_only"],
                 require_complete=flags["require_complete"],
                 intent=flags["intent"],
+                archetype=flags["archetype"],
             )
         else:
             # set_commander() (not a raw attribute assignment) so that if the
@@ -399,6 +408,10 @@ if __name__ == "__main__":
             # both the commander and a deck slot.
             seed.set_commander(info["name"])
             seed.identity = list(info["color_identity"])
+            if flags.get("archetype") and (
+                not seed.archetype or seed.archetype == "generic"
+            ):
+                seed.archetype = flags["archetype"]
     elif seed and seed.commander and not seed.identity:
         info = get_oracle_card(seed.commander)
         if not info:
@@ -428,6 +441,11 @@ if __name__ == "__main__":
 
     print("Initializing ManaGraph Multi-Agent System...\n")
     print(f"User: {query}")
+
+    from hybrid_search import RAGSearcher
+
+    print("Opening card index (once, not per search)...")
+    RAGSearcher.shared()
 
     init_state = initial_graph_state(query, seed)
     final_state = app.invoke(init_state)

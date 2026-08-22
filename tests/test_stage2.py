@@ -77,6 +77,29 @@ def _seed(path):
         conn, "bazaar", "Bazaar of Baghdad", "Land", [],
         oracle="{T}: Draw two cards, then discard three cards.", usd=0.5, cmc=0,
     )
+    _insert_card(
+        conn, "ertai", "Ertai Resurrected", "Legendary Creature — Human Wizard", ["U", "B"],
+        oracle="Counter target spell, activated ability, or triggered ability.", usd=1.0, cmc=4,
+    )
+    _insert_card(
+        conn, "fwiz", "Fugitive Wizard", "Creature — Human Wizard", ["U"],
+        oracle="", usd=0.1, cmc=1,
+    )
+    _insert_card(
+        conn, "negate", "Negate", "Instant", ["U"],
+        oracle="Counter target noncreature spell.", usd=0.2, cmc=1,
+    )
+    _insert_card(
+        conn, "island", "Island", "Basic Land — Island", [], usd=0.01, cmc=0,
+    )
+    _insert_card(
+        conn, "horror", "Test Horror", "Creature — Phyrexian Horror", ["B"],
+        oracle="When this creature enters, draw a card.", usd=0.2, cmc=2,
+    )
+    _insert_card(
+        conn, "millsp", "Test Mill", "Sorcery", ["U", "B"],
+        oracle="Each opponent mills eight cards.", usd=0.5, cmc=3,
+    )
     # A commander that IS a creature type but never mentions it in its own
     # oracle text -- e.g. the real Aminatou, Veil Piercer (Human Wizard, but
     # her text is about surveil/miracle, never says "human" or "wizard").
@@ -381,6 +404,62 @@ class Stage2Tests(unittest.TestCase):
         report = self.solver.solve(deck, query="goblin tokens", fill_to_99=True)
         self.assertEqual(deck.slot_count(), 99)
         self.assertTrue((report.get("cut") or {}).get("swapped") or "Goblin Recruiter" in deck.cards)
+
+    def test_control_does_not_skip_off_tribe_creatures(self):
+        deck = DeckState(
+            commander="Ertai Resurrected",
+            identity=["B", "U"],
+            archetype="control",
+        )
+        self.solver._rebuild_context(deck, "control counters bounce")
+        horror = self.solver._info("Test Horror")
+        self.assertIsNotNone(horror)
+        self.assertIsNone(self.solver._skip_reason(horror))
+
+    def test_control_fill_prefers_counter_over_random_wizard(self):
+        deck = DeckState(
+            commander="Ertai Resurrected",
+            identity=["B", "U"],
+            archetype="control",
+            candidate_pool={
+                "Counterspell": 1,
+                "Fugitive Wizard": 1,
+            },
+        )
+        self.solver.fill(
+            deck, query="control counters bounce", retrieve=False, max_adds=1
+        )
+        self.assertIn("Counterspell", deck.cards)
+        self.assertNotIn("Fugitive Wizard", deck.cards)
+
+    def test_control_cut_keeps_interaction(self):
+        deck = DeckState(
+            commander="Ertai Resurrected",
+            identity=["B", "U"],
+            archetype="control",
+            cards={"Counterspell": 1, "Negate": 1, "Island": 97},
+            candidate_pool={"Fugitive Wizard": 1},
+        )
+        self.solver.cut(deck, query="control counters bounce")
+        self.assertIn("Counterspell", deck.cards)
+        self.assertIn("Negate", deck.cards)
+
+    def test_mill_spells_count_as_threats(self):
+        deck = DeckState(
+            commander="Ertai Resurrected",
+            identity=["B", "U"],
+            archetype="mill",
+        )
+        self.solver._rebuild_context(deck, "mill each opponent")
+        mill = self.solver._info("Test Mill")
+        self.assertIsNotNone(mill)
+        roles = self.solver._card_roles(mill)
+        self.assertIn("mill", roles)
+        self.assertIn("threat", roles)
+        wizard = self.solver._info("Fugitive Wizard")
+        self.assertIsNotNone(wizard)
+        body = self.solver._card_roles(wizard)
+        self.assertNotIn("threat", body)
 
     def test_solve_reflows_land_flood_with_no_stripped_cards_or_pool(self):
         """A legal-but-land-flooded 99 (the '67 lands' bug) must still get seeded and cut."""
