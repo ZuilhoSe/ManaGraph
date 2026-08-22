@@ -29,6 +29,20 @@ TARGET_SLOPE = -0.0983877635386525
 TARGET_MIN = 0.05
 TARGET_MAX = 0.99
 
+# target_confidence_color(color_share) = COLOR_TARGET_INTERCEPT + COLOR_TARGET_SLOPE *
+# color_share, the analogous flat bar for one color's source count. color_share is that
+# color's fraction of the deck's total colored pips (how central the color is to the
+# deck), not avg_cmc: fit (least squares, R^2=0.75) against comfort-level source counts
+# Lucas hand-typed for 9 real decks, and avg_cmc measured essentially zero correlation
+# (-0.10) with those counts while color_share measured 0.87 -- avg_cmc governs how many
+# lands total, not how a color's own weight in the deck shapes its own source count.
+# Known residual: two-color decks' dominant color comes out a few sources high and the
+# secondary color a few low (tried normalizing color_share by number of deck colors to
+# fix this, correlation got worse, 0.58 vs 0.87 -- not the right correction). Since the
+# fit is against hand-typed comfort numbers, not decklists, treat as provisional.
+COLOR_TARGET_INTERCEPT = 0.5503250832996576
+COLOR_TARGET_SLOPE = 0.5583482950838138
+
 
 def hand_size(turn: int) -> int:
     """Cards seen by a given turn: 7-card hand plus one draw per turn, turn 1 included."""
@@ -86,6 +100,26 @@ def target_confidence(avg_cmc: float) -> float:
     return max(TARGET_MIN, min(TARGET_MAX, raw))
 
 
+def color_pip_share(pip_requirements_by_color: dict[str, list[tuple[int, int]]]) -> dict[str, float]:
+    """Each color's fraction of the deck's total colored pips. Drives `target_confidence_color`."""
+    totals = {
+        color: sum(p for c, p in reqs if c >= 1 and p >= 1)
+        for color, reqs in pip_requirements_by_color.items()
+    }
+    grand_total = sum(totals.values())
+    if grand_total == 0:
+        return {color: 0.0 for color in totals}
+    return {color: total / grand_total for color, total in totals.items()}
+
+
+def target_confidence_color(color_share: float) -> float:
+    """Flat confidence bar for a color with this share of the deck's colored pips,
+    clamped to [TARGET_MIN, TARGET_MAX] for the same reason as `target_confidence`.
+    """
+    raw = COLOR_TARGET_INTERCEPT + COLOR_TARGET_SLOPE * color_share
+    return max(TARGET_MIN, min(TARGET_MAX, raw))
+
+
 def _min_amount_for_target(
     weight: dict,
     target: float,
@@ -132,22 +166,21 @@ def recommended_land_count(
 
 def recommended_color_sources(
     pip_requirements: list[tuple[int, int]],
-    avg_cmc: float,
+    color_share: float,
     population: int = DECK_SIZE,
     max_sources: int = 40,
 ) -> int:
     """Minimum source count for one color so the pip-weighted chance of 'can pay the
-    pips this card wants' reaches `target_confidence(avg_cmc)` -- same target function
-    and same weighting rationale as `recommended_land_count`.
+    pips this card wants' reaches `target_confidence_color(color_share)` -- same
+    weighting rationale as `recommended_land_count`, but the target is driven by how
+    central this color is to the deck (see `color_pip_share`), not the deck's avg_cmc
+    (see COLOR_TARGET_INTERCEPT/SLOPE comment for why).
 
-    `avg_cmc` is the *deck's* average CMC (`average_cmc(curve)`), not this color's own
-    subset -- how demanding a turn-relative bar the deck sets is about the deck's
-    overall plan, not about this one color. `pip_requirements` is one (cmc, pips) entry
-    per card that uses the color, pooled by exact (cmc, pips) pair: a demanding card
-    (e.g. {W}{W}{W}{W}{W}) is a dead card if unpaid, unlike a land count shortfall
-    which only costs a turn, so pip requirements are dampened by count rather than
-    taken as a single worst-case -- a handful of double/triple-pip cards nudge the
-    target, not set it alone.
+    `pip_requirements` is one (cmc, pips) entry per card that uses the color, pooled by
+    exact (cmc, pips) pair: a demanding card (e.g. {W}{W}{W}{W}{W}) is a dead card if
+    unpaid, unlike a land count shortfall which only costs a turn, so pip requirements
+    are dampened by count rather than taken as a single worst-case -- a handful of
+    double/triple-pip cards nudge the target, not set it alone.
     """
     requirements = [(c, p) for c, p in pip_requirements if c >= 1 and p >= 1]
     if not requirements:
@@ -157,7 +190,7 @@ def recommended_color_sources(
         buckets[(c, p)] = buckets.get((c, p), 0) + 1
     total = sum(buckets.values())
     weight = {key: n / total for key, n in buckets.items()}
-    target = target_confidence(avg_cmc)
+    target = target_confidence_color(color_share)
     return _min_amount_for_target(
         weight, target, lambda key: key[0], lambda key: key[1], population, max_sources
     )
@@ -170,12 +203,13 @@ def mana_base_report(
 ) -> dict:
     """Land count target and per-color source targets for the given curve/pips."""
     avg = average_cmc(curve)
+    shares = color_pip_share(pip_requirements_by_color)
     return {
         "avg_cmc": round(avg, 3),
         "target_confidence": round(target_confidence(avg), 3),
         "land_count": recommended_land_count(curve, population),
         "sources": {
-            color: recommended_color_sources(pips, avg, population)
+            color: recommended_color_sources(pips, shares[color], population)
             for color, pips in pip_requirements_by_color.items()
         },
     }

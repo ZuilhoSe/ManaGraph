@@ -9,6 +9,7 @@ from hypergeometric import (
     TARGET_MAX,
     TARGET_MIN,
     average_cmc,
+    color_pip_share,
     hand_confidence_by_cmc,
     hand_size,
     hypergeom_at_least,
@@ -16,6 +17,7 @@ from hypergeometric import (
     recommended_color_sources,
     recommended_land_count,
     target_confidence,
+    target_confidence_color,
 )
 
 # Real decklists the user was happy with at their real land count, resolved against the
@@ -112,30 +114,104 @@ class TestRecommendedLandCount(unittest.TestCase):
                 self.assertLessEqual(abs(predicted - real_lands), 2)
 
 
+# Lucas's own hand-typed "I'd feel statistically comfortable here" source-count floors
+# for the 9 real decks, resolved against the local Scryfall catalog: (cmc, pips) pooled
+# to (pair -> count) for compactness. Provisional, not decklist ground truth -- see
+# feedback_calibrate_with_real_data -- but the only signal available for this sub-tier
+# since color fixing in the decklists themselves is explicitly untrusted.
+REAL_COLOR_SOURCES = {
+    ("Ivy", "U"): {"ideal": 15, "color_share": 0.443750, "reqs": [((1, 1), 9), ((2, 1), 9), ((2, 2), 1), ((3, 0), 1), ((3, 1), 3), ((3, 2), 1), ((5, 1), 1), ((5, 2), 2), ((6, 1), 1), ((6, 2), 1), ((7, 2), 1)]},
+    ("Ivy", "G"): {"ideal": 19, "color_share": 0.556250, "reqs": [((1, 1), 17), ((2, 1), 11), ((3, 0), 1), ((3, 1), 5), ((4, 1), 2), ((4, 2), 2), ((5, 1), 1), ((5, 2), 2)]},
+    ("Karrthus", "B"): {"ideal": 11, "color_share": 0.161905, "reqs": [((2, 1), 1), ((3, 1), 3), ((4, 1), 1), ((5, 1), 1), ((5, 2), 2), ((6, 1), 2), ((7, 1), 2), ((7, 2), 1), ((8, 1), 1)]},
+    ("Karrthus", "R"): {"ideal": 21, "color_share": 0.580952, "reqs": [((1, 1), 2), ((2, 1), 5), ((3, 1), 5), ((3, 2), 1), ((4, 1), 3), ((4, 2), 4), ((5, 1), 5), ((5, 2), 1), ((5, 3), 1), ((6, 1), 3), ((6, 2), 5), ((7, 1), 3), ((7, 2), 2), ((7, 3), 1), ((8, 2), 1), ((9, 1), 1)]},
+    ("Karrthus", "G"): {"ideal": 11, "color_share": 0.257143, "reqs": [((1, 1), 1), ((2, 1), 3), ((3, 1), 8), ((4, 1), 3), ((5, 1), 3), ((6, 1), 3), ((6, 2), 1), ((7, 1), 3), ((8, 1), 1)]},
+    ("Rebento de alara", "W"): {"ideal": 7, "color_share": 0.131868, "reqs": [((1, 1), 2), ((2, 1), 1), ((3, 1), 1), ((4, 1), 3), ((4, 2), 1), ((5, 1), 2), ((6, 1), 1)]},
+    ("Rebento de alara", "U"): {"ideal": 7, "color_share": 0.164835, "reqs": [((2, 1), 3), ((2, 2), 1), ((3, 1), 2), ((4, 1), 5), ((5, 1), 3)]},
+    ("Rebento de alara", "B"): {"ideal": 7, "color_share": 0.109890, "reqs": [((1, 1), 2), ((2, 1), 1), ((3, 1), 1), ((4, 1), 5), ((5, 1), 1)]},
+    ("Rebento de alara", "R"): {"ideal": 7, "color_share": 0.065934, "reqs": [((2, 1), 2), ((3, 1), 1), ((4, 1), 1), ((5, 1), 2)]},
+    ("Rebento de alara", "G"): {"ideal": 18, "color_share": 0.527473, "reqs": [((1, 1), 3), ((2, 1), 8), ((3, 1), 8), ((3, 2), 2), ((3, 3), 1), ((4, 1), 10), ((5, 1), 5), ((5, 2), 1), ((6, 2), 1), ((8, 3), 1)]},
+    ("hope", "W"): {"ideal": 27, "color_share": 0.743243, "reqs": [((1, 1), 6), ((2, 1), 11), ((2, 2), 2), ((3, 1), 10), ((4, 1), 6), ((4, 2), 6), ((5, 2), 1), ((6, 2), 1), ((7, 1), 2)]},
+    ("hope", "U"): {"ideal": 18, "color_share": 0.256757, "reqs": [((2, 1), 4), ((2, 2), 1), ((3, 1), 3), ((3, 2), 2), ((4, 1), 3), ((4, 2), 1), ((7, 1), 1)]},
+    ("kotis", "U"): {"ideal": 12, "color_share": 0.312500, "reqs": [((1, 1), 5), ((2, 1), 1), ((3, 0), 1), ((3, 1), 3), ((3, 2), 1), ((4, 1), 2), ((4, 2), 1), ((5, 1), 4), ((5, 2), 2), ((6, 1), 2), ((7, 2), 1)]},
+    ("kotis", "B"): {"ideal": 12, "color_share": 0.193182, "reqs": [((1, 1), 1), ((3, 1), 2), ((4, 1), 3), ((4, 2), 1), ((5, 1), 3), ((6, 1), 2), ((6, 2), 2)]},
+    ("kotis", "G"): {"ideal": 18, "color_share": 0.494318, "reqs": [((1, 1), 10), ((2, 1), 7), ((2, 2), 1), ((3, 0), 1), ((3, 1), 8), ((3, 2), 1), ((4, 1), 5), ((5, 1), 2), ((5, 2), 1), ((6, 1), 2), ((6, 2), 1), ((7, 1), 1)]},
+    ("lightining", "W"): {"ideal": 26, "color_share": 0.698630, "reqs": [((1, 1), 6), ((2, 1), 10), ((2, 2), 2), ((3, 1), 11), ((3, 2), 3), ((4, 1), 2), ((4, 2), 2), ((5, 2), 1), ((6, 2), 1), ((7, 4), 1)]},
+    ("lightining", "R"): {"ideal": 18, "color_share": 0.301370, "reqs": [((1, 1), 2), ((2, 1), 6), ((3, 1), 5), ((3, 2), 1), ((4, 1), 2), ((5, 2), 2), ((9, 1), 1)]},
+    ("livaan", "R"): {"ideal": 23, "color_share": 0.595238, "reqs": [((1, 1), 1), ((2, 1), 3), ((2, 2), 1), ((3, 1), 5), ((3, 2), 1), ((4, 1), 5), ((4, 2), 3), ((5, 1), 3), ((5, 2), 3), ((5, 3), 1), ((6, 1), 2), ((6, 2), 5), ((7, 1), 1), ((9, 1), 1)]},
+    ("livaan", "G"): {"ideal": 19, "color_share": 0.404762, "reqs": [((2, 1), 10), ((3, 1), 7), ((4, 1), 5), ((4, 2), 1), ((5, 1), 2), ((5, 2), 1), ((5, 3), 1), ((6, 1), 1), ((7, 1), 1), ((15, 1), 1)]},
+    ("saheeli", "U"): {"ideal": 17, "color_share": 0.447761, "reqs": [((2, 1), 4), ((3, 1), 9), ((3, 2), 2), ((4, 1), 3), ((4, 2), 2), ((5, 2), 1), ((6, 2), 1), ((7, 2), 1)]},
+    ("saheeli", "R"): {"ideal": 12, "color_share": 0.268657, "reqs": [((2, 1), 3), ((3, 1), 4), ((4, 1), 1), ((4, 2), 1), ((5, 1), 1), ((5, 2), 1), ((6, 2), 2), ((9, 1), 1)]},
+    ("saheeli", "G"): {"ideal": 12, "color_share": 0.283582, "reqs": [((1, 1), 2), ((2, 1), 1), ((3, 1), 6), ((4, 1), 4), ((5, 1), 1), ((5, 2), 1), ((7, 3), 1)]},
+    ("teval", "U"): {"ideal": 13, "color_share": 0.183908, "reqs": [((1, 1), 2), ((2, 1), 4), ((2, 2), 1), ((3, 1), 2), ((4, 1), 2), ((5, 1), 1), ((5, 2), 1), ((8, 1), 1)]},
+    ("teval", "B"): {"ideal": 17, "color_share": 0.413793, "reqs": [((1, 1), 4), ((2, 1), 3), ((2, 2), 1), ((3, 1), 7), ((4, 1), 4), ((4, 2), 2), ((5, 1), 2), ((5, 2), 2), ((6, 2), 1), ((8, 1), 1), ((8, 3), 1)]},
+    ("teval", "G"): {"ideal": 16, "color_share": 0.402299, "reqs": [((1, 1), 1), ((2, 1), 11), ((3, 1), 11), ((4, 1), 3), ((4, 2), 2), ((5, 1), 2), ((6, 2), 1), ((8, 1), 1)]},
+}
+
+
+def _expand_reqs(compact):
+    return [pair for pair, count in compact for _ in range(count)]
+
+
 class TestRecommendedColorSources(unittest.TestCase):
     def test_empty_requirements_needs_no_sources(self):
-        self.assertEqual(recommended_color_sources([], avg_cmc=3.0), 0)
+        self.assertEqual(recommended_color_sources([], color_share=0.5), 0)
 
     def test_demanding_pip_count_needs_far_more_sources_than_a_single_pip(self):
-        easy = recommended_color_sources([(1, 1)], avg_cmc=3.0)
-        hard = recommended_color_sources([(2, 5)], avg_cmc=3.0, max_sources=60)
+        easy = recommended_color_sources([(1, 1)], color_share=0.5)
+        hard = recommended_color_sources([(2, 5)], color_share=0.5, max_sources=60)
         self.assertGreater(hard, easy)
 
     def test_extreme_early_multi_pip_saturates_at_max_sources(self):
-        result = recommended_color_sources([(2, 5)], avg_cmc=3.0, max_sources=30)
+        result = recommended_color_sources([(2, 5)], color_share=0.5, max_sources=30)
         self.assertEqual(result, 30)
 
     def test_rare_double_pip_does_not_dominate_the_color_target(self):
-        without_outlier = recommended_color_sources([(2, 1)] * 18, avg_cmc=3.0, max_sources=60)
+        without_outlier = recommended_color_sources([(2, 1)] * 18, color_share=0.5, max_sources=60)
         with_outlier = recommended_color_sources(
-            [(2, 1)] * 18 + [(3, 2)] * 2, avg_cmc=3.0, max_sources=60
+            [(2, 1)] * 18 + [(3, 2)] * 2, color_share=0.5, max_sources=60
         )
         self.assertLessEqual(with_outlier - without_outlier, 5)
 
     def test_duplicate_requirements_collapse_to_one_bucket(self):
-        single = recommended_color_sources([(3, 1)], avg_cmc=3.0)
-        pooled = recommended_color_sources([(3, 1)] * 10, avg_cmc=3.0)
+        single = recommended_color_sources([(3, 1)], color_share=0.5)
+        pooled = recommended_color_sources([(3, 1)] * 10, color_share=0.5)
         self.assertEqual(single, pooled)
+
+    def test_higher_color_share_needs_more_sources(self):
+        minor = recommended_color_sources([(2, 1)] * 10, color_share=0.15)
+        major = recommended_color_sources([(2, 1)] * 10, color_share=0.7)
+        self.assertLess(minor, major)
+
+    def test_within_five_sources_of_hand_typed_comfort_floors(self):
+        # Wider tolerance than land count's +-2: fit against hand-typed comfort numbers
+        # (R^2=0.75, not decklist ground truth), plus a known unresolved skew on
+        # two-color decks' dominant/secondary split -- see COLOR_TARGET_* comment.
+        for (deck, color), data in REAL_COLOR_SOURCES.items():
+            with self.subTest(deck=deck, color=color):
+                predicted = recommended_color_sources(
+                    _expand_reqs(data["reqs"]), data["color_share"]
+                )
+                self.assertLessEqual(abs(predicted - data["ideal"]), 5)
+
+
+class TestColorPipShare(unittest.TestCase):
+    def test_shares_sum_to_one(self):
+        shares = color_pip_share({"R": [(1, 1), (2, 1)], "U": [(3, 1)]})
+        self.assertAlmostEqual(sum(shares.values()), 1.0)
+
+    def test_no_pips_is_zero_share(self):
+        self.assertEqual(color_pip_share({"R": []}), {"R": 0.0})
+
+
+class TestTargetConfidenceColor(unittest.TestCase):
+    def test_increases_with_color_share(self):
+        # Opposite direction from target_confidence(avg_cmc): a color that carries more
+        # of the deck's colored pips needs a *higher* bar, not lower.
+        self.assertLess(target_confidence_color(0.1), target_confidence_color(0.9))
+
+    def test_clamped_to_bounds(self):
+        self.assertEqual(target_confidence_color(-5.0), TARGET_MIN)
+        self.assertEqual(target_confidence_color(50.0), TARGET_MAX)
 
 
 class TestHandConfidenceByCmc(unittest.TestCase):
