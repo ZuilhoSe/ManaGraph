@@ -48,9 +48,12 @@ model itself were never modified.
 |---|---|---|---|
 | Original (generic `ROLE_QUERIES` only, no theme) | 270 | 1/10 (10%) | 9/10 (90%) |
 | After theme detection + query pruning + 2 mislabeled benchmark entries fixed | 382 | 3/10 (30%) | 9/10 (90%) |
+| After merging archetype-based retrieval (§6) — `ROLE_QUERIES` replaced by `search_queries_for()` | 383 | 5/11 (45.5%) | 3/10 (30%) |
 
 Yargle scenario (mono-black, textless, no theme signal): **0/10 good recall**, including
-the user's own natural-language query — see §4.
+the user's own natural-language query — see §4. Still 0/10 after the archetype merge (§6);
+pool size actually *shrank* (220 → 151) because a query with no archetype keyword match now
+fires fewer generic queries than the old fixed `ROLE_QUERIES` did.
 
 ## 3. What was tried and reverted (don't redo)
 
@@ -154,11 +157,40 @@ same 11,720-card mono-black universe:
   text as the query).
 - Per-card / per-trigger-phrase queries reliably work (parts 6-7 of the working notes)
   but don't scale — it's one query per phrasing, not a query per concept.
-- Nothing here has been implemented in `solver.py`/`vectorize_cards.py` yet. Candidate
-  next steps, none started: (a) prototype an actual BM25+cosine hybrid score, since it's
-  the only lever shown to recover targets the embedding alone cannot reach without
-  reindexing; (b) decide a non-embedding cutoff strategy for the deterministic
-  draw-engine channel (§3) so it can be injected without inflating `candidate_pool` 3-4x;
-  (c) any change to the embedded document format (dropping the name prefix, or moving to
-  a retrieval-oriented model such as bge/e5) is a full reindex and belongs to Zuilho's
-  side of the split — flag before touching.
+- None of the mitigations *investigated here* (BM25 hybrid, deterministic draw-engine
+  channel, reindexing without the name prefix) have been implemented in `solver.py`/
+  `vectorize_cards.py`. Candidate next steps, none started: (a) prototype an actual
+  BM25+cosine hybrid score, since it's the only lever shown to recover targets the
+  embedding alone cannot reach without reindexing; (b) decide a non-embedding cutoff
+  strategy for the deterministic draw-engine channel (§3) so it can be injected without
+  inflating `candidate_pool` 3-4x; (c) any change to the embedded document format
+  (dropping the name prefix, or moving to a retrieval-oriented model such as bge/e5) is a
+  full reindex and belongs to Zuilho's side of the split — flag before touching.
+  §6 below is an unrelated change (archetype-aware query selection) that landed in the
+  same code path for a different reason — it is not a response to any finding in this doc.
+
+## 6. Post-merge update (2026-08-21) — `ROLE_QUERIES` replaced by archetype-aware queries
+
+Zuilho's branch (merged into `main` the same day, unrelated to this investigation) removed
+the fixed `ROLE_QUERIES` tuple `solver.py::_retrieve()` relied on and replaced it with
+`archetypes.py::search_queries_for(infer_archetype(query))` — the query set now depends on
+an archetype classified from keyword matches on the user's request (control/mill/tribal/
+tokens/aggro/.../generic), each with its own curated query list. The merge itself had no
+textual conflicts; `_freshly_touched_names()` and `detect_known_themes()`/`THEME_QUERIES`
+(§1 above) were untouched and still fire independently of archetype.
+
+Re-ran `scripts/eval_retrieval.py` on both scenarios after the merge:
+
+- **Aminatou** (query contains "counterspells" → classified `control`, which adds
+  `"counter target spell"` and `"return target to owner hand"` as dedicated queries):
+  good recall **30% → 45.5%**, bad hit rate **90% → 30%** — both improved, as a side effect
+  of archetype classification, not from anything tested in this doc.
+- **Yargle** (query has no archetype keyword → stays `generic`, which only fires 3 queries
+  now instead of the old 5): still **0/10**, pool size shrank 220 → 151.
+
+Net: archetype classification helps when the query happens to contain a keyword the
+classifier recognizes (counterspell → control), but does nothing for a well-formed,
+on-topic query that doesn't hit one of those keywords (Yargle's "repeatable draw engines
+or cards that give me card advantage" still doesn't match any archetype trigger). All 4
+root-cause axes in §4 are unaffected — the archetype layer changes *which* queries run, not
+*how* MiniLM scores any individual query against the corpus.

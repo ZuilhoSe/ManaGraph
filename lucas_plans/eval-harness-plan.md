@@ -1243,3 +1243,43 @@ BM25 e embedding erram metades diferentes do conjunto de 10 -- evidência a favo
 os dois scores (híbrido) em vez de escolher um só. Nenhum dos dois, sozinho, fecha o
 cenário Yargle completo. Nenhuma mudança de código feita -- script descartável, sem
 libs externas, sem tocar em produção.
+
+## Sessão 2026-08-21 (parte 14) -- publicação do relatório + merge com o Zuilho
+
+Duas coisas fechadas nesta parte:
+
+1. **Relatório público**: todo o conteúdo relevante das partes 1-13 (o que foi feito, o
+   que deu certo/errado, o que não refazer) foi condensado em `eval/RETRIEVAL_FINDINGS.md`
+   (tracked, pushado) -- versão enxuta pra consumo de qualquer um no time, sem a narrativa
+   passo-a-passo que só interessa a esta sessão. Este arquivo (`eval-harness-plan.md`)
+   continua sendo o rascunho de trabalho completo, não pushado (`lucas_plans/` no
+   `.gitignore`).
+2. **Merge com o branch do Zuilho** (commit `2af638d`, via "Sync Changes" do VSCode --
+   `git pull` com estratégia `ort`): sem conflito nenhum (confirmado antes com
+   `git merge-tree`, e depois in loco). Achado: o ponto de divergência real
+   (`f946d00`) é anterior a todos os commits desta sessão, mas o commit gigante do Zuilho
+   ("modifications") já carregava uma cópia do meu trabalho até `d267764` por baixo --
+   por isso o merge resolveu liso mesmo com o grafo parecendo bagunçado.
+
+   Mudança dele que afeta diretamente esta investigação: `src/archetypes.py` (novo) --
+   `infer_archetype(query)` classifica a query num de 12 arquétipos, cada um com seu
+   próprio `search_queries`. Isso **substitui** o `ROLE_QUERIES` fixo que foi o objeto
+   central das partes 3-13. Re-rodei `scripts/eval_retrieval.py` nos dois cenários depois
+   do merge:
+
+   | Cenário | Antes do merge | Depois do merge |
+   |---|---|---|
+   | Aminatou (classificada `control` por causa da palavra "counterspells" na query) | recall 30%, bad rate 90% | recall 45.5%, bad rate 30% |
+   | Yargle (fica `generic`, nenhuma keyword de arquétipo bate) | recall 0%, pool 220 | recall 0%, pool 151 (menos queries que o `ROLE_QUERIES` antigo) |
+
+   Melhora real na Aminatou, mas é efeito colateral da classificação de arquétipo bater
+   com uma palavra da query, não conserto do problema estrutural documentado nas partes
+   10-13 (os 4 eixos de diluição). Yargle continua 0/10 -- confirma que os achados sobre a
+   causa raiz (`RETRIEVAL_FINDINGS.md` §4) continuam valendo, o `archetypes.py` só mudou
+   qual conjunto de queries dispara, não como o MiniLM pontua cada query.
+
+   Documentação atualizada pra refletir isso: `RETRIEVAL_FINDINGS.md` §2 (baseline nova)
+   e §6 (nova seção explicando o merge), `scripts/eval_retrieval.py` (docstring não citava
+   mais `ROLE_QUERIES`, que não existe mais).
+
+   Testes: suíte completa rodada depois do merge, `72 tests ... OK`.
