@@ -1,0 +1,88 @@
+1 Afterlife from the Loam
+1 Arcane Signet
+1 Awaken the Honored Dead
+1 Beast Within
+1 Birds of Paradise
+1 Bojuka Bog
+1 Cephalid Coliseum
+1 Colossal Grave-Reaver
+1 Command Beacon
+1 Command Tower
+1 Conduit of Worlds
+1 Consuming Aberration
+1 Counterspell
+1 Crashing Drawbridge
+1 Crawling Sensation
+1 Crypt of Agadeem
+1 Dauthi Voidwalker
+1 Decisive Denial
+1 Dread Return
+1 Dreamroot Cascade
+1 Drowned Catacomb
+1 Drownyard Temple
+1 Evolving Wilds
+1 Exotic Orchard
+1 Farseek
+1 Fauna Shaman
+1 Fellwar Stone
+1 Floral Evoker
+1 Foreboding Landscape
+6 Forest
+1 Gloomshrieker
+1 Gravecrawler
+1 Harrow
+1 Hedron Crab
+1 Hinterland Harbor
+3 Island
+1 Jarad, Golgari Lich Lord
+1 Kheru Goldkeeper
+1 Kishla Skimmer
+1 Kotis, Sibsig Champion
+1 Life from the Loam
+1 Lifecrafter's Bestiary
+1 Lightning Greaves
+1 Liliana's Triumph
+1 Living Death
+1 Llanowar Wastes
+1 Lord of Extinction
+1 Lord of the Forsaken
+1 Mana Leak
+1 Massacre Girl
+1 Memorial to Folly
+1 Meren of Clan Nel Toth
+1 Millikin
+1 Multani, Yavimaya's Avatar
+1 Neoform
+1 Nyx Weaver
+1 Opulent Palace
+1 Path of Ancestry
+1 Phyrexian Reclamation
+1 Putrefy
+1 Rampant Growth
+1 Reassembling Skeleton
+1 Reclamation Sage
+1 River Kelpie
+1 Sakura-Tribe Elder
+1 Shigeki, Jukai Visionary
+1 Skull Prophet
+1 Sol Ring
+1 Stitcher's Supplier
+1 Stubborn Denial
+1 Sunken Hollow
+7 Swamp
+1 Tear Asunder
+1 Temple of Mystery
+1 Terramorphic Expanse
+1 Teval's Judgment
+1 Treasure Cruise
+1 Vampiric Rites
+1 Victimize
+1 Vineglimmer Snarl
+1 Waterlogged Grove
+1 Welcome the Dead
+1 Will of the Sultai
+1 Woodland Cemetery
+1 Yavimaya Coast
+1 Yisan, the Wanderer Bard
+
+1 Teval, the Balanced Scale

@@ -1,0 +1,100 @@
+1 Urza's Cave
+1 Maze's End
+1 Forest
+1 Island
+1 Mountain
+1 Swamp
+1 Bojuka Bog
+1 Thespian's Stage
+1 Plains
+1 Sea Gate
+1 Citadel Gate
+1 Azorius Guildgate
+1 Boros Guildgate
+1 Dimir Guildgate
+1 Golgari Guildgate
+1 Gruul Guildgate
+1 Izzet Guildgate
+1 Orzhov Guildgate
+1 Rakdos Guildgate
+1 Selesnya Guildgate
+1 Simic Guildgate
+1 Manor Gate
+1 Gond Gate
+1 Basilisk Gate
+1 Heap Gate
+1 Black Dragon Gate
+1 Cliffgate
+1 Thran Portal
+1 Baldur's Gate
+1 Plaza of Harmony
+1 Gateway Plaza
+1 Evolving Wilds
+1 Command Tower
+1 Open the Gates
+1 Path to Exile
+1 Corrupted Conviction
+1 Animist's Awakening
+1 Swords to Plowshares
+1 Expedition Map
+1 Village Rites
+1 Crop Rotation
+1 Sylvan Scrying
+1 Counterspell
+1 Crystal Barricade
+1 Growth Spiral
+1 Explore
+1 Worldsoul's Rage
+1 Nasty End
+1 Planar Genesis
+1 Glaive of the Guildpact
+1 Negate
+1 Crackling Perimeter
+1 Gatecreeper Vine
+1 Broken Bond
+1 Greenside Watcher
+1 Archdruid's Charm
+1 Azusa, Lost but Seeking
+1 Gatebreaker Ram
+1 Courser of Kruphix
+1 Clifftop Lookout
+1 Guild Summit
+1 Ramunap Excavator
+1 Spelunking
+1 District Guide
+1 Gateway Sneak
+1 Loot, Exuberant Explorer
+1 Navigation Orb
+1 Gates Ablaze
+1 Sage of the Maze
+1 Hold the Gates
+1 Gateway Shade
+1 Eternal Witness
+1 The Necrobloom
+1 Archelos, Lagoon Mystic
+1 Nine-Fingers Keene
+1 Eureka Moment
+1 Oracle of Mul Daya
+1 Sunspire Gatekeepers
+1 Saruli Gatekeepers
+1 Ubul Sar Gatekeepers
+1 Smelt-Ward Gatekeepers
+1 Opal Lake Gatekeepers
+1 Wilderness Reclamation
+1 Splendid Reclamation
+1 Circuitous Route
+1 Thalia and The Gitrog Monster
+1 Supreme Verdict
+1 Urban Evolution
+1 Explore the Underdark
+1 Hour of Promise
+1 Door to Nothingness
+1 Child of Alara
+1 Garrison Sergeant
+1 Tatyova, Benthic Druid
+1 Wrenn and Seven
+1 Archway Angel
+1 Titania's Command
+1 Gatekeeper Gargoyle
+1 Gate Colossus
+1 Walk-In Closet
