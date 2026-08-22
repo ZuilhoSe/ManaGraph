@@ -1,0 +1,89 @@
+1 Path of Ancestry
+1 Woodland Cemetery
+1 Cinder Glade
+1 Spinerock Knoll
+5 Forest
+1 Karplusan Forest
+1 Sulfurous Springs
+1 Maelstrom of the Spirit Dragon
+1 Riveteers Overlook
+6 Mountain
+1 Secluded Courtyard
+3 Swamp
+1 Smoldering Marsh
+1 Bojuka Bog
+1 Twisted Landscape
+1 Rootbound Crag
+1 Dragonskull Summit
+1 Exotic Orchard
+1 Haven of the Spirit Dragon
+1 Llanowar Wastes
+1 Temple of the Dragon Queen
+1 Savage Lands
+1 Evolving Wilds
+1 Unclaimed Territory
+1 Command Tower
+1 Rockfall Vale
+1 Terramorphic Expanse
+1 Sol Ring
+1 Minion of the Mighty
+1 Ignoble Hierarch
+1 Dragonmaster Outcast
+1 Goblin Anarchomancer
+1 Scaled Nurturer
+1 Terminate
+1 Orb of Dragonkind
+1 Dragonlord's Servant
+1 Arcane Signet
+1 Up the Beanstalk
+1 Dragon Tempest
+1 Cultivate
+1 Elemental Bond
+1 Beast Within
+1 Gluttonous Hellkite
+1 Garruk's Uprising
+1 Carnelian Orb of Dragonkind
+1 Jade Orb of Dragonkind
+1 Putrefy
+1 Rhythm of the Wild
+1 Rivaz of the Claw
+1 Sarkhan's Triumph
+1 Dragonspeaker Shaman
+1 Frontier Siege
+1 Decimate
+1 Manaform Hellkite
+1 Decadent Dragon
+1 Thunderbreak Regent
+1 Sarkhan's Unsealing
+1 Thundermane Dragon
+1 Monstrous Vortex
+1 Verix Bladewing
+1 Bloomvine Regent
+1 Breaching Dragonstorm
+1 Crux of Fate
+1 Patriarch's Bidding
+1 Dragonhawk, Fate's Tempest
+1 Scourge of Valkas
+1 Ganax, Astral Hunter
+1 Kolaghan, the Storm's Fury
+1 Return of the Wildspeaker
+1 Thrakkus the Butcher
+1 Vrondiss, Rage of Ancients
+1 Savage Ventmaw
+1 Descent of the Dragons
+1 Hellkite Charger
+1 Broodmate Dragon
+1 Rishkar's Expertise
+1 Scourge of the Throne
+1 Lathliss, Dragon Queen
+1 Scavenger Regent
+1 Hellkite Tyrant
+1 Ziatora, the Incinerator
+1 Bladewing the Risen
+1 Atarka, World Render
+1 Broodmate Tyrant
+1 Skyline Despot
+1 Drakuseth, Maw of Flames
+1 Karrthus, Tyrant of Jund
+1 Hellkite Overlord
+1 Blasphemous Act

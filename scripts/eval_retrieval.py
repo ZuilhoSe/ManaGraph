@@ -1,9 +1,12 @@
 """Offline, LLM-free benchmark for candidate_pool retrieval quality.
 
-solver.py's ROLE_QUERIES (a fixed set of generic strings: "add mana ramp
-artifact", "draw a card", ...) has no notion of a deck's actual archetype, so
-off-theme cards can score well against them and end up in fill()/cut()'s
-candidate_pool regardless of what the user asked for or who the commander is.
+Retrieval queries come from src/archetypes.py::search_queries_for(archetype),
+where archetype is inferred from the user's query text (infer_archetype()).
+That gives some deck-shape awareness (e.g. a "counterspell" query pulls in
+"counter target spell" for a control-classified deck), but the underlying
+generic queries (still "draw a card" among others) carry the same short-query
+vs. long-document embedding bias documented in eval/RETRIEVAL_FINDINGS.md --
+archetype detection narrows the query set, it doesn't fix that bias.
 
 No LLM involved: this runs the exact same DeckSolver._retrieve() path the
 Solver uses in a real run (RAGSearcher + Chroma), against a fixed set of

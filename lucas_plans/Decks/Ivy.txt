@@ -1,0 +1,78 @@
+1 Endless Sands
+1 Waterlogged Grove
+1 Yavimaya Coast
+15 Forest
+9 Island
+1 Vineglimmer Snarl
+1 Aether Hub
+1 Ornithopter
+1 Overflowing Basin
+1 Rogue's Passage
+1 Command Tower
+1 Reliquary Tower
+1 Audacity
+1 Birds of Paradise
+1 Scale Up
+1 Gather Courage
+1 Giant Growth
+1 Wild Growth
+1 Curiosity
+1 Dispel
+1 Slip Through Space
+1 Dragon Sniper
+1 Boreal Druid
+1 Arbor Elf
+1 Fyndhorn Elves
+1 Llanowar Elves
+1 Natural State
+1 Gilded Goose
+1 Gingerbrute
+1 Slither Blade
+1 Elvish Mystic
+1 Stubborn Denial
+1 Mizzium Skin
+1 Spell Pierce
+1 Combat Research
+1 Utopia Sprawl
+1 Rancor
+1 Shore Up
+1 Sixth Sense
+1 Counterspell
+1 Titanic Growth
+1 Dispelling Exhale
+1 Stormchaser Drake
+1 Essence Scatter
+1 Mana Leak
+1 Ivy, Gleeful Spellthief
+1 Scavenging Ooze
+1 Repulsive Mutation
+1 Decisive Denial
+1 Negate
+1 Overprotect
+1 Rune of Might
+1 Eel Umbra
+1 Season of Growth
+1 Spellwild Ouphe
+1 Wilson, Refined Grizzly
+1 Fauna Shaman
+1 Invigorate
+1 Managorger Hydra
+1 Nadu, Winged Wisdom
+1 Shielding Plax
+1 Sea-Dasher Octopus
+1 Cold-Eyed Selkie
+1 Snake Umbra
+1 Leadership Vacuum
+1 Gemrazer
+1 Giggling Skitterspike
+1 Migratory Greathorn
+1 Gnarlback Rhino
+1 Timeless Witness
+1 Enlarge
+1 Repudiate
+1 Octopus Umbra
+1 Auspicious Starrix
+1 Pouncing Shoreshark
+1 River's Rebuke
+1 Sea God's Revenge
+1 Archipelagore

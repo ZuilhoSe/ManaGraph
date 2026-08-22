@@ -1,0 +1,22 @@
+{
+  "name": "yargle_black_draw_engines",
+  "commander": "Yargle, Glutton of Urborg",
+  "identity": [
+    "B"
+  ],
+  "query": "I want repeatable draw engines or cards that give me card advantage.",
+  "notes": "Textless mono-black commander (oracle_text is empty) by design -- isolates the generic ROLE_QUERIES + user-query retrieval path with zero tribal/theme query contribution (self_referential_types and detect_known_themes both read commander oracle_text, which is empty here). No max_card_price set (user didn't specify one for this scenario) -- unlike aminatou_esper_enchantments.json, none of the 'good' cards should be excluded by price. Tests only solver.py's _retrieve() (candidate_pool seeding), same scope as the other archetype files -- see eval-harness-plan.md.",
+  "good": [
+    "Phyrexian Arena",
+    "The One Ring",
+    "Black Market Connections",
+    "Morbid Opportunist",
+    "Necropotence",
+    "Liliana, Dreadhorde General",
+    "Deadly Dispute",
+    "Night's Whisper",
+    "Village Rites",
+    "Corrupted Conviction"
+  ],
+  "bad": []
+}
