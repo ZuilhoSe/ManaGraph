@@ -1,5 +1,9 @@
 """Index oracle text into Chroma.
 
+Documents are type_line + oracle only (see retrieval_text.DOCUMENT_FORMAT).
+The card name is metadata, not embedded — name collisions were drowning
+functional queries like \"draw a card\".
+
 Default is incremental: cards whose document text already matches Chroma are
 skipped. Full upsert of 38k into an existing HNSW index is the slow path.
 
@@ -27,6 +31,7 @@ from embeddings import (
     place_model_on_device,
 )
 from geometry import VIEWS_PATH, chroma_metadata, save_card_views, view_texts
+from retrieval_text import DOCUMENT_FORMAT, card_document, is_searchable_card
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(SCRIPT_DIR)
@@ -37,9 +42,15 @@ COLLECTION = "oracle_cards"
 os.makedirs(CHROMA_DIR, exist_ok=True)
 
 
-def _document(name, type_line, oracle_text) -> str:
-    oracle_text = oracle_text if oracle_text else "Vanilla creature / No abilities."
-    return f"{name} - {type_line}. Effect: {oracle_text}"
+def _document(type_line, oracle_text) -> str:
+    return card_document(type_line, oracle_text)
+
+
+def _collection_format(collection) -> str | None:
+    meta = getattr(collection, "metadata", None) or {}
+    if isinstance(meta, dict):
+        return meta.get("document_format")
+    return None
 
 
 def generate_embeddings(
@@ -49,6 +60,7 @@ def generate_embeddings(
         encode_batch = default_encode_batch()
     print(f"Embedding device: {describe_embedding_device()}")
     print(f"Encode batch size: {encode_batch}")
+    print(f"Document format: {DOCUMENT_FORMAT} (type + oracle; name is metadata only)")
     print("Initializing the embedding provider...")
     strategy = MiniLMStrategy()
     embedding_provider = strategy.get_function()
@@ -57,6 +69,19 @@ def generate_embeddings(
 
     print(f"Connecting to ChromaDB at: {CHROMA_DIR}")
     chroma_client = chromadb.PersistentClient(path=CHROMA_DIR)
+
+    if not rebuild:
+        try:
+            existing = chroma_client.get_collection(name=COLLECTION)
+            fmt = _collection_format(existing)
+            if fmt != DOCUMENT_FORMAT:
+                print(
+                    f"Chroma document_format={fmt!r} != {DOCUMENT_FORMAT!r}; "
+                    "forcing rebuild so embeddings match the new text."
+                )
+                rebuild = True
+        except Exception:
+            pass
 
     if rebuild:
         try:
@@ -68,21 +93,33 @@ def generate_embeddings(
     collection = chroma_client.get_or_create_collection(
         name=COLLECTION,
         embedding_function=embedding_provider,
-        metadata={"description": "Vectorized Magic: The Gathering oracle text"},
+        metadata={
+            "description": "MTG type_line + oracle_text (no card name)",
+            "document_format": DOCUMENT_FORMAT,
+        },
     )
 
     print("Reading cards from the local SQLite database...")
     conn = sqlite3.connect(DB_NAME)
     cards = conn.execute(
-        "SELECT id, name, type_line, oracle_text, color_identity, cmc FROM cards "
+        "SELECT id, name, type_line, oracle_text, color_identity, cmc, legalities FROM cards "
         "WHERE type_line NOT LIKE '%Basic Land%'"
     ).fetchall()
     conn.close()
-    print(f"Found {len(cards)} cards.")
 
-    ids = [row[0] for row in cards]
-    documents = [_document(row[1], row[2], row[3]) for row in cards]
-    metadatas = [chroma_metadata(row[1], row[4], row[5], row[2]) for row in cards]
+    kept = []
+    skipped_junk = 0
+    for row in cards:
+        _card_id, name, type_line, _oracle_text, _color_identity, _cmc, legalities = row
+        if not is_searchable_card(name, type_line, legalities):
+            skipped_junk += 1
+            continue
+        kept.append(row)
+    print(f"Found {len(cards)} cards; indexing {len(kept)} (skipped {skipped_junk} non-searchable).")
+
+    ids = [row[0] for row in kept]
+    documents = [_document(row[2], row[3]) for row in kept]
+    metadatas = [chroma_metadata(row[1], row[4], row[5], row[2]) for row in kept]
 
     skip = set()
     if not rebuild:
@@ -113,7 +150,7 @@ def generate_embeddings(
     if not pending_ids:
         print("Nothing to embed.")
         if not rebuild:
-            stamp_chroma_metadata(collection, cards, metadatas, ids)
+            stamp_chroma_metadata(collection, kept, metadatas, ids)
         return
 
     print(f"Encoding {len(pending_docs)} texts on {describe_embedding_device()} (batch_size={encode_batch})...")
@@ -139,7 +176,7 @@ def generate_embeddings(
         done = min(i + batch_size, len(pending_ids))
         print(f"Wrote {done} / {len(pending_ids)}")
     print(f"Chroma write done in {time.perf_counter() - t1:.1f}s.")
-    stamp_chroma_metadata(collection, cards, metadatas, ids)
+    stamp_chroma_metadata(collection, kept, metadatas, ids)
     print("Vectorization complete.")
 
 
@@ -171,7 +208,7 @@ def main():
     parser.add_argument(
         "--rebuild",
         action="store_true",
-        help="Drop the collection and encode every card (use after changing the model).",
+        help="Drop the collection and encode every card (use after changing the model or document format).",
     )
     parser.add_argument(
         "--metadata-only",
@@ -209,13 +246,17 @@ def stamp_metadata_only():
     collection = chroma_client.get_collection(name=COLLECTION)
     conn = sqlite3.connect(DB_NAME)
     cards = conn.execute(
-        "SELECT id, name, type_line, oracle_text, color_identity, cmc FROM cards "
+        "SELECT id, name, type_line, oracle_text, color_identity, cmc, legalities FROM cards "
         "WHERE type_line NOT LIKE '%Basic Land%'"
     ).fetchall()
     conn.close()
-    ids = [row[0] for row in cards]
-    metadatas = [chroma_metadata(row[1], row[4], row[5], row[2]) for row in cards]
-    stamp_chroma_metadata(collection, cards, metadatas, ids)
+    kept = [
+        row for row in cards
+        if is_searchable_card(row[1], row[2], row[6])
+    ]
+    ids = [row[0] for row in kept]
+    metadatas = [chroma_metadata(row[1], row[4], row[5], row[2]) for row in kept]
+    stamp_chroma_metadata(collection, kept, metadatas, ids)
 
 
 def generate_card_views(encode_batch: int | None = None):
@@ -231,13 +272,14 @@ def generate_card_views(encode_batch: int | None = None):
     cols = {row[1] for row in conn.execute("PRAGMA table_info(cards)")}
     kw_sql = "keywords" if "keywords" in cols else "NULL"
     cards = conn.execute(
-        f"SELECT id, name, type_line, oracle_text, mana_cost, {kw_sql} FROM cards "
+        f"SELECT id, name, type_line, oracle_text, mana_cost, {kw_sql}, legalities FROM cards "
         "WHERE type_line NOT LIKE '%Basic Land%'"
     ).fetchall()
     conn.close()
-    ids = [row[0] for row in cards]
+    kept = [row for row in cards if is_searchable_card(row[1], row[2], row[6])]
+    ids = [row[0] for row in kept]
     texts = {key: [] for key in ("oracle", "type", "keywords", "mana")}
-    for row in cards:
+    for row in kept:
         parts = view_texts(
             {
                 "type_line": row[2],

@@ -18,7 +18,9 @@ VIEWS_PATH = os.path.join(DATA_DIR, "card_views.npz")
 
 COLOR_BITS = (("W", "ci_w"), ("U", "ci_u"), ("B", "ci_b"), ("R", "ci_r"), ("G", "ci_g"))
 
-# Name is not a view. Oracle is the largest weight; keywords and mana cost are smaller than type.
+# Name is not a view (and must not be in the Chroma document either — see
+# retrieval_text.card_document). Oracle is the largest weight; keywords and mana
+# cost are smaller than type.
 ORACLE_WEIGHT = 0.55
 TYPE_WEIGHT = 0.25
 KEYWORD_WEIGHT = 0.12

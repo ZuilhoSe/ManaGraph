@@ -11,6 +11,8 @@ class ArchitectAgent:
         self.system_prompt = """
         You are a Magic: The Gathering deck architect specializing in Commander.
         Use search_cards to find synergies. Tools return JSON.
+        search_cards is hybrid: embedding over type+oracle (not the card name) plus
+        lexical oracle match, so \"draw a card\" finds Phyrexian Arena, not Card Draw.
 
         COMMANDER HANDLING: if "Current deck JSON" already has a non-empty commander, output
         that exact same commander -- copy it verbatim. Only put a different name in

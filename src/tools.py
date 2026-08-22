@@ -38,11 +38,11 @@ def search_cards(
     role: str = "",
 ):
     """
-    Search Magic: The Gathering cards in the vector index and filter with SQLite.
-    Returns JSON.
+    Hybrid search over Magic cards: embedding (type+oracle, no card name) plus
+    lexical oracle substring match, then SQLite filters. Returns JSON.
 
     Args:
-        query: Semantic description of the card effect.
+        query: Effect description or oracle phrasing (e.g. "draw a card").
         colors: Allowed color identity, e.g. ["R", "U"].
         owned_only: True to search only owned cards, False for the full catalog.
             Leave unset to use the deck's own owned_only setting.

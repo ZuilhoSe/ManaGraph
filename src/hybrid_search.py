@@ -1,14 +1,30 @@
-import sqlite3
+"""Hybrid card search: Chroma embeddings + SQLite lexical oracle match.
+
+Embedding documents are type + oracle only (no card name). Lexical search
+recovers literal staples (Phyrexian Arena for \"draw a card\") that ANN alone
+buries. Results are merged and filtered by identity / price / role / legality.
+"""
+
+from __future__ import annotations
+
 import json
 import os
+import sqlite3
 import threading
+
 import chromadb
 from catalog import ensure_schema
 from embeddings import MiniLMStrategy, describe_embedding_device, place_model_on_device
 from geometry import identity_where
+from retrieval_text import (
+    DOCUMENT_FORMAT,
+    hit_sort_key,
+    is_searchable_card,
+    lexical_search_sqlite,
+    merge_hit_maps,
+)
 from roles import SEARCH_ROLES, classify_roles
 
-# Absolute paths so the script works regardless of cwd
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(SCRIPT_DIR)
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -41,6 +57,12 @@ class RAGSearcher:
             name="oracle_cards",
             embedding_function=self.emb_fn,
         )
+        fmt = (getattr(self.collection, "metadata", None) or {}).get("document_format")
+        if fmt and fmt != DOCUMENT_FORMAT:
+            print(
+                f"Warning: Chroma document_format={fmt!r}, code expects {DOCUMENT_FORMAT!r}. "
+                "Run: python src/vectorize_cards.py --rebuild"
+            )
         self.conn = sqlite3.connect(DB_NAME, check_same_thread=False)
         self.cursor = self.conn.cursor()
 
@@ -63,6 +85,46 @@ class RAGSearcher:
         self._identity_bits = bool(metas and isinstance(metas[0], dict) and "ci_r" in metas[0])
         return self._identity_bits
 
+    def _embedding_hits(
+        self,
+        query: str,
+        allowed_colors: list,
+        fetch: int,
+    ) -> list[dict]:
+        query_kwargs = {"query_texts": [query], "n_results": fetch}
+        where = identity_where(allowed_colors)
+        if where and self._has_identity_bits():
+            query_kwargs["where"] = where
+
+        with _query_lock:
+            results = self.collection.query(**query_kwargs)
+
+        ids = results["ids"][0]
+        documents = results["documents"][0]
+        metadatas = results["metadatas"][0]
+        distances = results["distances"][0]
+        allowed = set(allowed_colors)
+        hits = []
+        for i in range(len(ids)):
+            name = metadatas[i]["name"]
+            color_str = metadatas[i].get("color_identity", "[]")
+            try:
+                card_colors = set(json.loads(color_str))
+            except json.JSONDecodeError:
+                continue
+            if not card_colors.issubset(allowed):
+                continue
+            hits.append(
+                {
+                    "name": name,
+                    "text": documents[i],
+                    "distance": float(distances[i]),
+                    "cmc": metadatas[i].get("cmc"),
+                    "source": "embedding",
+                }
+            )
+        return hits
+
     def search_cards(
         self,
         query,
@@ -75,11 +137,13 @@ class RAGSearcher:
         cmc_min=None,
         cmc_max=None,
         role=None,
+        hybrid=True,
     ):
         print(f"\nSearching for: '{query}'")
         print(
             f"Filters -> Colors: {allowed_colors} | Owned only: {owned_only} | "
-            f"P_max: {max_card_price} | cmc: [{cmc_min}, {cmc_max}] | role: {role}"
+            f"P_max: {max_card_price} | cmc: [{cmc_min}, {cmc_max}] | role: {role} | "
+            f"hybrid: {hybrid}"
         )
         role_key = (role or "").strip().lower() or None
         if role_key and role_key not in SEARCH_ROLES:
@@ -90,91 +154,94 @@ class RAGSearcher:
             fetch = max(fetch, limit * 8)
         fetch = min(max(int(fetch), limit), 400)
 
-        query_kwargs = {"query_texts": [query], "n_results": fetch}
-        where = identity_where(allowed_colors)
-        if where and self._has_identity_bits():
-            query_kwargs["where"] = where
+        embedding_hits = self._embedding_hits(query, allowed_colors, fetch)
 
-        with _query_lock:
-            results = self.collection.query(**query_kwargs)
+        lexical_hits: list[dict] = []
+        if hybrid:
+            ensure_schema(self.conn)
+            lexical_hits = lexical_search_sqlite(
+                self.conn,
+                query,
+                allowed_colors,
+                limit=max(limit * 15, 500),
+                cmc_min=cmc_min,
+                cmc_max=cmc_max,
+            )
+            print(
+                f"Hybrid: {len(embedding_hits)} embedding + {len(lexical_hits)} lexical "
+                f"(pre-merge)"
+            )
+
+        merged = (
+            merge_hit_maps(embedding_hits, lexical_hits)
+            if hybrid
+            else sorted(embedding_hits, key=lambda h: h["distance"])
+        )
+        # Short oracle-shaped queries: prefer lexical/hybrid, then engine-aware
+        # distance (merge_hit_maps already sorts; re-apply after any future edits).
+        q_compact = " ".join(str(query).lower().split())
+        if hybrid and len(q_compact) <= 80:
+            merged.sort(key=hit_sort_key)
 
         found_cards = []
-
-        ids = results["ids"][0]
-        documents = results["documents"][0]
-        metadatas = results["metadatas"][0]
-        distances = results["distances"][0]
-
-        allowed_colors_set = set(allowed_colors)
-
         conn = sqlite3.connect(DB_NAME)
         ensure_schema(conn)
         cursor = conn.cursor()
-
         try:
-            for i in range(len(ids)):
-                name = metadatas[i]["name"]
-
-                color_str = metadatas[i].get("color_identity", "[]")
-                card_colors = set(json.loads(color_str))
-
-                if not card_colors.issubset(allowed_colors_set):
-                    continue
-
-                cmc = metadatas[i].get("cmc")
+            for hit in merged:
+                name = hit["name"]
                 row = cursor.execute(
-                    "SELECT price_usd, price_eur, type_line, oracle_text, keywords, cmc "
+                    "SELECT price_usd, price_eur, type_line, oracle_text, keywords, cmc, legalities "
                     "FROM cards WHERE name = ? COLLATE NOCASE",
                     (name,),
                 ).fetchone()
+                if not row:
+                    continue
+                price_usd, price_eur, type_line, oracle_text, keywords, cmc_db, legalities = row
+                if not is_searchable_card(name, type_line, legalities):
+                    continue
 
-                if cmc is None and row is not None:
-                    cmc = row[5]
+                cmc = hit.get("cmc")
+                if cmc is None:
+                    cmc = cmc_db
                 if cmc_min is not None and cmc is not None and float(cmc) < float(cmc_min):
                     continue
                 if cmc_max is not None and cmc is not None and float(cmc) > float(cmc_max):
                     continue
 
                 if role_key:
-                    type_line = row[2] if row else ""
-                    oracle_text = row[3] if row else ""
-                    keywords = row[4] if row else []
                     if role_key not in classify_roles(type_line, oracle_text, keywords):
                         continue
 
-                price = None
-                if row:
-                    price = row[1] if currency == "eur" else row[0]
-
+                price = price_eur if currency == "eur" else price_usd
                 if max_card_price is not None and price is not None and price > max_card_price:
                     continue
 
                 total_qty = 0
                 allocation = {}
-
                 if owned_only:
-                    cursor.execute(
+                    inv = cursor.execute(
                         "SELECT total_quantity, allocations FROM inventory WHERE card_name = ?",
                         (name,),
-                    )
-                    row = cursor.fetchone()
-
-                    if not row or row[0] <= 0:
+                    ).fetchone()
+                    if not inv or inv[0] <= 0:
                         continue
+                    total_qty = inv[0]
+                    allocation = json.loads(inv[1])
 
-                    total_qty = row[0]
-                    allocation = json.loads(row[1])
-
-                found_cards.append({
-                    "name": name,
-                    "text": documents[i],
-                    "distance": distances[i],
-                    "quantity": total_qty,
-                    "allocation": allocation,
-                    "price": price,
-                    "currency": currency,
-                })
-
+                found_cards.append(
+                    {
+                        "name": name,
+                        "text": hit.get("text") or "",
+                        "distance": hit["distance"],
+                        "quantity": total_qty,
+                        "allocation": allocation,
+                        "price": price,
+                        "currency": currency,
+                        "source": hit.get("source") or "embedding",
+                        "matched_phrase": hit.get("matched_phrase"),
+                    }
+                )
                 if len(found_cards) == limit:
                     break
         finally:
@@ -189,14 +256,14 @@ class RAGSearcher:
 if __name__ == "__main__":
     searcher = RAGSearcher()
 
-    question = "deal damage to all creatures"
-    deck_identity = ["R", "U"]
+    question = "draw a card"
+    deck_identity = ["B"]
 
     results = searcher.search_cards(
         query=question,
         allowed_colors=deck_identity,
-        owned_only=True,
-        limit=1000
+        owned_only=False,
+        limit=20,
     )
 
     print("\n--- SEARCH RESULTS ---")
@@ -204,11 +271,10 @@ if __name__ == "__main__":
         print("No cards matched all filters.")
     else:
         for i, card in enumerate(results):
-            print(f"\n{i+1}. {card['name']} (distance: {card['distance']:.3f})")
-            print(f"   Effect: {card['text']}")
-            if card["quantity"] > 0:
-                print(f"   Owned: {card['quantity']} copies -> {card['allocation']}")
-            else:
-                print("   Status: not in collection.")
+            print(
+                f"\n{i+1}. {card['name']} "
+                f"(distance: {card['distance']:.3f}, source: {card.get('source')})"
+            )
+            print(f"   Effect: {card['text'][:120]}")
 
     searcher.close()

@@ -107,7 +107,8 @@ Research stages (do not skip 3.5 for TDA): **1 DeckState → 2 fill/cut → 3 ge
   - `inventory.py`: Check availability and move cards between the free pool and decks.
   - `embeddings.py`: Strategy pattern for embedding providers (model-agnostic).
   - `vectorize_cards.py`: Batch indexing into ChromaDB.
-  - `hybrid_search.py`: Search engine combining vector similarity and SQLite filters (including *P*<sub>max</sub>).
+  - `hybrid_search.py`: Hybrid retrieve — MiniLM over type+oracle documents (card **name is metadata only**) plus SQLite lexical oracle match, then identity / price / role filters.
+  - `retrieval_text.py`: Shared document format, junk filters, lexical phrase expansion, merge ranking.
   - `rules_validator.py`: Deterministic Commander legality, size, identity, singleton, budget.
   - `llm_factory.py`: Swap LLM providers via environment variables.
   - `tools.py`: LangChain `@tool` wrappers; tools return JSON.
@@ -147,12 +148,18 @@ MiniLM encoding uses **CUDA** when PyTorch sees a GPU (batch size 256). If `torc
 
 Useful flags: `--rebuild` (drop and re-encode Chroma), `--skip-download` (reuse SQLite), `--skip-views`, `--skip-inventory`.
 
-The individual scripts still work if you only need one step (`scryfall_download.py`, `vectorize_cards.py`, `vectorize_cards.py --views-only`).
+After changing the embedding document format (e.g. dropping card names from Chroma text), rebuild the index:
+
+```bash
+python src/vectorize_cards.py --rebuild
+```
+
+`build_dataset.py --rebuild` does the same Chroma step as part of the full pipeline.
 
 4. **Tests** (validator, deltas, fill/cut, geometry; no API key):
 
 ```bash
-python -m unittest tests.test_stage1 tests.test_stage2 tests.test_stage3 tests.test_stage35 tests.test_invariants
+python -m unittest tests.test_stage1 tests.test_stage2 tests.test_stage3 tests.test_stage35 tests.test_invariants tests.test_retrieval
 ```
 
 5. **Run the multi-agent loop** (JSON delta → inventory → fill/cut → symbolic supervisor):

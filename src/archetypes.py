@@ -48,7 +48,12 @@ _TRIBE_WORDS = (
     "tribal",
 )
 
-_BASE_SEARCH = ("draw a card", "basic land")
+_BASE_SEARCH = (
+    "draw a card",
+    "draw two cards",
+    "add mana ramp artifact",
+    "basic land",
+)
 
 
 @dataclass(frozen=True)
@@ -112,6 +117,8 @@ _PROFILES: dict[str, ArchetypeProfile] = {
             "return target to owner hand",
             "destroy target creature",
             "draw a card",
+            "draw two cards",
+            "exile the top card of your library",
         ),
     ),
     "mill": ArchetypeProfile(
