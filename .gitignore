@@ -18,9 +18,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# Personal planning notes, not part of the project
-lucas_plans/
-
 # Local catalogs (regenerate: scryfall_download.py, vectorize_cards.py)
 data/chroma_db/
 data/managraph.db
