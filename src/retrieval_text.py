@@ -37,13 +37,34 @@ _FAMILY_TRIGGERS: dict[str, tuple[str, ...]] = {
         "add mana",
         "acceleration",
     ),
-    "interaction": (
-        "counter",
+    # Interaction is split so "counter target spell" does not expand into
+    # destroy/exile noise (and vice versa).
+    "counter": (
+        "counterspell",
+        "counterspells",
+        "counter target",
+        "counter a",
+        "permission",
+    ),
+    "removal": (
         "removal",
         "destroy target",
         "exile target",
+        "board wipe",
+        "wrath",
+    ),
+    "bounce": (
         "bounce",
-        "interaction",
+        "return target",
+        "return to owner",
+    ),
+    "enchantment": (
+        "enchantress",
+        "enchantment spell",
+        "cast an enchantment",
+        "enchantments matter",
+        "constellation",
+        "eerie",
     ),
     "mill": (
         "mill",
@@ -62,6 +83,7 @@ _FAMILY_PHRASES: dict[str, tuple[str, ...]] = {
         "draws a card",
         "draw x cards",
         "draw that many cards",
+        "draw an additional card",
         "exile the top card of your library",
         "look at the top card of your library",
         "put it into your hand",
@@ -77,15 +99,36 @@ _FAMILY_PHRASES: dict[str, tuple[str, ...]] = {
         "create a treasure",
         "treasure token",
     ),
-    "interaction": (
+    "counter": (
         "counter target spell",
+        "counter target noncreature spell",
+        "counter target instant or sorcery spell",
+        "counter target creature spell",
+        "counter target activated",
+        "counter target triggered",
         "counter target",
+    ),
+    "removal": (
         "destroy target creature",
         "destroy target permanent",
         "exile target creature",
         "exile target permanent",
-        "return target",
+        "destroy all creatures",
         "fight target",
+    ),
+    "bounce": (
+        "return target",
+        "return it to its owner's hand",
+        "owner's hand",
+    ),
+    "enchantment": (
+        "whenever you cast an enchantment spell",
+        "whenever you cast an enchantment",
+        "cast an enchantment spell",
+        "enchantment you control enters",
+        "an enchantment you control enters",
+        "whenever an enchantment you control",
+        "enchantment enters the battlefield",
     ),
     "mill": (
         "mill ",
@@ -106,9 +149,35 @@ _DRAW_CORE_PHRASES = frozenset(
         "draw four cards",
         "draw x cards",
         "draw that many cards",
+        "draw an additional card",
         "you may draw",
         "you draw a card",
     }
+)
+
+_COUNTER_CORE_PHRASES = frozenset(
+    {
+        "counter target spell",
+        "counter target noncreature spell",
+        "counter target instant or sorcery spell",
+        "counter target creature spell",
+        "counter target",
+    }
+)
+
+_ENCHANTMENT_CORE_PHRASES = frozenset(
+    {
+        "whenever you cast an enchantment spell",
+        "whenever you cast an enchantment",
+        "cast an enchantment spell",
+        "enchantment you control enters",
+        "whenever an enchantment you control",
+    }
+)
+
+# Phrases that must never be SQL LIMIT'd (same trap as draw staples).
+_UNLIMITED_CORE_PHRASES = (
+    _DRAW_CORE_PHRASES | _COUNTER_CORE_PHRASES | _ENCHANTMENT_CORE_PHRASES
 )
 
 _JUNK_TYPE_EXACT = {
@@ -200,8 +269,19 @@ def lexical_phrases(query: str) -> list[str]:
     if len(q) <= 120 and not q.endswith("?"):
         add(q)
 
+    matched_families: set[str] = set()
     for family, triggers in _FAMILY_TRIGGERS.items():
         if any(t in q for t in triggers):
+            matched_families.add(family)
+            for phrase in _FAMILY_PHRASES.get(family, ()):
+                add(phrase)
+
+    # Bare "interaction" (or "interact") should cover permission + removal + bounce.
+    if "interaction" in q or re.search(r"\binteract\b", q):
+        for family in ("counter", "removal", "bounce"):
+            if family in matched_families:
+                continue
+            matched_families.add(family)
             for phrase in _FAMILY_PHRASES.get(family, ()):
                 add(phrase)
 
@@ -226,9 +306,15 @@ def _is_primary_match(query: str, oracle_text: str, matched_phrase: str | None) 
     phrase = (matched_phrase or "").lower()
     if not phrase:
         return False
-    # Draw-family queries: any core "draw N cards" template is primary.
-    if phrase in _DRAW_CORE_PHRASES and any(
-        t in q for t in _FAMILY_TRIGGERS["draw"]
+    # Family cores count as primary when the query is in that family.
+    if phrase in _DRAW_CORE_PHRASES and any(t in q for t in _FAMILY_TRIGGERS["draw"]):
+        return True
+    if phrase in _COUNTER_CORE_PHRASES and any(
+        t in q for t in _FAMILY_TRIGGERS["counter"]
+    ):
+        return True
+    if phrase in _ENCHANTMENT_CORE_PHRASES and any(
+        t in q for t in _FAMILY_TRIGGERS["enchantment"]
     ):
         return True
     return False
@@ -237,8 +323,8 @@ def _is_primary_match(query: str, oracle_text: str, matched_phrase: str | None) 
 def lexical_distance(query: str, oracle_text: str, matched_phrase: str | None = None) -> float:
     """Chroma-compatible distance (lower = better) for a lexical hit.
 
-    Primary matches (the query string, or core draw templates on a draw query)
-    outrank looser family expansions like impulse-draw / look-at-top.
+    Primary matches (the query string, or core family templates on a matching
+    query) outrank looser family expansions like impulse-draw / look-at-top.
     """
     ot = (oracle_text or "").lower()
     q = " ".join((query or "").lower().split())
@@ -250,7 +336,7 @@ def lexical_distance(query: str, oracle_text: str, matched_phrase: str | None = 
     if primary and q and q in ot:
         phrase = q
     elif primary and not phrase:
-        for core in _DRAW_CORE_PHRASES:
+        for core in _UNLIMITED_CORE_PHRASES:
             if core in ot:
                 phrase = core
                 break
@@ -289,14 +375,52 @@ def _best_matched_phrase(
     return None
 
 
+def role_rank(query: str = "", type_line: str = "", oracle_text: str = "") -> int:
+    """Tie-break priority for the active query family (lower = better)."""
+    q = (query or "").lower()
+    ot = (oracle_text or "").lower()
+    tl = (type_line or "").lower()
+
+    if any(t in q for t in _FAMILY_TRIGGERS["counter"]) or "counter target" in q:
+        if "counter target" in ot and ("instant" in tl or "sorcery" in tl):
+            # Hard counters that lead with the effect beat long modal text.
+            head = ot[:80]
+            if "counter target spell" in head or ot.startswith("counter target"):
+                return 0
+            if "counter target noncreature" in head or "counter target instant" in head:
+                return 0
+            if "you draw a card" in ot and "counter target spell" in ot:
+                return 0
+            return 1
+        return 3
+
+    if any(t in q for t in _FAMILY_TRIGGERS["enchantment"]):
+        if "cast an enchantment" in ot and "draw" in ot:
+            return 0
+        if "enchantment you control enters" in ot and "draw" in ot:
+            return 0
+        if "enchantment you control" in ot and "draw" in ot:
+            return 1
+        return 3
+
+    if any(t in q for t in _FAMILY_TRIGGERS["draw"]):
+        return engine_rank(type_line, oracle_text)
+
+    return 3
+
+
 def engine_rank(type_line: str = "", oracle_text: str = "") -> int:
     """Tie-break priority for card-advantage hits (lower = better)."""
     ot = (oracle_text or "").lower()
     tl = (type_line or "").lower()
     if "at the beginning of your upkeep" in ot and "draw" in ot:
         return 0
+    if "at the beginning of your draw step" in ot and "draw" in ot:
+        return 0
     if "at the beginning of your first main" in ot and "draw" in ot:
         return 0
+    if "combat damage" in ot and "draw a card" in ot:
+        return 1
     if "whenever" in ot and "draw" in ot and (
         "dies" in ot or "die," in ot or "creatures die" in ot
     ):
@@ -317,16 +441,28 @@ def engine_rank(type_line: str = "", oracle_text: str = "") -> int:
 
 
 def hit_sort_key(hit: dict) -> tuple:
-    """Stable ranking: distance, then engines / short oracle, then name."""
+    """Stable ranking: distance, then role / engines / short oracle, then name."""
     source = hit.get("source")
     # Missing source = pure lexical list before merge; treat as lexical.
     source_rank = 0 if source in (None, "lexical", "hybrid") else 1
+    role = hit.get("_role_rank")
+    if role is None:
+        role = role_rank(
+            hit.get("_query") or "",
+            hit.get("type_line") or "",
+            hit.get("oracle_text") or "",
+        )
+    oracle = hit.get("oracle_text") or ""
+    compact = re.sub(r"\([^)]*\)", "", oracle)
+    compact = re.sub(r"\s+", " ", compact).strip()
     return (
         float(hit.get("distance") if hit.get("distance") is not None else 99.0),
         source_rank,
         0 if hit.get("_exact_query") else 1,
-        engine_rank(hit.get("type_line") or "", hit.get("oracle_text") or ""),
-        len(hit.get("oracle_text") or ""),
+        int(role),
+        # Higher boost (from relevance deltas) ranks first when distance ties.
+        -float(hit.get("_boost") or 0.0),
+        len(compact),
         hit.get("name") or "",
     )
 
@@ -341,14 +477,21 @@ def _draw_relevance_delta(type_line: str, oracle: str, oracle_compact: str) -> f
     # Repeatable engines first.
     if "at the beginning of your upkeep" in ot and "draw" in ot:
         delta -= 0.085
+    elif "at the beginning of your draw step" in ot and "draw" in ot:
+        delta -= 0.08
     elif "at the beginning of your first main" in ot and "draw a card" in ot:
         delta -= 0.08
     elif "whenever" in ot and "draw" in ot and (
         "dies" in ot or "die," in ot or "creatures die" in ot
     ):
         delta -= 0.08
+    elif "combat damage" in ot and "draw" in ot:
+        delta -= 0.055
     elif ("enchantment" in tl or "planeswalker" in tl) and "draw" in ot:
         delta -= 0.045
+
+    if "draw an additional card" in ot:
+        delta -= 0.05
 
     # Necro-style impulse / skip-draw.
     if "skip your draw step" in ot:
@@ -378,19 +521,121 @@ def _draw_relevance_delta(type_line: str, oracle: str, oracle_compact: str) -> f
         if "sacrifice" in oc and (
             "additional cost" in oc or "as an additional cost" in oc
         ):
-            # Village Rites / Corrupted Conviction: preamble pushes phrase late.
-            delta -= 0.055
-        elif "sacrifice" in oc and "treasure" in oc:
-            delta -= 0.035
+            # Village Rites / Corrupted Conviction / Deadly Dispute.
+            delta -= 0.06
+        if "treasure" in oc:
+            delta -= 0.04
     elif "draw two cards" in oc and "sacrifice" in oc and len(oc) < 220:
         if "instant" in tl or "sorcery" in tl:
-            delta -= 0.05
+            delta -= 0.055
+            if "treasure" in oc:
+                delta -= 0.03
 
     # Demote activated creature cantrips for "draw a card" (Agency Coroner).
     if "creature" in tl and ":" in ot and "draw a card" in ot:
         if "whenever" not in ot and "at the beginning" not in ot:
             delta += 0.04
 
+    return delta
+
+
+def _counter_relevance_delta(type_line: str, oracle: str, oracle_compact: str) -> float:
+    """Boost hard permission; demote soft/long counter text."""
+    tl = type_line
+    ot = oracle
+    oc = oracle_compact
+    delta = 0.0
+    if "counter target" not in ot:
+        return 0.02
+    if "instant" in tl or "sorcery" in tl:
+        delta -= 0.06
+        if oc.startswith("counter target") or "counter target spell." in oc[:60]:
+            delta -= 0.05
+        # Variant staples (Negate / Veto / Muddle) must not lose to Cancel clones.
+        if "counter target noncreature spell" in oc:
+            delta -= 0.045
+        if "counter target instant or sorcery" in oc:
+            delta -= 0.045
+        if "can't be countered" in ot:
+            delta -= 0.035
+        if "draw" in ot and "counter target" in ot:
+            # Arcane Denial-style: real counter that also replaces itself.
+            delta -= 0.04
+            if "you draw a card" in ot:
+                delta -= 0.03
+        if len(oc) < 100:
+            delta -= 0.03
+        elif len(oc) < 160:
+            delta -= 0.015
+        elif len(oc) > 280:
+            delta += 0.025
+    else:
+        delta += 0.03
+    return delta
+
+
+def diversify_by_phrase(
+    hits: list[dict],
+    limit: int,
+    *,
+    prefer_phrase: str | None = None,
+) -> list[dict]:
+    """Round-robin across matched_phrase buckets so one template cannot fill top-N.
+
+    Hits without a lexical matched_phrase (pure embedding) are appended only
+    after phrase buckets are exhausted. Optionally reserve early slots for the
+    user's primary phrase (e.g. \"counter target spell\") so Counterspell is not
+    crowded out by Negate/Muddle diversity alone.
+    """
+    if limit <= 0 or len(hits) <= limit:
+        return hits[:limit]
+    buckets: dict[str, list[dict]] = {}
+    order: list[str] = []
+    other: list[dict] = []
+    for hit in hits:
+        phrase = (hit.get("matched_phrase") or "").lower().strip()
+        if not phrase:
+            other.append(hit)
+            continue
+        if phrase not in buckets:
+            buckets[phrase] = []
+            order.append(phrase)
+        buckets[phrase].append(hit)
+
+    out: list[dict] = []
+    prefer = " ".join((prefer_phrase or "").lower().split())
+    if prefer and prefer in buckets:
+        reserved = min(len(buckets[prefer]), max(limit // 3, 10))
+        out.extend(buckets[prefer][:reserved])
+        buckets[prefer] = buckets[prefer][reserved:]
+
+    while len(out) < limit:
+        progressed = False
+        for key in order:
+            if buckets[key] and len(out) < limit:
+                out.append(buckets[key].pop(0))
+                progressed = True
+        if not progressed:
+            break
+    for hit in other:
+        if len(out) >= limit:
+            break
+        out.append(hit)
+    return out
+
+
+def _enchantment_relevance_delta(type_line: str, oracle: str) -> float:
+    """Boost enchantress / constellation / eerie draw payoffs."""
+    ot = oracle
+    delta = 0.0
+    if "cast an enchantment" in ot and "draw" in ot:
+        delta -= 0.08
+    if "enchantment you control enters" in ot and "draw" in ot:
+        delta -= 0.075
+    if "enchantment you control" in ot and "graveyard" in ot and "draw" in ot:
+        delta -= 0.07
+    if "enchantment" in ot and "draw" in ot and "creature" in (type_line or "").lower():
+        delta -= 0.02
     return delta
 
 
@@ -442,6 +687,9 @@ def merge_hit_maps(
                 "type_line",
                 "oracle_text",
                 "_exact_query",
+                "_query",
+                "_role_rank",
+                "_boost",
             ):
                 if hit.get(field) is not None:
                     prev[field] = hit[field]
@@ -460,6 +708,7 @@ def merge_hit_maps(
         hit.pop("_emb_distance", None)
         hit.pop("_lex_distance", None)
         hit.pop("_exact_query", None)
+        # Keep _query / _role_rank for hit_sort_key re-sorts in hybrid_search.
     return merged
 
 
@@ -528,10 +777,10 @@ def lexical_search_sqlite(
     q_l = (query or "").lower()
 
     for phrase in ordered_phrases:
-        # Never LIMIT the user query or core draw templates — a random LIMIT
-        # was dropping Village Rites / Corrupted Conviction while keeping noise.
+        # Never LIMIT the user query or core family templates — a random LIMIT
+        # was dropping Village Rites / Negate / Mesa Enchantress behind noise.
         params = [f"%{phrase}%"] + identity_params + cmc_params
-        if phrase == q_norm or phrase in _DRAW_CORE_PHRASES:
+        if phrase == q_norm or phrase in _UNLIMITED_CORE_PHRASES:
             rows = conn.execute(base_sql, params).fetchall()
         else:
             rows = conn.execute(base_sql + " LIMIT 500", params).fetchall()
@@ -555,35 +804,65 @@ def lexical_search_sqlite(
             # a primary Village Rites-style spell (Agency Coroner).
             ot_compact = re.sub(r"\([^)]*\)", "", ot_l)
             ot_compact = re.sub(r"\s+", " ", ot_compact).strip()
-            draw_query = any(t in q_l for t in _FAMILY_TRIGGERS["draw"])
-            if draw_query:
-                dist += _draw_relevance_delta(tl, ot_l, ot_compact)
+
+            boost = 0.0
+            if any(t in q_l for t in _FAMILY_TRIGGERS["draw"]):
+                dlt = _draw_relevance_delta(tl, ot_l, ot_compact)
+                dist += dlt
+                boost -= dlt
+            if any(t in q_l for t in _FAMILY_TRIGGERS["counter"]) or "counter target" in q_l:
+                dlt = _counter_relevance_delta(tl, ot_l, ot_compact)
+                dist += dlt
+                boost -= dlt
+            if any(t in q_l for t in _FAMILY_TRIGGERS["enchantment"]):
+                dlt = _enchantment_relevance_delta(tl, ot_l)
+                dist += dlt
+                boost -= dlt
             if any(k in q_l for k in ("engine", "repeatable", "advantage", "upkeep")):
                 if "enchantment" in tl or "planeswalker" in tl or "artifact" in tl:
                     dist -= 0.02
+                    boost += 0.02
                 elif "instant" in tl or "sorcery" in tl:
                     # Keep classic burst draw; demote unrelated instants only.
                     if not ("draw two cards" in ot_compact and len(ot_compact) < 220):
-                        dist += 0.015
-            if matched in _DRAW_CORE_PHRASES and len(ot_compact) < 180:
+                        if "counter target" not in ot_l:
+                            dist += 0.015
+                            boost -= 0.015
+            if matched in _UNLIMITED_CORE_PHRASES and len(ot_compact) < 180:
                 dist -= 0.01
+                boost += 0.01
             if q_norm and matched == q_norm:
                 dist -= 0.01
+                boost += 0.01
+            # Core family templates (Negate's "noncreature", Mesa Enchantress, …)
+            # must tie with literal query matches, or Cancel-clones bury them.
+            exactish = bool(q_norm and q_norm in ot_l) or (
+                matched in _UNLIMITED_CORE_PHRASES
+                and _is_primary_match(query, oracle_text or "", matched)
+            )
             by_name[key] = {
                 "name": name,
                 "text": card_document(type_line, oracle_text),
-                # No hard floor: floor ties made alphabetical junk crowd Arena.
+                # Soft floor keeps merge comparable to Chroma; _boost breaks ties.
                 "distance": max(0.001, dist),
                 "matched_phrase": matched,
                 "cmc": cmc,
                 "type_line": type_line,
                 "oracle_text": oracle_text,
                 "legalities": legalities,
-                "_exact_query": bool(q_norm and q_norm in ot_l),
+                "_exact_query": exactish,
+                "_query": query,
+                "_role_rank": role_rank(query, type_line, oracle_text),
+                "_boost": boost,
             }
 
     hits = list(by_name.values())
     hits.sort(key=hit_sort_key)
     for hit in hits:
         hit.pop("_exact_query", None)
+    # Counter / removal queries: diversify templates so Negate/Muddle survive
+    # a sea of "Counter target spell." reprints inside limit.
+    q_l = (query or "").lower()
+    if any(t in q_l for t in _FAMILY_TRIGGERS["counter"]) or "counter target" in q_l:
+        return diversify_by_phrase(hits, limit, prefer_phrase=q_norm)
     return hits[:limit]

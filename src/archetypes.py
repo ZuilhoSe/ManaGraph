@@ -198,10 +198,24 @@ def infer_archetype(query: str) -> str:
             "control",
             "permission",
             "counterspell",
+            "counterspells",
             "counters, bounce",
             "with counters",
         )
-    ) or ("counter" in q and any(p in q for p in ("bounce", "removal", "board wipe"))):
+    ) or (
+        "counter" in q
+        and any(
+            p in q
+            for p in (
+                "bounce",
+                "removal",
+                "board wipe",
+                "permission",
+                "spell",
+                "spells",
+            )
+        )
+    ):
         return "control"
     if any(p in q for p in ("combo", "infinite", "win the game on the spot")):
         return "combo"
