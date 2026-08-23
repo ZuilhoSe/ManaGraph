@@ -1,7 +1,8 @@
-import type { DeckFormState, Intent } from '../types'
+import type { DeckFormState, Intent, ManaStrategy } from '../types'
 import { newCardEntry } from './cardList'
 
 const VALID_INTENTS: Intent[] = ['build', 'improve', 'substitute', 'cut']
+const VALID_MANA_STRATEGIES: ManaStrategy[] = ['static', 'hypergeometric']
 
 export function downloadJson(filename: string, data: unknown) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -49,6 +50,12 @@ export function parseImportedPayload(raw: unknown): DeckFormState {
     ? (deck.intent as Intent)
     : 'auto'
 
+  const manaStrategy =
+    typeof deck.mana_strategy === 'string' &&
+    VALID_MANA_STRATEGIES.includes(deck.mana_strategy as ManaStrategy)
+      ? (deck.mana_strategy as ManaStrategy)
+      : 'hypergeometric'
+
   return {
     query: typeof payload.query === 'string' ? payload.query : '',
     commander: typeof deck.commander === 'string' ? deck.commander : '',
@@ -60,6 +67,7 @@ export function parseImportedPayload(raw: unknown): DeckFormState {
     maxCardPrice: typeof deck.max_card_price === 'number' ? String(deck.max_card_price) : '',
     priceCapExisting: deck.price_cap_new_only === false,
     budgetCap: typeof deck.budget_cap === 'number' ? String(deck.budget_cap) : '',
+    manaStrategy,
     cards,
   }
 }

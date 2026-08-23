@@ -19,7 +19,7 @@ from archetypes import (
 from deck_state import MAIN_DECK_SIZE, DeckState
 from geometry import cosine, load_card_views, multi_view_cosine
 from inventory import get_card as get_inventory_card
-from mana import cmc_bucket, diagnose, produces_mana, shape_bonus
+from mana import cmc_bucket, diagnose, produces_mana, shape_bonus, strategy_from_name
 from roles import role_counts, role_need_bonus, token_classes
 from rules_validator import (
     ILLEGAL_COMMANDER_STATUS,
@@ -206,6 +206,7 @@ class DeckSolver:
             budget_cap=deck.budget_cap,
             budget_used=budget if deck.budget_cap is not None else None,
             archetype=arch,
+            strategy=strategy_from_name(deck.mana_strategy),
         )
         self._ctx = {
             "cmd": cmd,

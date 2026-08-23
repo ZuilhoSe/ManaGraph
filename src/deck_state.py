@@ -49,6 +49,7 @@ def _normalize_key(name: str) -> str:
 
 
 VALID_INTENTS = ("build", "improve", "substitute", "cut")
+VALID_MANA_STRATEGIES = ("static", "hypergeometric")
 
 
 def infer_intent(query: str, has_cards: bool = False) -> str:
@@ -219,6 +220,10 @@ class DeckState:
     # price_cap_new_only -- it survives the deck's to_dict()/from_dict() round
     # trips across graph nodes and architect/solver iterations.
     baseline_cards: dict[str, int] = field(default_factory=dict)
+    # Which ManaTargetStrategy (deck_analysis/strategies.py) computes the land/
+    # color-source targets for this deck -- a user-facing config choice, not
+    # something an agent delta sets (see apply_delta, which doesn't touch it).
+    mana_strategy: str = "hypergeometric"
 
     def slot_count(self) -> int:
         return sum(max(int(qty), 0) for qty in self.cards.values())
@@ -388,6 +393,7 @@ class DeckState:
             "price_cap_new_only": self.price_cap_new_only,
             "intent": self.intent,
             "archetype": self.archetype,
+            "mana_strategy": self.mana_strategy,
             "cards": self.card_list(),
             "candidate_pool": {name: qty for name, qty in self.candidate_pool.items() if qty > 0},
             "last_delta": self.last_delta,
@@ -416,6 +422,11 @@ class DeckState:
             price_cap_new_only=bool(data.get("price_cap_new_only", True)),
             baseline_cards=_clean_qty_map(data.get("baseline_cards")),
             last_delta=dict(data.get("last_delta") or {}),
+            mana_strategy=(
+                data.get("mana_strategy")
+                if data.get("mana_strategy") in VALID_MANA_STRATEGIES
+                else "hypergeometric"
+            ),
         )
         if deck.commander:
             deck.set_commander(deck.commander)

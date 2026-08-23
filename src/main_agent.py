@@ -11,7 +11,7 @@ from inventory_agent import InventoryAgent
 from supervisor_agent import SupervisorAgent
 from deck_state import DeckState, diff_decks, extract_json, infer_task, proposal_has_work
 from catalog import enrich_deck, get_oracle_card
-from mana import diagnose_deck
+from mana import diagnose_deck, strategy_from_name
 from rules_validator import CommanderValidator
 from solver import DeckSolver
 
@@ -92,7 +92,7 @@ def architect_node(state: GraphState):
     deck = DeckState.from_dict(state.get("deck"))
     diagnosis = {}
     if deck.commander:
-        diagnosis = diagnose_deck(deck)
+        diagnosis = diagnose_deck(deck, strategy=strategy_from_name(deck.mana_strategy))
     diag_view = {
         key: diagnosis.get(key)
         for key in (

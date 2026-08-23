@@ -13,9 +13,12 @@ import unittest
 SRC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src")
 sys.path.insert(0, SRC_DIR)
 
-from deck_analysis.diagnose import diagnose
+from deck_analysis.diagnose import diagnose, diagnose_deck
 from deck_analysis.mana_base import MIN_SOURCES, color_floors, land_alert, min_sources_for
 from deck_analysis.shape_bonus import shape_bonus
+from deck_analysis.strategies import HypergeometricStrategy, StaticQuotaStrategy, strategy_from_name
+from deck_state import DeckState
+from hypergeometric import color_pip_share, recommended_color_sources, recommended_land_count
 
 
 class TestMinSourcesFor(unittest.TestCase):
@@ -61,6 +64,8 @@ class TestDiagnoseCurveAndPipsBaseline(unittest.TestCase):
     """report["curve"] (string-bucketed, "0".."7+") and report["pips"] (summed
     per-color floats) -- collected in the same per-card loop as curve_by_cmc/
     pip_reqs_by_color (see TestDiagnoseUniversalInput) but independent of them.
+    Pinned against StaticQuotaStrategy explicitly since min_sources below is a
+    strategy-dependent number, not the curve/pips collection this class is about.
     """
 
     def _report(self):
@@ -79,7 +84,7 @@ class TestDiagnoseCurveAndPipsBaseline(unittest.TestCase):
             {"name": "Huge", "quantity": 1, "type_line": "Creature",
              "oracle_text": "", "mana_cost": "{8}{R}", "cmc": 9},
         ]
-        return diagnose(cards, commander=commander, identity=["R", "G"])
+        return diagnose(cards, commander=commander, identity=["R", "G"], strategy=StaticQuotaStrategy())
 
     def test_curve_bucket_counts(self):
         report = self._report()
@@ -159,9 +164,95 @@ class TestDiagnoseUniversalInput(unittest.TestCase):
         )
 
 
+class TestStaticQuotaStrategy(unittest.TestCase):
+    """StaticQuotaStrategy is a thin wrapper -- must match the free functions exactly."""
+
+    def test_land_target_matches_land_alert(self):
+        self.assertEqual(
+            StaticQuotaStrategy().land_target(33, {1: 4, 2: 3}),
+            land_alert(33, {1: 4, 2: 3}),
+        )
+
+    def test_color_floors_matches_color_floors(self):
+        pip_reqs = {"R": [(1, 1), (2, 1)], "G": [(7, 3)]}
+        self.assertEqual(
+            StaticQuotaStrategy().color_floors(["R", "G"], pip_reqs),
+            color_floors(["R", "G"], pip_reqs),
+        )
+
+
+class TestHypergeometricStrategy(unittest.TestCase):
+    """Adapter correctness: same numbers hypergeometric.py itself would produce,
+    wrapped into the land_alert/color_floors output shapes.
+    """
+
+    def test_land_target_bands_around_recommended_land_count_by_one(self):
+        curve = {1: 8, 2: 10, 3: 6, 4: 4, 7: 1}
+        target = recommended_land_count(curve)
+        alert = HypergeometricStrategy().land_target(target, curve)
+        self.assertEqual(alert, {
+            "status": "ok", "count": target, "quota": [target - 1, target + 1],
+            "delta": 0, "pct": 0.0, "severity": "none",
+        })
+        low_alert = HypergeometricStrategy().land_target(target - 3, curve)
+        self.assertEqual(low_alert["status"], "low")
+        self.assertEqual(low_alert["delta"], 2)
+
+    def test_color_floors_matches_recommended_color_sources_per_color(self):
+        pip_reqs_by_color = {
+            "R": [(1, 1), (1, 1), (2, 1)],
+            "G": [(7, 3)],
+            "W": [], "U": [], "B": [],
+        }
+        shares = color_pip_share(pip_reqs_by_color)
+        expected = {
+            "R": recommended_color_sources(pip_reqs_by_color["R"], shares["R"]),
+            "G": recommended_color_sources(pip_reqs_by_color["G"], shares["G"]),
+        }
+        self.assertEqual(
+            HypergeometricStrategy().color_floors(["R", "G"], pip_reqs_by_color),
+            expected,
+        )
+
+    def test_diagnose_with_hypergeometric_strategy_uses_its_own_numbers(self):
+        cards = [
+            {"name": "Mountain", "quantity": 10, "type_line": "Basic Land — Mountain",
+             "oracle_text": "{T}: Add {R}.", "mana_cost": "", "cmc": 0},
+            {"name": "Bolt", "quantity": 3, "type_line": "Instant",
+             "oracle_text": "", "mana_cost": "{R}", "cmc": 1},
+            {"name": "Elder", "quantity": 1, "type_line": "Creature",
+             "oracle_text": "", "mana_cost": "{4}{R}{R}{R}", "cmc": 7},
+        ]
+        commander = {"mana_cost": "{2}{R}{R}", "color_identity": ["R"]}
+        static_report = diagnose(cards, commander=commander, identity=["R"], strategy=StaticQuotaStrategy())
+        hyper_report = diagnose(cards, commander=commander, identity=["R"], strategy=HypergeometricStrategy())
+        self.assertNotEqual(static_report["land_alert"]["quota"], hyper_report["land_alert"]["quota"])
+        self.assertNotEqual(static_report["min_sources"], hyper_report["min_sources"])
+        target = recommended_land_count(hyper_report["curve_by_cmc"])
+        self.assertEqual(hyper_report["land_alert"]["quota"], [target - 1, target + 1])
+
+    def test_diagnose_default_strategy_is_now_hypergeometric(self):
+        """diagnose()'s default flipped from StaticQuotaStrategy to
+        HypergeometricStrategy -- land count is now curve-weighted per deck
+        instead of a single fixed ROLE_QUOTAS band for every deck.
+        """
+        cards = [
+            {"name": "Mountain", "quantity": 10, "type_line": "Basic Land — Mountain",
+             "oracle_text": "{T}: Add {R}.", "mana_cost": "", "cmc": 0},
+            {"name": "Bolt", "quantity": 3, "type_line": "Instant",
+             "oracle_text": "", "mana_cost": "{R}", "cmc": 1},
+        ]
+        commander = {"mana_cost": "{2}{R}{R}", "color_identity": ["R"]}
+        default_report = diagnose(cards, commander=commander, identity=["R"])
+        hyper_report = diagnose(cards, commander=commander, identity=["R"], strategy=HypergeometricStrategy())
+        self.assertEqual(default_report, hyper_report)
+
+
 class TestDiagnoseSourceFloor(unittest.TestCase):
     """diagnose()'s report["min_sources"] is a per-color dict, keyed by identity color --
     the shape a future per-color-varying strategy (e.g. hypergeometric) also needs.
+    Pinned against StaticQuotaStrategy explicitly, since the shape (not the default
+    strategy's own numbers) is what this class is characterizing.
     """
 
     def test_min_sources_is_the_per_color_floor_dict(self):
@@ -170,6 +261,7 @@ class TestDiagnoseSourceFloor(unittest.TestCase):
               "oracle_text": "{T}: Add {R}.", "mana_cost": "", "cmc": 0}],
             commander={"mana_cost": "{2}{R}{R}", "color_identity": ["R"]},
             identity=["R"],
+            strategy=StaticQuotaStrategy(),
         )
         self.assertEqual(report["min_sources"], {"R": 14})
 
@@ -235,6 +327,54 @@ class TestShapeBonusManaSignal(unittest.TestCase):
         strained = {"type_line": "Sorcery", "oracle_text": "", "mana_cost": "{R}{R}", "cmc": 2}
         bonus = shape_bonus(strained, report, ["R"])
         self.assertEqual(bonus["mana_bonus"], -0.4)
+
+
+class TestStrategyFromName(unittest.TestCase):
+    """strategy_from_name() is how a DeckState's mana_strategy string (set by the
+    web UI's advanced-options dropdown) becomes a real strategy instance.
+    """
+
+    def test_known_names_map_to_the_matching_class(self):
+        self.assertIsInstance(strategy_from_name("static"), StaticQuotaStrategy)
+        self.assertIsInstance(strategy_from_name("hypergeometric"), HypergeometricStrategy)
+
+    def test_unknown_or_missing_name_falls_back_to_hypergeometric(self):
+        self.assertIsInstance(strategy_from_name(None), HypergeometricStrategy)
+        self.assertIsInstance(strategy_from_name(""), HypergeometricStrategy)
+        self.assertIsInstance(strategy_from_name("bogus"), HypergeometricStrategy)
+
+
+class TestDeckStateManaStrategy(unittest.TestCase):
+    """DeckState.mana_strategy: validated on from_dict, round-trips through
+    to_dict, and actually changes diagnose_deck()'s output when set.
+    """
+
+    def test_from_dict_validates_and_defaults(self):
+        self.assertEqual(DeckState.from_dict({"mana_strategy": "static"}).mana_strategy, "static")
+        self.assertEqual(DeckState.from_dict({"mana_strategy": "bogus"}).mana_strategy, "hypergeometric")
+        self.assertEqual(DeckState.from_dict({}).mana_strategy, "hypergeometric")
+
+    def test_round_trips_through_to_dict(self):
+        deck = DeckState.from_dict({"mana_strategy": "static"})
+        self.assertEqual(DeckState.from_dict(deck.to_dict()).mana_strategy, "static")
+
+    @unittest.skipUnless(
+        os.path.exists(os.path.join(os.path.dirname(SRC_DIR), "data", "managraph.db")),
+        "needs local catalog",
+    )
+    def test_diagnose_deck_honors_the_deck_s_mana_strategy(self):
+        """diagnose_deck() itself has no idea about DeckState.mana_strategy -- every
+        real call site (solver.py, main_agent.py, tools.py, demo_solver.py) has to
+        translate it via strategy_from_name() explicitly, same as here.
+        """
+        deck = DeckState.from_dict({
+            "commander": "Krenko, Mob Boss",
+            "identity": ["R"],
+            "cards": {"Mountain": 10, "Lightning Bolt": 3},
+            "mana_strategy": "static",
+        })
+        report = diagnose_deck(deck, strategy=strategy_from_name(deck.mana_strategy))
+        self.assertEqual(report["land_alert"], land_alert(report["land_count"]))
 
 
 if __name__ == "__main__":

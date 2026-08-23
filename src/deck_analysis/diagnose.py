@@ -8,7 +8,7 @@ from roles import role_counts
 
 from deck_analysis.card_classify import is_cheat_card
 from deck_analysis.curve import CURVE_PROFILES, cmc_bucket, curve_plan, select_curve_profile
-from deck_analysis.mana_base import PIP_PER_SOURCE_WARN, color_floors, land_alert
+from deck_analysis.mana_base import PIP_PER_SOURCE_WARN
 from deck_analysis.mana_symbols import (
     COLORS,
     _add_pips,
@@ -19,6 +19,7 @@ from deck_analysis.mana_symbols import (
     parse_mana_cost,
     produced_mana,
 )
+from deck_analysis.strategies import HypergeometricStrategy, ManaTargetStrategy
 
 
 def diagnose(
@@ -30,8 +31,10 @@ def diagnose(
     budget_cap: float | None = None,
     budget_used: float | None = None,
     archetype: str | None = None,
+    strategy: ManaTargetStrategy | None = None,
 ) -> dict:
     """Deck shape report. Soft diagnosis — not a legality gate."""
+    strategy = strategy or HypergeometricStrategy()
     quotas = quotas_for(archetype)
     identity = list(identity or (commander or {}).get("color_identity") or [])
     pips = empty_pips()
@@ -81,7 +84,7 @@ def diagnose(
             fast_mana += qty
 
     avg_cmc = round(cmc_sum / nonlands, 3) if nonlands else 0.0
-    floors = color_floors(identity, pip_reqs_by_color)
+    floors = strategy.color_floors(identity, pip_reqs_by_color)
     pips_per_source = {}
     for color in COLORS:
         pool = sources[color] + sources["any"]
@@ -99,7 +102,7 @@ def diagnose(
 
     deficits: list[str] = []
     land_low, land_high = quotas["land"]
-    alert = land_alert(land_count, curve_by_cmc)
+    alert = strategy.land_target(land_count, curve_by_cmc)
     if alert["status"] != "ok":
         direction = "too few" if alert["status"] == "low" else "too many"
         deficits.append(
@@ -186,7 +189,7 @@ def diagnose(
     return report
 
 
-def diagnose_deck(deck, db_path: str = DB_NAME) -> dict:
+def diagnose_deck(deck, db_path: str = DB_NAME, strategy: ManaTargetStrategy | None = None) -> dict:
     cards = []
     for name, qty in deck.card_list().items():
         info = get_oracle_card(name, db_path) or {
@@ -210,4 +213,5 @@ def diagnose_deck(deck, db_path: str = DB_NAME) -> dict:
         budget_cap=deck.budget_cap,
         budget_used=budget_used,
         archetype=getattr(deck, "archetype", None),
+        strategy=strategy,
     )

@@ -28,27 +28,23 @@ LAND_SEVERITY_BANDS = (0.05, 0.10)
 LAND_SEVERITY_SCALE = {"none": 0.0, "mild": 1.5, "moderate": 2.5, "severe": 4.0}
 
 
-def land_alert(land_count: int, curve_by_cmc: dict[int, int] | None = None) -> dict:
-    """How far the land count sits outside ROLE_QUOTAS['land'], with a severity tier.
+def band_alert(count: int, low: int, high: int) -> dict:
+    """How far `count` sits outside `[low, high]`, with a severity tier.
 
-    One flat string among a dozen deficits reads the same for 39 lands and 67 lands.
-    This gives a dedicated, magnitude-aware signal so both the solver bias and the
-    human-facing warning can react proportionally instead of just "in range or not".
-
-    `curve_by_cmc` (exact-CMC counts, unlike the "0".."7+" display curve) is part of
-    the universal mana-target input contract -- a curve-aware strategy (e.g. the
-    hypergeometric one) needs it to size the target; the static quota here ignores it.
+    Shared by `land_alert` (band = ROLE_QUOTAS['land']) and any other target that
+    reduces to "a count against a band" (e.g. a hypergeometric-derived quota) --
+    one flat string reads the same for a count 1 off band and 30 off it, so this
+    gives a magnitude-aware signal both the solver bias and human-facing warnings
+    can react to proportionally.
     """
-    _ = curve_by_cmc
-    low, high = ROLE_QUOTAS["land"]
-    if land_count < low:
-        status, delta, bound = "low", low - land_count, low
-    elif land_count > high:
-        status, delta, bound = "high", land_count - high, high
+    if count < low:
+        status, delta, bound = "low", low - count, low
+    elif count > high:
+        status, delta, bound = "high", count - high, high
     else:
         return {
             "status": "ok",
-            "count": land_count,
+            "count": count,
             "quota": [low, high],
             "delta": 0,
             "pct": 0.0,
@@ -59,12 +55,24 @@ def land_alert(land_count: int, curve_by_cmc: dict[int, int] | None = None) -> d
     severity = "severe" if pct >= moderate else "moderate" if pct >= mild else "mild"
     return {
         "status": status,
-        "count": land_count,
+        "count": count,
         "quota": [low, high],
         "delta": delta,
         "pct": round(pct, 3),
         "severity": severity,
     }
+
+
+def land_alert(land_count: int, curve_by_cmc: dict[int, int] | None = None) -> dict:
+    """How far the land count sits outside ROLE_QUOTAS['land'], with a severity tier.
+
+    `curve_by_cmc` (exact-CMC counts, unlike the "0".."7+" display curve) is part of
+    the universal mana-target input contract -- a curve-aware strategy (e.g. the
+    hypergeometric one) needs it to size the target; the static quota here ignores it.
+    """
+    _ = curve_by_cmc
+    low, high = ROLE_QUOTAS["land"]
+    return band_alert(land_count, low, high)
 
 
 def min_sources_for(identity: list[str] | None) -> int:

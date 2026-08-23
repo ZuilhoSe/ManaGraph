@@ -4,6 +4,7 @@
 
 export type Intent = 'auto' | 'build' | 'improve' | 'substitute' | 'cut'
 export type Currency = 'usd' | 'eur'
+export type ManaStrategy = 'static' | 'hypergeometric'
 
 export interface DeckCardEntry {
   id: string
@@ -22,6 +23,7 @@ export interface DeckFormState {
   maxCardPrice: string
   priceCapExisting: boolean
   budgetCap: string
+  manaStrategy: ManaStrategy
   cards: DeckCardEntry[]
 }
 
@@ -36,5 +38,6 @@ export const emptyFormState: DeckFormState = {
   maxCardPrice: '',
   priceCapExisting: false,
   budgetCap: '',
+  manaStrategy: 'hypergeometric',
   cards: [],
 }

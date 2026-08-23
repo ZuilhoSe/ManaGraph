@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import CommanderField from './CommanderField'
 import Section from './Section'
 import { CheckboxField, Field, MoneyField, SelectField } from './fields'
-import type { Currency, DeckFormState, Intent } from '../types'
+import type { Currency, DeckFormState, Intent, ManaStrategy } from '../types'
 
 interface ConfigPanelProps {
   state: DeckFormState
@@ -16,7 +17,14 @@ const INTENT_OPTIONS: { value: Intent; label: string }[] = [
   { value: 'cut', label: 'Cut — trim down to size' },
 ]
 
+const MANA_STRATEGY_OPTIONS: { value: ManaStrategy; label: string }[] = [
+  { value: 'hypergeometric', label: 'Hypergeometric — curve/pip-weighted target' },
+  { value: 'static', label: 'Static — fixed quota by color count' },
+]
+
 export default function ConfigPanel({ state, onChange }: ConfigPanelProps) {
+  const [advancedOpen, setAdvancedOpen] = useState(false)
+
   return (
     <Section title="Configuration" subtitle="Commander, budget, and how the solver decides.">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -90,6 +98,36 @@ export default function ConfigPanel({ state, onChange }: ConfigPanelProps) {
           checked={state.ownedCostZero}
           onChange={(v) => onChange('ownedCostZero', v)}
         />
+      </div>
+
+      <div className="mt-4 border-t border-surface-700 pt-4">
+        <button
+          type="button"
+          onClick={() => setAdvancedOpen((prev) => !prev)}
+          className="text-sm font-medium text-surface-300 hover:text-surface-50"
+        >
+          {advancedOpen ? '▾' : '▸'} Advanced options
+        </button>
+
+        {advancedOpen && (
+          <div className="mt-3 max-w-xs">
+            <Field
+              label="Mana calculator"
+              hint="How land/color-source targets are computed for this deck."
+            >
+              <SelectField
+                value={state.manaStrategy}
+                onChange={(e) => onChange('manaStrategy', e.target.value as ManaStrategy)}
+              >
+                {MANA_STRATEGY_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </SelectField>
+            </Field>
+          </div>
+        )}
       </div>
     </Section>
   )

@@ -43,6 +43,12 @@ from deck_analysis.mana_symbols import (
     produces_mana,
 )
 from deck_analysis.shape_bonus import shape_bonus
+from deck_analysis.strategies import (
+    HypergeometricStrategy,
+    ManaTargetStrategy,
+    StaticQuotaStrategy,
+    strategy_from_name,
+)
 
 __all__ = [
     "COLORS",
@@ -78,4 +84,8 @@ __all__ = [
     "diagnose",
     "diagnose_deck",
     "shape_bonus",
+    "ManaTargetStrategy",
+    "StaticQuotaStrategy",
+    "HypergeometricStrategy",
+    "strategy_from_name",
 ]

@@ -20,6 +20,7 @@ export function buildPayload(state: DeckFormState) {
     // deck", the backend field asks "cap new cards only" (its safer default).
     price_cap_new_only: !state.priceCapExisting,
     currency: state.currency,
+    mana_strategy: state.manaStrategy,
   }
 
   if (state.intent !== 'auto') deck.intent = state.intent

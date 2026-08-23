@@ -136,7 +136,7 @@ def diagnose_deck_json(deck_json: str) -> str:
     Symbolic deck diagnosis: curve, avg CMC, lands, pips vs sources, role gaps, named deficits.
     Returns JSON. Does not use an LLM. Trust this over any count you might invent.
     """
-    from mana import diagnose_deck
+    from mana import diagnose_deck, strategy_from_name
 
     try:
         data = json.loads(deck_json)
@@ -145,7 +145,8 @@ def diagnose_deck_json(deck_json: str) -> str:
     except json.JSONDecodeError as exc:
         return _json({"ok": False, "error": f"Invalid JSON for deck_json: {exc}"})
 
-    report = diagnose_deck(DeckState.from_dict(data))
+    deck = DeckState.from_dict(data)
+    report = diagnose_deck(deck, strategy=strategy_from_name(deck.mana_strategy))
     report["ok"] = True
     return _json(report)
 
