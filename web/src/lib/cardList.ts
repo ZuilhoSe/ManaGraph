@@ -50,6 +50,25 @@ export function totalQuantity(cards: DeckCardEntry[]): number {
   return cards.reduce((sum, c) => sum + (Number.isFinite(c.quantity) ? c.quantity : 0), 0)
 }
 
+/** Collapses the editable entry list into the {name: quantity} shape every
+ * backend deck payload expects (blank names and non-positive quantities dropped,
+ * duplicate names summed). */
+export function cardsToDict(cards: DeckCardEntry[]): Record<string, number> {
+  const dict: Record<string, number> = {}
+  for (const card of cards) {
+    const name = card.name.trim()
+    if (!name || !(card.quantity > 0)) continue
+    dict[name] = (dict[name] ?? 0) + card.quantity
+  }
+  return dict
+}
+
+/** Inverse of cardsToDict -- turns a saved deck's {name: quantity} back into
+ * editable entries, for prefilling the Add/Edit deck form. */
+export function dictToCards(cards: Record<string, number>): DeckCardEntry[] {
+  return Object.entries(cards).map(([name, quantity]) => newCardEntry(name, quantity))
+}
+
 export function newCardEntry(name = '', quantity = 1): DeckCardEntry {
   return { id: makeId(), name, quantity }
 }
