@@ -51,8 +51,12 @@ IDENTITY_BASICS = {
 # and eerie variants were cut for bringing zero good hits. artifact/graveyard
 # haven't been benchmarked yet, so treat those as unproven.
 THEME_QUERIES = {
+    # Short oracle-shaped templates: one long NL query missed Mesa Enchantress /
+    # Entity Tracker / Ashiok's Reaper because their wording differs.
     "enchantment": (
-        "whenever you cast an enchantment or an enchantment enters the battlefield, draw a card",
+        "whenever you cast an enchantment spell",
+        "enchantment you control enters",
+        "whenever an enchantment you control",
     ),
     "artifact": (
         "artifact",
@@ -1074,7 +1078,7 @@ class DeckSolver:
                     query=q,
                     allowed_colors=colors,
                     owned_only=deck.owned_only,
-                    limit=40,
+                    limit=50,
                     max_card_price=deck.max_card_price,
                     currency=deck.currency,
                     n_results=160,

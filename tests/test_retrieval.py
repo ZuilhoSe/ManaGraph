@@ -176,6 +176,117 @@ class RetrievalTextTests(unittest.TestCase):
         finally:
             os.unlink(tmp.name)
 
+    def test_counter_family_covers_negate_variants(self):
+        phrases = lexical_phrases("counter target spell")
+        self.assertIn("counter target noncreature spell", phrases)
+        self.assertIn("counter target instant or sorcery spell", phrases)
+        # Do not flood a counter query with unrelated removal templates.
+        self.assertNotIn("destroy target creature", phrases)
+
+    def test_lexical_finds_counters_and_enchantress(self):
+        tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        tmp.close()
+        try:
+            conn = sqlite3.connect(tmp.name)
+            ensure_schema(conn)
+            _insert(
+                conn,
+                "cs",
+                "Counterspell",
+                "Instant",
+                ["U"],
+                "Counter target spell.",
+            )
+            _insert(
+                conn,
+                "veto",
+                "Dovin's Veto",
+                "Instant",
+                ["W", "U"],
+                "This spell can't be countered.\nCounter target noncreature spell.",
+            )
+            _insert(
+                conn,
+                "negate",
+                "Negate",
+                "Instant",
+                ["U"],
+                "Counter target noncreature spell.",
+            )
+            _insert(
+                conn,
+                "muddle",
+                "Muddle the Mixture",
+                "Instant",
+                ["U"],
+                "Counter target instant or sorcery spell.\nTransmute {1}{U}{U}.",
+            )
+            _insert(
+                conn,
+                "mesa",
+                "Mesa Enchantress",
+                "Creature — Human Druid",
+                ["W"],
+                "Whenever you cast an enchantment spell, you may draw a card.",
+            )
+            _insert(
+                conn,
+                "tracker",
+                "Entity Tracker",
+                "Creature — Human Scout",
+                ["U"],
+                "Flash\n"
+                "Whenever an enchantment you control enters and whenever you fully "
+                "unlock a Room, draw a card.",
+            )
+            _insert(
+                conn,
+                "reaper",
+                "Ashiok's Reaper",
+                "Creature — Nightmare",
+                ["B"],
+                "Whenever an enchantment you control is put into a graveyard from "
+                "the battlefield, draw a card.",
+            )
+            _insert(
+                conn,
+                "bolt",
+                "Lightning Bolt",
+                "Instant",
+                ["R"],
+                "Lightning Bolt deals 3 damage to any target.",
+            )
+            conn.commit()
+
+            counters = lexical_search_sqlite(
+                conn, "counter target spell", ["W", "U", "B"], limit=20
+            )
+            cnames = [h["name"] for h in counters]
+            self.assertIn("Counterspell", cnames)
+            self.assertIn("Dovin's Veto", cnames)
+            self.assertIn("Negate", cnames)
+            self.assertIn("Muddle the Mixture", cnames)
+            self.assertNotIn("Lightning Bolt", cnames)
+
+            enchant = lexical_search_sqlite(
+                conn, "whenever you cast an enchantment spell", ["W", "U", "B"], limit=20
+            )
+            enames = [h["name"] for h in enchant]
+            self.assertIn("Mesa Enchantress", enames)
+
+            enters = lexical_search_sqlite(
+                conn, "enchantment you control enters", ["W", "U", "B"], limit=20
+            )
+            self.assertIn("Entity Tracker", [h["name"] for h in enters])
+
+            dies = lexical_search_sqlite(
+                conn, "whenever an enchantment you control", ["W", "U", "B"], limit=20
+            )
+            self.assertIn("Ashiok's Reaper", [h["name"] for h in dies])
+            conn.close()
+        finally:
+            os.unlink(tmp.name)
+
     def test_merge_prefers_hybrid_blend(self):
         emb = [{"name": "Phyrexian Arena", "distance": 0.55, "text": "emb"}]
         lex = [{"name": "Phyrexian Arena", "distance": 0.08, "text": "lex", "matched_phrase": "draw a card"}]

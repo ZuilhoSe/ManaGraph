@@ -18,6 +18,7 @@ from embeddings import MiniLMStrategy, describe_embedding_device, place_model_on
 from geometry import identity_where
 from retrieval_text import (
     DOCUMENT_FORMAT,
+    diversify_by_phrase,
     hit_sort_key,
     is_searchable_card,
     lexical_search_sqlite,
@@ -182,6 +183,11 @@ class RAGSearcher:
         q_compact = " ".join(str(query).lower().split())
         if hybrid and len(q_compact) <= 80:
             merged.sort(key=hit_sort_key)
+            if "counter" in q_compact:
+                # Keep Negate / Veto / Muddle visible inside Architect/Solver limits.
+                merged = diversify_by_phrase(
+                    merged, max(limit * 4, 80), prefer_phrase=q_compact
+                )
 
         found_cards = []
         conn = sqlite3.connect(DB_NAME)
