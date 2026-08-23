@@ -22,6 +22,7 @@ from deck_analysis.mana_base import (
     LAND_SEVERITY_SCALE,
     MIN_SOURCES,
     PIP_PER_SOURCE_WARN,
+    color_floors,
     land_alert,
     min_sources_for,
 )
@@ -58,6 +59,7 @@ __all__ = [
     "MIN_SOURCES",
     "LAND_SEVERITY_BANDS",
     "LAND_SEVERITY_SCALE",
+    "color_floors",
     "land_alert",
     "cmc_bucket",
     "empty_pips",

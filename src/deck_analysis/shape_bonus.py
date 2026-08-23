@@ -8,8 +8,8 @@ from deck_analysis.curve import CURVE_TARGETS, cmc_bucket
 from deck_analysis.mana_base import (
     LAND_SEVERITY_SCALE,
     PIP_PER_SOURCE_WARN,
+    color_floors,
     land_alert,
-    min_sources_for,
 )
 from deck_analysis.mana_symbols import is_fast_mana, is_land_card, parse_mana_cost, produced_mana
 
@@ -40,11 +40,11 @@ def shape_bonus(info: dict, report: dict | None, identity: list[str] | None = No
         elif alert["status"] == "high":
             land_bonus = -1.5 * severity_scale
         needed = False
-        min_src = int(report.get("min_sources") or min_sources_for(identity))
+        floors = report.get("min_sources") or color_floors(identity)
         sources = report.get("sources") or {}
         for color in identity:
             have = float(sources.get(color) or 0) + float(sources.get("any") or 0)
-            if have < min_src and (prod.get(color) or prod.get("any")):
+            if have < floors.get(color, 0) and (prod.get(color) or prod.get("any")):
                 needed = True
         if needed:
             mana_bonus += 0.5
@@ -68,10 +68,10 @@ def shape_bonus(info: dict, report: dict | None, identity: list[str] | None = No
         curve_penalty = 1.0
 
     sources = report.get("sources") or {}
-    min_src = int(report.get("min_sources") or min_sources_for(identity))
+    floors = report.get("min_sources") or color_floors(identity)
     for color in identity:
         have = float(sources.get(color) or 0) + float(sources.get("any") or 0)
-        if have < min_src and (prod.get(color) or prod.get("any") or prod.get("C")):
+        if have < floors.get(color, 0) and (prod.get(color) or prod.get("any") or prod.get("C")):
             mana_bonus += 0.6
             break
     if is_fast_mana(tl, ot, cmc) and int(report.get("fast_mana") or 0) < 4:

@@ -8,7 +8,7 @@ from roles import role_counts
 
 from deck_analysis.card_classify import is_cheat_card
 from deck_analysis.curve import CURVE_PROFILES, cmc_bucket, curve_plan, select_curve_profile
-from deck_analysis.mana_base import PIP_PER_SOURCE_WARN, land_alert, min_sources_for
+from deck_analysis.mana_base import PIP_PER_SOURCE_WARN, color_floors, land_alert
 from deck_analysis.mana_symbols import (
     COLORS,
     _add_pips,
@@ -64,7 +64,7 @@ def diagnose(
             fast_mana += qty
 
     avg_cmc = round(cmc_sum / nonlands, 3) if nonlands else 0.0
-    min_src = min_sources_for(identity)
+    floors = color_floors(identity)
     pips_per_source = {}
     for color in COLORS:
         pool = sources[color] + sources["any"]
@@ -112,8 +112,9 @@ def diagnose(
         if color not in COLORS:
             continue
         have = sources[color] + sources["any"]
-        if have < min_src:
-            deficits.append(f"sources {color}: {have:g} < {min_src}")
+        floor = floors.get(color, 0)
+        if have < floor:
+            deficits.append(f"sources {color}: {have:g} < {floor}")
         if pips[color] > 0 and pips_per_source[color] > PIP_PER_SOURCE_WARN:
             deficits.append(
                 f"pips {color}: {pips[color]:g} on {have:g} sources ({pips_per_source[color]})"
@@ -150,7 +151,7 @@ def diagnose(
         "pips": round_pips,
         "sources": round_src,
         "pips_per_source": pips_per_source,
-        "min_sources": min_src,
+        "min_sources": floors,
         "roles": roles,
         "role_gaps": role_gaps,
         "land_alert": alert,

@@ -65,3 +65,13 @@ def land_alert(land_count: int) -> dict:
 def min_sources_for(identity: list[str] | None) -> int:
     n = max(len([c for c in (identity or []) if c in COLORS]), 1)
     return MIN_SOURCES.get(n, 8)
+
+
+def color_floors(identity: list[str] | None) -> dict[str, int]:
+    """Minimum source count per color in identity -- the per-color contract shape
+    a swappable strategy (e.g. a future hypergeometric one) needs to speak. The
+    static strategy has no per-color signal, so every color gets the same
+    min_sources_for(identity) floor.
+    """
+    floor = min_sources_for(identity)
+    return {color: floor for color in (identity or []) if color in COLORS}
