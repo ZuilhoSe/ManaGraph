@@ -28,13 +28,18 @@ LAND_SEVERITY_BANDS = (0.05, 0.10)
 LAND_SEVERITY_SCALE = {"none": 0.0, "mild": 1.5, "moderate": 2.5, "severe": 4.0}
 
 
-def land_alert(land_count: int) -> dict:
+def land_alert(land_count: int, curve_by_cmc: dict[int, int] | None = None) -> dict:
     """How far the land count sits outside ROLE_QUOTAS['land'], with a severity tier.
 
     One flat string among a dozen deficits reads the same for 39 lands and 67 lands.
     This gives a dedicated, magnitude-aware signal so both the solver bias and the
     human-facing warning can react proportionally instead of just "in range or not".
+
+    `curve_by_cmc` (exact-CMC counts, unlike the "0".."7+" display curve) is part of
+    the universal mana-target input contract -- a curve-aware strategy (e.g. the
+    hypergeometric one) needs it to size the target; the static quota here ignores it.
     """
+    _ = curve_by_cmc
     low, high = ROLE_QUOTAS["land"]
     if land_count < low:
         status, delta, bound = "low", low - land_count, low
@@ -67,11 +72,19 @@ def min_sources_for(identity: list[str] | None) -> int:
     return MIN_SOURCES.get(n, 8)
 
 
-def color_floors(identity: list[str] | None) -> dict[str, int]:
+def color_floors(
+    identity: list[str] | None,
+    pip_reqs_by_color: dict[str, list[tuple[int, int]]] | None = None,
+) -> dict[str, int]:
     """Minimum source count per color in identity -- the per-color contract shape
     a swappable strategy (e.g. a future hypergeometric one) needs to speak. The
     static strategy has no per-color signal, so every color gets the same
     min_sources_for(identity) floor.
+
+    `pip_reqs_by_color` (per-card (cmc, pips) pairs, part of the universal mana-target
+    input contract) is what a pip-aware strategy needs to vary the floor by color;
+    ignored here on purpose.
     """
+    _ = pip_reqs_by_color
     floor = min_sources_for(identity)
     return {color: floor for color in (identity or []) if color in COLORS}

@@ -37,6 +37,15 @@ def diagnose(
     pips = empty_pips()
     sources = empty_sources()
     curve = {key: 0 for key in CURVE_PROFILES["mid"]["targets"]}
+    # Universal mana-target input contract: exact-CMC curve and per-card (cmc, pips)
+    # pairs, collected regardless of which strategy is active below -- the static one
+    # ignores them, a curve/pip-aware one (e.g. hypergeometric) needs them. In
+    # pip_reqs_by_color a 0-cost pip-bearing card is bucketed as CMC 1, not CMC 0
+    # (curve_by_cmc keeps the real 0): a free spell's color still has to be paid on
+    # turn 1 at the earliest, so treating it as "CMC 0" would silently drop that color
+    # requirement from a pip-aware strategy's target.
+    curve_by_cmc: dict[int, int] = {}
+    pip_reqs_by_color: dict[str, list[tuple[int, int]]] = {c: [] for c in COLORS}
     land_count = 0
     fast_mana = 0
     cmc_sum = 0.0
@@ -56,15 +65,23 @@ def diagnose(
         if is_land_card(tl):
             land_count += qty
             continue
-        _add_pips(pips, parse_mana_cost(cost), qty)
+        card_pips = parse_mana_cost(cost)
+        _add_pips(pips, card_pips, qty)
         curve[cmc_bucket(cmc)] = curve.get(cmc_bucket(cmc), 0) + qty
+        curve_cmc = int(cmc)
+        curve_by_cmc[curve_cmc] = curve_by_cmc.get(curve_cmc, 0) + qty
+        pip_cmc = curve_cmc if curve_cmc >= 1 else 1
+        for color in COLORS:
+            pip_n = round(card_pips.get(color) or 0)
+            if pip_n >= 1:
+                pip_reqs_by_color[color].extend([(pip_cmc, pip_n)] * qty)
         cmc_sum += cmc * qty
         nonlands += qty
         if is_fast_mana(tl, ot, cmc):
             fast_mana += qty
 
     avg_cmc = round(cmc_sum / nonlands, 3) if nonlands else 0.0
-    floors = color_floors(identity)
+    floors = color_floors(identity, pip_reqs_by_color)
     pips_per_source = {}
     for color in COLORS:
         pool = sources[color] + sources["any"]
@@ -82,7 +99,7 @@ def diagnose(
 
     deficits: list[str] = []
     land_low, land_high = quotas["land"]
-    alert = land_alert(land_count)
+    alert = land_alert(land_count, curve_by_cmc)
     if alert["status"] != "ok":
         direction = "too few" if alert["status"] == "low" else "too many"
         deficits.append(
@@ -137,6 +154,8 @@ def diagnose(
     report = {
         "identity": identity,
         "curve": curve,
+        "curve_by_cmc": curve_by_cmc,
+        "pip_reqs_by_color": pip_reqs_by_color,
         "curve_profile": profile,
         "curve_targets": {k: list(v) for k, v in targets.items()},
         "curve_gaps": curve_gaps,
