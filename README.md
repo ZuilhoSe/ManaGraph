@@ -92,9 +92,10 @@ Research stages (do not skip 3.5 for TDA): **1 DeckState → 2 fill/cut → 3 ge
 
 ### Directory Structure
 
-- `data/`: Local stores (`managraph.db`, `chroma_db/`). **Not in git** — GitHub’s 100 MB file limit cannot hold ~38k MiniLM vectors. Rebuild with `scryfall_download.py` then `vectorize_cards.py`.
+- `data/`: Local stores (`managraph.db`, `chroma_db/`, `card_views.npz`). **Not in git** — GitHub’s 100 MB file limit cannot hold ~38k MiniLM vectors. Rebuild with `python src/build_dataset.py`.
 - `notebooks/`: Exploratory analysis notebooks (e.g. UMAP + Plotly dimensionality reduction).
 - `src/`: Main source code:
+  - `build_dataset.py`: One-shot catalog + Chroma + metadata + multi-view embeddings.
   - `scryfall_download.py`: Import and parse official Scryfall data, including a frozen price snapshot.
   - `catalog.py`: Oracle lookups, schema migration, acquisition cost, mana curve.
   - `deck_state.py`: First-class Commander deck object and JSON delta apply.
@@ -106,7 +107,8 @@ Research stages (do not skip 3.5 for TDA): **1 DeckState → 2 fill/cut → 3 ge
   - `inventory.py`: Check availability and move cards between the free pool and decks.
   - `embeddings.py`: Strategy pattern for embedding providers (model-agnostic).
   - `vectorize_cards.py`: Batch indexing into ChromaDB.
-  - `hybrid_search.py`: Search engine combining vector similarity and SQLite filters (including *P*<sub>max</sub>).
+  - `hybrid_search.py`: Hybrid retrieve — MiniLM over type+oracle documents (card **name is metadata only**) plus SQLite lexical oracle match, then identity / price / role filters.
+  - `retrieval_text.py`: Shared document format, junk filters, lexical phrase expansion, merge ranking.
   - `rules_validator.py`: Deterministic Commander legality, size, identity, singleton, budget.
   - `llm_factory.py`: Swap LLM providers via environment variables.
   - `tools.py`: LangChain `@tool` wrappers; tools return JSON.
@@ -134,25 +136,40 @@ GOOGLE_API_KEY=your_key_here
 pip install -r requirements.txt
 ```
 
-3. **Catalog + prices** (needed once, and again when you want a new price snapshot):
+3. **Build the dataset** (needed once, and again when you want a new price snapshot or embeddings):
 
 ```bash
-python src/scryfall_download.py
-python src/vectorize_cards.py
-python src/vectorize_cards.py --metadata-only
-python src/vectorize_cards.py --views-only
+python src/build_dataset.py
 ```
 
-`--metadata-only` stamps color-identity bits on an existing Chroma index (no MiniLM). Needed once after upgrading, so hybrid search can filter identity at query time.
+This runs, in order: Scryfall download → Chroma oracle index → metadata stamp (color-identity bits, cmc) → multi-view file `data/card_views.npz` (oracle, type, keywords, mana) → test inventory if the collection is empty.
+
+MiniLM encoding uses **CUDA** when PyTorch sees a GPU (batch size 256). If `torch.cuda.is_available()` is false, it falls back to CPU and prints a warning.
+
+Useful flags: `--rebuild` (drop and re-encode Chroma), `--skip-download` (reuse SQLite), `--skip-views`, `--skip-inventory`.
+
+After changing the embedding document format (e.g. dropping card names from Chroma text), rebuild the index:
+
+```bash
+python src/vectorize_cards.py --rebuild
+```
+
+`build_dataset.py --rebuild` does the same Chroma step as part of the full pipeline.
 
 4. **Tests** (validator, deltas, fill/cut, geometry; no API key):
 
 ```bash
-python -m unittest tests.test_stage1 tests.test_stage2 tests.test_stage3 tests.test_stage35 tests.test_invariants
+python -m unittest tests.test_stage1 tests.test_stage2 tests.test_stage3 tests.test_stage35 tests.test_invariants tests.test_retrieval
 ```
 
 5. **Run the multi-agent loop** (JSON delta → inventory → fill/cut → symbolic supervisor):
 
 ```bash
-python src/main_agent.py
+python src/main_agent.py --commander "Ertai Resurrected"
+```
+
+Phrases like `build me a deck`, `full deck`, or `99 cards` tell the solver to fill to 99. `--owned-only` prefers cards in your inventory. You can also pass a free-text request:
+
+```bash
+python src/main_agent.py "Build me a full Dimir control deck for Ertai Resurrected with counters and removal."
 ```

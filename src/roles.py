@@ -69,6 +69,17 @@ _INTERACTION = (
 _TOKEN_PRODUCER = re.compile(
     r"(?i)creates?\s+(?:a |one |two |three |four |five |\d+ )?.{0,48}token"
 )
+_MILL = (
+    "mill ",
+    "mills ",
+    "milled ",
+    " library into their graveyard",
+    " library into his or her graveyard",
+    "from the top of target player's library",
+    "from the top of each opponent",
+)
+
+
 _TOKEN_PAYOFF = (
     "tokens you control",
     "creature tokens you control",
@@ -139,29 +150,38 @@ def classify_roles(type_line: str = "", oracle_text: str = "", keywords=None) ->
         roles.add("interaction")
     if "creature" in tl or "planeswalker" in tl:
         roles.add("threat")
+    if any(p in ot for p in _MILL) or "mill" in _keywords_set(keywords):
+        roles.add("mill")
     roles |= token_classes(type_line, oracle_text)
     if not roles:
         roles.add("other")
     return roles
 
 
-def role_counts(cards: list[dict]) -> dict[str, int]:
-    counts = {role: 0 for role in list(ROLE_QUOTAS) + ["token_producer", "token_payoff", "other"]}
+def role_counts(cards: list[dict], archetype: str | None = None) -> dict[str, int]:
+    from archetypes import planned_roles, quotas_for
+
+    keys = list(quotas_for(archetype)) + ["mill", "token_producer", "token_payoff", "other"]
+    counts = {role: 0 for role in keys}
     for card in cards:
         qty = int(card.get("quantity", 1))
-        for role in classify_roles(
+        for role in planned_roles(
             card.get("type_line") or "",
             card.get("oracle_text") or "",
             card.get("keywords"),
+            archetype,
         ):
             counts[role] = counts.get(role, 0) + qty
     return counts
 
 
-def role_need_bonus(role: str, counts: dict[str, int]) -> float:
-    if role not in ROLE_QUOTAS:
+def role_need_bonus(
+    role: str, counts: dict[str, int], quotas: dict[str, tuple[int, int]] | None = None
+) -> float:
+    quotas = quotas or ROLE_QUOTAS
+    if role not in quotas:
         return 0.0
-    low, high = ROLE_QUOTAS[role]
+    low, high = quotas[role]
     n = counts.get(role, 0)
     if n < low:
         return 2.5

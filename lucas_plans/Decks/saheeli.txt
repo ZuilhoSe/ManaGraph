@@ -1,0 +1,91 @@
+1 Academy Ruins
+1 Adaptive Omnitool
+1 Aether Hub
+1 Aetherflux Conduit
+1 Aetheric Amplifier
+1 Aethersquall Ancient
+1 Aethertide Whale
+1 Aetherwind Basker
+1 Aetherworks Marvel
+1 Akoum Warrior
+1 Arcane Denial
+1 Arcane Signet
+1 Architect of the Untamed
+1 Attune with Aether
+1 Blasphemous Act
+1 Chain Reaction
+1 Chromatic Lantern
+1 Combustible Gearhulk
+1 Command Tower
+1 Confiscation Coup
+1 Conjurer's Closet
+1 Daretti, Rocketeer Engineer
+1 Decoction Module
+1 Disallow
+1 Druid of Purification
+1 Duplicant
+1 Efficient Construction
+1 Elder Gargaroth
+1 Era of Innovation
+1 Etherium Sculptor
+1 Evolving Wilds
+1 Exotic Orchard
+1 Fellwar Stone
+5 Forest
+1 Frontier Bivouac
+1 Frostboil Snarl
+1 Giggling Skitterspike
+1 Hinterland Harbor
+5 Island
+1 Izzet Generatorium
+1 Karplusan Forest
+1 Lightning Greaves
+1 Lightning Runner
+1 Loyal Apprentice
+1 Midnight Clock
+3 Mountain
+1 Nissa, Worldsoul Speaker
+1 One with the Machine
+1 Ornithopter of Paradise
+1 Overflowing Basin
+1 Panharmonicon
+1 Path of Ancestry
+1 Peema Aether-Seer
+1 Peema Trailblazer
+1 Pia Nalaar, Chief Mechanic
+1 Rampaging Aetherhood
+1 Rogue Refiner
+1 Rootbound Crag
+1 Saheeli, Sublime Artificer
+1 Sai, Master Thopterist
+1 Servant of the Conduit
+1 Shambling Suit
+1 Shardless Agent
+1 Sheltered Thicket
+1 Shivan Reef
+1 Simic Signet
+1 Slagwoods Bridge
+1 Smash to Dust
+1 Sol Ring
+1 Solar Transformer
+1 Solemn Simulacrum
+1 Soul-Guide Lantern
+1 Spire of Industry
+1 Stoic Rebuttal
+1 Stridehangar Automaton
+1 Sulfur Falls
+1 Talisman of Curiosity
+1 Tanglepool Bridge
+1 Teething Wurmlet
+1 Temple of Epiphany
+1 Temur Ascendancy
+1 Territorial Aetherkite
+1 Thopter Spy Network
+1 Treasure Vault
+1 Tribute Mage
+1 Vineglimmer Snarl
+1 Whirler Rogue
+1 Whirler Virtuoso
+1 Yavimaya Coast
+
+1 Saheeli, Radiant Creator

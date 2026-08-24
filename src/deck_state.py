@@ -4,6 +4,8 @@ import json
 import re
 from dataclasses import asdict, dataclass, field
 
+from archetypes import VALID_ARCHETYPES, infer_archetype
+
 
 COMMAND_ZONE_SIZE = 1
 MAIN_DECK_SIZE = 99
@@ -34,7 +36,20 @@ def extract_json(text: str) -> dict | None:
         return None
 
 
+_SLASH_RE = re.compile(r"\s*/{1,2}\s*")
+
+
+def _normalize_key(name: str) -> str:
+    """Case- and slash-format-insensitive comparison key. Split/room/DFC names
+    get pasted as both 'Front/Back' and Scryfall's 'Front // Back' -- collapse
+    either spacing around 1 or 2 slashes to one form so add/remove/substitute
+    match a card regardless of which format the caller used, instead of
+    silently no-op'ing when they disagree."""
+    return _SLASH_RE.sub(" // ", name.strip()).lower()
+
+
 VALID_INTENTS = ("build", "improve", "substitute", "cut")
+VALID_MANA_STRATEGIES = ("static", "hypergeometric")
 
 
 def infer_intent(query: str, has_cards: bool = False) -> str:
@@ -97,14 +112,26 @@ def infer_task(query: str, has_cards: bool = False) -> dict:
             "focus on cards i own",
         )
     )
-    full_build = intent == "build" and any(
-        phrase in q
-        for phrase in ("full deck", "99 cards", "complete deck", "build me a deck", "build a deck", "from scratch")
+    full_build = intent == "build" and (
+        any(
+            phrase in q
+            for phrase in (
+                "full deck",
+                "99 cards",
+                "complete deck",
+                "build me a deck",
+                "build a deck",
+                "from scratch",
+            )
+        )
+        or bool(re.search(r"\bfull\b.{0,40}\bdeck\b", q))
+        or bool(re.search(r"\bbuild\b.{0,80}\bdeck\b", q))
     )
     return {
         "intent": intent,
         "owned_only": owned_only,
         "require_complete": full_build,
+        "archetype": infer_archetype(query),
     }
 
 
@@ -176,8 +203,36 @@ class DeckState:
     budget_cap: float | None = None
     owned_cost_zero: bool = True
     intent: str = "build"
+    archetype: str = "generic"
     last_delta: dict = field(default_factory=dict)
     candidate_pool: dict[str, int] = field(default_factory=dict)
+    # Whether max_card_price gates only cards not already in baseline_cards
+    # (True, the default) or every card in the deck (False). Defaults to True
+    # because that's the sane reading of a per-card price cap: it's a budget
+    # guard on what the agent is about to buy, not a demand to replace a
+    # pricey staple the user already put in the decklist. Safe no-op when
+    # baseline_cards is empty (e.g. DeckState built directly, not via
+    # initial_graph_state()) -- every card then counts as "new" either way,
+    # matching pre-existing behavior exactly.
+    price_cap_new_only: bool = True
+    # Snapshot of `cards` taken once at the start of a run (initial_graph_state);
+    # never touched by apply_delta. This is the reference point for
+    # price_cap_new_only -- it survives the deck's to_dict()/from_dict() round
+    # trips across graph nodes and architect/solver iterations.
+    baseline_cards: dict[str, int] = field(default_factory=dict)
+    # Which ManaTargetStrategy (deck_analysis/strategies.py) computes the land/
+    # color-source targets for this deck -- a user-facing config choice, not
+    # something an agent delta sets (see apply_delta, which doesn't touch it).
+    mana_strategy: str = "hypergeometric"
+    # A fixed allowlist of cards the deck may be built from (e.g. the union of
+    # two saved decks' physical cards), keyed the same way as `cards`. Distinct
+    # from candidate_pool: this is read-only input set once before a run, never
+    # mutated by the solver as it allocates. Empty means "no pool restriction".
+    card_pool: dict[str, int] = field(default_factory=dict)
+    # When True, only cards present in card_pool may enter the deck -- like
+    # owned_only but scoped to this specific allowlist instead of the whole
+    # collection. No-op when card_pool is empty.
+    pool_only: bool = False
 
     def slot_count(self) -> int:
         return sum(max(int(qty), 0) for qty in self.cards.values())
@@ -192,10 +247,10 @@ class DeckState:
         return {name: int(qty) for name, qty in self.cards.items() if int(qty) > 0}
 
     def _canonical_map(self) -> dict[str, str]:
-        return {name.lower(): name for name in self.cards}
+        return {_normalize_key(name): name for name in self.cards}
 
     def _key(self, name: str) -> str | None:
-        return self._canonical_map().get(name.lower())
+        return self._canonical_map().get(_normalize_key(name))
 
     def set_commander(self, name: str):
         name = (name or "").strip()
@@ -205,7 +260,7 @@ class DeckState:
             self.cards.pop(existing, None)
 
     def _pool_key(self, name: str) -> str | None:
-        return {n.lower(): n for n in self.candidate_pool}.get(name.lower())
+        return {_normalize_key(n): n for n in self.candidate_pool}.get(_normalize_key(name))
 
     def add_to_pool(self, name: str, quantity: int = 1):
         name = name.strip()
@@ -283,6 +338,9 @@ class DeckState:
         intent = delta.get("intent")
         if intent in VALID_INTENTS:
             self.intent = intent
+        plan = delta.get("archetype")
+        if plan in VALID_ARCHETYPES:
+            self.archetype = plan
         commander = delta.get("commander")
         if commander:
             self.set_commander(commander)
@@ -336,12 +394,16 @@ class DeckState:
             "target_slots": MAIN_DECK_SIZE,
             "remaining_slots": self.remaining_slots(),
             "owned_only": self.owned_only,
+            "pool_only": self.pool_only,
             "require_complete": self.require_complete,
             "currency": self.currency,
             "max_card_price": self.max_card_price,
             "budget_cap": self.budget_cap,
             "owned_cost_zero": self.owned_cost_zero,
+            "price_cap_new_only": self.price_cap_new_only,
             "intent": self.intent,
+            "archetype": self.archetype,
+            "mana_strategy": self.mana_strategy,
             "cards": self.card_list(),
             "candidate_pool": {name: qty for name, qty in self.candidate_pool.items() if qty > 0},
             "last_delta": self.last_delta,
@@ -361,7 +423,22 @@ class DeckState:
             budget_cap=data.get("budget_cap"),
             owned_cost_zero=bool(data.get("owned_cost_zero", True)),
             intent=data.get("intent") if data.get("intent") in VALID_INTENTS else "build",
+            archetype=(
+                data.get("archetype")
+                if data.get("archetype") in VALID_ARCHETYPES
+                else "generic"
+            ),
             candidate_pool=_clean_qty_map(data.get("candidate_pool")),
+            card_pool=_clean_qty_map(data.get("card_pool")),
+            pool_only=bool(data.get("pool_only", False)),
+            price_cap_new_only=bool(data.get("price_cap_new_only", True)),
+            baseline_cards=_clean_qty_map(data.get("baseline_cards")),
+            last_delta=dict(data.get("last_delta") or {}),
+            mana_strategy=(
+                data.get("mana_strategy")
+                if data.get("mana_strategy") in VALID_MANA_STRATEGIES
+                else "hypergeometric"
+            ),
         )
         if deck.commander:
             deck.set_commander(deck.commander)
@@ -397,3 +474,44 @@ class DeckState:
         if proposal:
             deck.apply_delta(proposal)
         return deck
+
+
+def diff_decks(before: "DeckState | dict | None", after: "DeckState | dict | None") -> dict:
+    """Card-level diff between two deck states, computed from their card_list()s --
+    not from any agent's self-reported delta. Names are matched via _normalize_key
+    (case- and slash-format-insensitive, same convention as add/remove/substitute);
+    the printed name comes from whichever side has it."""
+    before_deck = before if isinstance(before, DeckState) else DeckState.from_dict(before)
+    after_deck = after if isinstance(after, DeckState) else DeckState.from_dict(after)
+
+    before_map = {_normalize_key(name): (name, qty) for name, qty in before_deck.card_list().items()}
+    after_map = {_normalize_key(name): (name, qty) for name, qty in after_deck.card_list().items()}
+
+    removed = []
+    for key, (name, qty) in before_map.items():
+        after_qty = after_map.get(key, (name, 0))[1]
+        if after_qty < qty:
+            removed.append({"name": name, "quantity": qty - after_qty})
+
+    added = []
+    for key, (name, qty) in after_map.items():
+        before_qty = before_map.get(key, (name, 0))[1]
+        if qty > before_qty:
+            added.append({"name": name, "quantity": qty - before_qty})
+
+    removed.sort(key=lambda c: c["name"].lower())
+    added.sort(key=lambda c: c["name"].lower())
+
+    commander_changed = None
+    before_commander = (before_deck.commander or "").strip()
+    after_commander = (after_deck.commander or "").strip()
+    if before_commander.lower() != after_commander.lower():
+        commander_changed = {"from": before_commander, "to": after_commander}
+
+    return {
+        "removed": removed,
+        "added": added,
+        "commander_changed": commander_changed,
+        "removed_count": sum(c["quantity"] for c in removed),
+        "added_count": sum(c["quantity"] for c in added),
+    }

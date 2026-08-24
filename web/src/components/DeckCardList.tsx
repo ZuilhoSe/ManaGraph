@@ -26,6 +26,12 @@ export default function DeckCardList({ cards, onChange }: DeckCardListProps) {
     onChange([...cards, newCardEntry()])
   }
 
+  function clearList() {
+    onChange([])
+    setPasteOpen(false)
+    setPasteText('')
+  }
+
   function applyPaste() {
     const parsed = parseCardListText(pasteText)
     if (parsed.length === 0) return
@@ -58,6 +64,15 @@ export default function DeckCardList({ cards, onChange }: DeckCardListProps) {
           >
             + Card
           </button>
+          {cards.length > 0 && (
+            <button
+              type="button"
+              onClick={clearList}
+              className="rounded-lg border border-surface-600 px-3 py-1.5 text-sm text-surface-400 hover:border-red-500 hover:text-red-400"
+            >
+              Clear list
+            </button>
+          )}
         </div>
       </div>
 

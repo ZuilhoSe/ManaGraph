@@ -1,0 +1,1045 @@
+{
+  "deck": {
+    "commander": "Ertai Resurrected",
+    "cards": {
+      "Sol Ring": 1,
+      "Arcane Signet": 1,
+      "Dimir Signet": 1,
+      "Talisman of Dominance": 1,
+      "Ravenform": 1,
+      "Toxic Deluge": 1,
+      "Feed the Swarm": 1,
+      "Command Tower": 1,
+      "Watery Grave": 1,
+      "Morphic Pool": 1,
+      "Barren Moor": 1,
+      "Agna Qel'a": 1,
+      "Cryptic Caves": 1,
+      "Waterfront District": 1,
+      "Portal Mage": 1,
+      "Naru Meha, Master Wizard": 1,
+      "Opposition Agent": 1,
+      "Activated Sleeper": 1,
+      "Great Hall of the Biblioplex": 1,
+      "Power Depot": 1,
+      "Faerie Harbinger": 1,
+      "Glen Elendra Guardian": 1,
+      "Demolition Field": 1,
+      "Youthful Scholar": 1,
+      "Gitaxian Anatomist": 1,
+      "Araumi of the Dead Tide": 1,
+      "Northampton Farm": 1,
+      "Unworthy Dead": 1,
+      "Bilious Skulldweller": 1,
+      "Unstable Frontier": 1,
+      "Specimen Collector": 1,
+      "Sheltered Valley": 1,
+      "Hidden Lair": 1,
+      "Planar Nexus": 1,
+      "Terrain Generator": 1,
+      "Mutavault": 1,
+      "Jwar Isle Refuge": 1,
+      "Unclaimed Territory": 1,
+      "Ash Barrens": 1,
+      "Spire of Industry": 1,
+      "An Offer You Can't Refuse": 1,
+      "Springleaf Drum": 1,
+      "Mana Cylix": 1,
+      "Guildless Commons": 1,
+      "Mishra's Workshop": 1,
+      "Primal Beyond": 1,
+      "Myriad Landscape": 1,
+      "Darkslick Shores": 1,
+      "Swamp": 6,
+      "Shipwreck Marsh": 1,
+      "Island": 1,
+      "Jeweled Amulet": 1,
+      "Inspired Sprite": 1,
+      "Soul of New Phyrexia": 1,
+      "Testament Bearer": 1,
+      "Phyrexian Fleshgorger": 1,
+      "Phyrexian Gargantua": 1,
+      "Mist Dancer": 1,
+      "Resurrected Cultist": 1,
+      "Tenured Oilcaster": 1,
+      "Gixian Infiltrator": 1,
+      "Meldweb Curator": 1,
+      "Ertai, Wizard Adept": 1,
+      "Atmosphere Surgeon": 1,
+      "Graveyard Shift": 1,
+      "Jace's Archivist": 1,
+      "Dictate of Erebos": 1,
+      "Dragonologist": 1,
+      "Spellskite": 1,
+      "Phyrexian Devourer": 1,
+      "Phyrexian Hulk": 1,
+      "Phyrexian Vivisector": 1,
+      "Termination Facilitator": 1,
+      "Maralen of the Mornsong": 1,
+      "Phyrexian Digester": 1,
+      "Exultant Cultist": 1,
+      "Terraformer": 1,
+      "Treasure Cruise": 1,
+      "Disciples of Gix": 1,
+      "Research Assistant": 1,
+      "Gixian Skullflayer": 1,
+      "Fugitive Wizard": 1,
+      "Cruel Sadist": 1,
+      "Thunderbolts Conspiracy": 1,
+      "Flash Photography": 1,
+      "Spontaneous Mutation": 1,
+      "Check for Traps": 1,
+      "Ray of Frost": 1,
+      "Phyrexian Rager": 1,
+      "Changing Loyalty": 1,
+      "Omen of the Dead": 1,
+      "Dress Down": 1,
+      "Agatha's Soul Cauldron": 1,
+      "Borne Upon a Wind": 1
+    },
+    "identity": [
+      "B",
+      "U"
+    ],
+    "owned_only": false,
+    "require_complete": true,
+    "currency": "usd",
+    "max_card_price": null,
+    "budget_cap": null,
+    "owned_cost_zero": true,
+    "intent": "build",
+    "last_delta": {},
+    "candidate_pool": {
+      "Ponder": 1,
+      "Preordain": 1,
+      "Brainstorm": 1,
+      "Windfall": 1,
+      "Swan Song": 1,
+      "Wash Out": 1,
+      "Infernal Grasp": 1,
+      "Deadly Rollick": 1,
+      "Murderous Rider": 1,
+      "Echoing Truth": 1,
+      "Man o' War": 1,
+      "Hullbreaker Horror": 1,
+      "Toxrill, the Shattered Host": 1,
+      "Island": 11,
+      "Swamp": 6,
+      "Polluted Delta": 1,
+      "Shipwreck Marsh": 1,
+      "Dreamtide Shores": 1,
+      "Drown in the Loch": 1,
+      "Oppression": 1,
+      "Tasha's Hideous Laughter": 1,
+      "Blue Sun's Zenith": 1,
+      "Dig Through Time": 1,
+      "Cyclonic Rift": 2,
+      "Farewell": 1,
+      "Ertai Resurrected // Ertai Resurrected": 1,
+      "Ertai's Trickery": 2,
+      "Ertai's Meddling": 2,
+      "Ertai's Familiar": 2,
+      "Legolas, Counter of Kills // Legolas, Counter of Kills": 1,
+      "Yenna, Redtooth Regent // Yenna, Redtooth Regent": 1,
+      "Azami, Lady of Scrolls // Azami, Lady of Scrolls": 1,
+      "Ertai's Scorn": 1,
+      "Dryad's Revival // Dryad's Revival": 1,
+      "Eruth, Tormented Prophet // Eruth, Tormented Prophet": 1,
+      "Adagia, Windswept Bastion // Adagia, Windswept Bastion": 1,
+      "Red Dragon // Red Dragon": 1,
+      "Okiba Salvage": 1,
+      "Beledros Witherbloom // Beledros Witherbloom": 1,
+      "Stone of Erech": 1,
+      "Ancient Gold Dragon // Ancient Gold Dragon": 1,
+      "Rammas Echor, Ancient Shield // Rammas Echor, Ancient Shield": 1,
+      "Chameleon, Master of Disguise // Chameleon, Master of Disguise": 1,
+      "Ulamog's Despoiler": 1,
+      "Pond Prophet // Pond Prophet": 1,
+      "Delina, Wild Mage // Delina, Wild Mage": 1,
+      "Tasha, the Witch Queen // Tasha, the Witch Queen": 1,
+      "Kairi, the Swirling Sky": 1,
+      "Errant and Giada // Errant and Giada": 1,
+      "Dai Li Indoctrination": 1,
+      "Hazezon, Shaper of Sand // Hazezon, Shaper of Sand": 1,
+      "Golbez, Crystal Collector // Golbez, Crystal Collector": 1,
+      "Ancient Bronze Dragon // Ancient Bronze Dragon": 1,
+      "Ephemerate // Ephemerate": 1,
+      "Sheoldred, the Apocalypse // Sheoldred, the Apocalypse": 1,
+      "Faramir, Field Commander // Faramir, Field Commander": 1,
+      "Summon: Bahamut": 1,
+      "Risona, Asari Commander // Risona, Asari Commander": 1,
+      "Tiamat // Tiamat": 1,
+      "Flash Counter": 1,
+      "A-Graveyard Shift": 1,
+      "Transcendent Dragon": 1,
+      "Flash": 1,
+      "Flashfreeze": 1,
+      "Minion's Return": 1,
+      "Flash Flood": 1,
+      "Animate Spell": 1,
+      "Thought Sponge": 1,
+      "Flash Photography // Flash Photography": 1,
+      "Vex": 1,
+      "Shadow Kin": 1,
+      "Elder Deep-Fiend": 1,
+      "Ulamog's Nullifier": 1,
+      "Offalsnout": 1,
+      "Subtlety": 1,
+      "Bone Devourer": 1,
+      "Faerie Mastermind": 1,
+      "Dimensional Infiltrator": 1,
+      "Phyrexian Walker": 1,
+      "Phyrexian Germ": 1,
+      "Phyrexian Monitor": 1,
+      "Phyrexian": 2,
+      "Phyrexian Horror": 1,
+      "Vedalken Anatomist": 1,
+      "Phyrexian Adapter": 1,
+      "Human Wizard": 1,
+      "Phyrexian Wurm": 1,
+      "Phyrexian Metamorph": 1,
+      "Tricky Mage": 1,
+      "Rummaging Wizard": 1,
+      "Omenspeaker": 1,
+      "Phyrexian Golem": 1,
+      "Trophy Mage": 1,
+      "Phyrexian Obliterator // Phyrexian Obliterator": 1,
+      "Breach the Multiverse": 1,
+      "Manalith": 1,
+      "Mana Prism": 1,
+      "Artifact Unknown Shores": 1,
+      "Salvaged Manaworker": 1,
+      "Patchwork Banner": 1,
+      "Relic of Legends": 1,
+      "Celestial Prism": 1,
+      "Standing Stones": 1,
+      "Mana Geode": 1,
+      "Doubling Cube": 1,
+      "Astrolabe": 1,
+      "Key to the Archive": 1,
+      "Vessel of Endless Rest": 1,
+      "Mystic Skull // Mystic Monstrosity": 1,
+      "Inspiring Statuary": 1,
+      "Fellwar Stone": 1,
+      "Manakin": 1,
+      "Prismite": 1,
+      "Implements of Sacrifice": 1,
+      "Honored Heirloom": 1,
+      "Guild Globe": 1,
+      "Alloy Myr": 1,
+      "Prophetic Prism": 1,
+      "Your Mana Rock": 1,
+      "Marut": 1,
+      "Wizard's Rockets": 1,
+      "Mimic": 1,
+      "Manascape Refractor": 1,
+      "Pillar of Origins": 1,
+      "Spinning Wheel": 1,
+      "All-Fates Scroll": 1,
+      "Prototype Portal": 1,
+      "Manakin and Millikin": 1,
+      "Mox Diamond": 1,
+      "Mental Note": 1,
+      "Quick Study": 1,
+      "Card Draw": 1,
+      "Gerrard": 1,
+      "Library of Alexandria": 1,
+      "Tidings": 1,
+      "Mise": 1,
+      "Illuminated Folio": 1,
+      "Magus of the Bazaar": 1,
+      "Brain Pry": 1,
+      "Divination": 1,
+      "Jace's Ingenuity": 1,
+      "Magus of the Chains": 1,
+      "Deliberate": 1,
+      "Pull from Tomorrow": 1,
+      "Words of Wisdom": 1,
+      "Sift": 1,
+      "Hieroglyphic Illumination": 1,
+      "Look at Us, We're R&D // Look at Us, We're R&D (cont'd)": 1,
+      "Mathemagics": 1,
+      "Careful Study": 1,
+      "Mind Spike": 1,
+      "Prying Eyes": 1,
+      "Brilliant Plan": 1,
+      "Jace, Memory Adept": 1,
+      "Jace, Wielder of Mysteries": 1,
+      "Thought Reflection": 1,
+      "Bazaar of Baghdad": 1,
+      "Vision Skeins": 1,
+      "Stroke of Genius": 1,
+      "Pop Quiz": 1,
+      "Boon of the Wish-Giver": 1,
+      "Fool's Tome": 1,
+      "Enter the Infinite": 1,
+      "Compelling Argument": 1,
+      "Laquatus's Creativity": 1,
+      "See Beyond": 1,
+      "Oblivion Stone": 1,
+      "Final Death": 1,
+      "Final Reward": 1,
+      "Hunter of Eyeblights": 1,
+      "Cancel": 1,
+      "Despoil": 1,
+      "Behold the Power of Destruction": 1,
+      "Syncopate": 1,
+      "Banishing Betrayal": 1,
+      "Final Act": 1,
+      "Make Disappear": 1,
+      "Rewind": 1,
+      "Lost in the Mist": 1,
+      "Spite // Malice": 1,
+      "Void Shatter": 1,
+      "Defabricate": 1,
+      "Wander Off": 1,
+      "Hour of Defeat": 1,
+      "Sinister Sabotage": 1,
+      "Forceful Denial": 1,
+      "Bring the Ending": 1,
+      "Poison Counter": 1,
+      "Fuel for the Cause": 1,
+      "Render Inert": 1,
+      "Assassin's Strike": 1,
+      "Fate Transfer": 1,
+      "Put Away": 1,
+      "Price of Betrayal": 1,
+      "Dissipate": 1,
+      "Unwind": 1,
+      "Crumbling Ashes": 1,
+      "Despotic Scepter": 1,
+      "Aether Snap": 1,
+      "Last Word": 1,
+      "Grip of Amnesia": 1,
+      "Dramatist's Puppet": 1,
+      "Slip Out the Back": 1,
+      "Shapeshifter": 5,
+      "Insect": 2,
+      "Fish": 1,
+      "Fish // Kraken": 1,
+      "Roots of All Evil": 1,
+      "Beeble": 1,
+      "Octopus": 1,
+      "Dread Drone": 1,
+      "Whale": 1,
+      "Villain": 1,
+      "Reef Worm": 1,
+      "Teddy Bear": 1,
+      "Perplexing Test": 1,
+      "Nest of Scarabs": 1,
+      "Teysa, Orzhov Scion Avatar": 1,
+      "Spirit": 5,
+      "Erhnam Djinn Avatar": 1,
+      "Zombie": 1,
+      "Cat": 1,
+      "Copy // Horror": 1,
+      "Alien": 1,
+      "Gnome": 1,
+      "Tentacle": 1,
+      "Skeleton": 1,
+      "Bird": 3,
+      "Gift Shop": 1,
+      "Shark": 1,
+      "Sovereign's Realm": 1,
+      "Grasslands": 1,
+      "Jodah's Codex": 1,
+      "Energybending": 1,
+      "Terramorphic Expanse": 1,
+      "Obscura Storefront": 1,
+      "Vibrant Cityscape": 1,
+      "Mana Conference": 1,
+      "Vesuva": 1,
+      "Prismatic Vista": 1,
+      "Horizon of Progress": 1,
+      "Evolving Wilds": 1,
+      "Arid Mesa": 1,
+      "Flood Plain": 1,
+      "Multiversal Passage": 1,
+      "Cabaretti Courtyard": 1,
+      "Brokers Hideout": 1,
+      "Sea Snidd": 1,
+      "Rhystic Study": 1,
+      "Negate": 1,
+      "Mana Leak": 1,
+      "Mystic Remora": 1,
+      "Counterspell": 1,
+      "Arcane Denial": 1
+    },
+    "slot_count": 99,
+    "complete": true
+  },
+  "query": "Build me a full control deck for Ertai Resurrected with counters, bounce, and creature removal.",
+  "supervisor_decision": "APPROVED",
+  "validation": {
+    "valid": true,
+    "complete": true,
+    "commander": "Ertai Resurrected",
+    "commander_identity": [
+      "B",
+      "U"
+    ],
+    "slot_count": 99,
+    "target_slots": 99,
+    "budget_used": 285.55,
+    "budget_cap": null,
+    "max_card_price": null,
+    "currency": "usd",
+    "curve": {
+      "0": 1,
+      "1": 9,
+      "2": 17,
+      "3": 17,
+      "4": 10,
+      "5": 4,
+      "6": 5,
+      "7+": 2
+    },
+    "land_count": 34,
+    "land_alert": {
+      "status": "ok",
+      "count": 34,
+      "quota": [
+        34,
+        38
+      ],
+      "delta": 0,
+      "pct": 0.0,
+      "severity": "none"
+    },
+    "commander_errors": [],
+    "color_errors": [],
+    "singleton_errors": [],
+    "format_errors": [],
+    "size_errors": [],
+    "owned_errors": [],
+    "price_errors": [],
+    "unknown_cards": [],
+    "warnings": [],
+    "catalog_meta": {
+      "price_snapshot_at": "2026-08-19T02:03:52Z",
+      "scryfall_bulk_type": "oracle_cards",
+      "card_count": "38626"
+    }
+  },
+  "solver_report": {
+    "stripped": {
+      "removed": []
+    },
+    "fill": {
+      "ok": true,
+      "added": [
+        {
+          "name": "Barren Moor",
+          "score": 7.7969,
+          "source": "greedy"
+        },
+        {
+          "name": "Agna Qel'a",
+          "score": 7.5953,
+          "source": "greedy"
+        },
+        {
+          "name": "Cryptic Caves",
+          "score": 7.4999,
+          "source": "greedy"
+        },
+        {
+          "name": "Waterfront District",
+          "score": 7.4514,
+          "source": "greedy"
+        },
+        {
+          "name": "Portal Mage",
+          "score": 5.7411,
+          "source": "greedy"
+        },
+        {
+          "name": "Naru Meha, Master Wizard",
+          "score": 5.6421,
+          "source": "greedy"
+        },
+        {
+          "name": "Opposition Agent",
+          "score": 5.6276,
+          "source": "greedy"
+        },
+        {
+          "name": "Activated Sleeper",
+          "score": 5.6246,
+          "source": "greedy"
+        },
+        {
+          "name": "Great Hall of the Biblioplex",
+          "score": 5.4698,
+          "source": "greedy"
+        },
+        {
+          "name": "Power Depot",
+          "score": 5.4556,
+          "source": "greedy"
+        },
+        {
+          "name": "Faerie Harbinger",
+          "score": 5.451,
+          "source": "greedy"
+        },
+        {
+          "name": "Glen Elendra Guardian",
+          "score": 5.3804,
+          "source": "greedy"
+        },
+        {
+          "name": "Demolition Field",
+          "score": 5.3439,
+          "source": "greedy"
+        },
+        {
+          "name": "Youthful Scholar",
+          "score": 5.3084,
+          "source": "greedy"
+        },
+        {
+          "name": "Gitaxian Anatomist",
+          "score": 5.3004,
+          "source": "greedy"
+        },
+        {
+          "name": "Araumi of the Dead Tide",
+          "score": 5.2901,
+          "source": "greedy"
+        },
+        {
+          "name": "Northampton Farm",
+          "score": 5.2805,
+          "source": "greedy"
+        },
+        {
+          "name": "Unworthy Dead",
+          "score": 5.2139,
+          "source": "greedy"
+        },
+        {
+          "name": "Bilious Skulldweller",
+          "score": 5.1211,
+          "source": "greedy"
+        },
+        {
+          "name": "Unstable Frontier",
+          "score": 4.9144,
+          "source": "greedy"
+        },
+        {
+          "name": "Specimen Collector",
+          "score": 4.8778,
+          "source": "greedy"
+        },
+        {
+          "name": "Sheltered Valley",
+          "score": 4.7533,
+          "source": "greedy"
+        },
+        {
+          "name": "Hidden Lair",
+          "score": 4.7264,
+          "source": "greedy"
+        },
+        {
+          "name": "Planar Nexus",
+          "score": 4.6949,
+          "source": "greedy"
+        },
+        {
+          "name": "Terrain Generator",
+          "score": 4.6521,
+          "source": "greedy"
+        },
+        {
+          "name": "Mutavault",
+          "score": 4.6521,
+          "source": "greedy"
+        },
+        {
+          "name": "Jwar Isle Refuge",
+          "score": 4.6316,
+          "source": "greedy"
+        },
+        {
+          "name": "Unclaimed Territory",
+          "score": 4.627,
+          "source": "greedy"
+        },
+        {
+          "name": "Ash Barrens",
+          "score": 4.6252,
+          "source": "greedy"
+        },
+        {
+          "name": "Spire of Industry",
+          "score": 4.604,
+          "source": "greedy"
+        },
+        {
+          "name": "An Offer You Can't Refuse",
+          "score": 4.0444,
+          "source": "greedy"
+        },
+        {
+          "name": "Springleaf Drum",
+          "score": 3.8852,
+          "source": "greedy"
+        },
+        {
+          "name": "Mana Cylix",
+          "score": 3.674,
+          "source": "greedy"
+        },
+        {
+          "name": "Guildless Commons",
+          "score": 3.6371,
+          "source": "greedy"
+        },
+        {
+          "name": "Mishra's Workshop",
+          "score": 3.601,
+          "source": "greedy"
+        },
+        {
+          "name": "Primal Beyond",
+          "score": 3.5815,
+          "source": "greedy"
+        },
+        {
+          "name": "Myriad Landscape",
+          "score": 3.5577,
+          "source": "greedy"
+        },
+        {
+          "name": "Darkslick Shores",
+          "score": 3.4683,
+          "source": "greedy"
+        },
+        {
+          "name": "Swamp",
+          "score": 3.3931,
+          "source": "greedy"
+        },
+        {
+          "name": "Shipwreck Marsh",
+          "score": 3.1008,
+          "source": "greedy"
+        },
+        {
+          "name": "Island",
+          "score": 3.065,
+          "source": "greedy"
+        },
+        {
+          "name": "Jeweled Amulet",
+          "score": 2.7518,
+          "source": "greedy"
+        },
+        {
+          "name": "Inspired Sprite",
+          "score": 3.0719,
+          "source": "greedy"
+        },
+        {
+          "name": "Soul of New Phyrexia",
+          "score": 3.0504,
+          "source": "greedy"
+        },
+        {
+          "name": "Testament Bearer",
+          "score": 3.0448,
+          "source": "greedy"
+        },
+        {
+          "name": "Phyrexian Fleshgorger",
+          "score": 2.9163,
+          "source": "greedy"
+        },
+        {
+          "name": "Phyrexian Gargantua",
+          "score": 2.8895,
+          "source": "greedy"
+        },
+        {
+          "name": "Mist Dancer",
+          "score": 2.3834,
+          "source": "greedy"
+        },
+        {
+          "name": "Resurrected Cultist",
+          "score": 2.0769,
+          "source": "greedy"
+        },
+        {
+          "name": "Tenured Oilcaster",
+          "score": 1.9986,
+          "source": "greedy"
+        },
+        {
+          "name": "Gixian Infiltrator",
+          "score": 1.9954,
+          "source": "greedy"
+        },
+        {
+          "name": "Meldweb Curator",
+          "score": 1.9806,
+          "source": "greedy"
+        },
+        {
+          "name": "Ertai, Wizard Adept",
+          "score": 1.9712,
+          "source": "greedy"
+        },
+        {
+          "name": "Atmosphere Surgeon",
+          "score": 1.9087,
+          "source": "greedy"
+        },
+        {
+          "name": "Graveyard Shift",
+          "score": 1.9071,
+          "source": "greedy"
+        },
+        {
+          "name": "Jace's Archivist",
+          "score": 1.9053,
+          "source": "greedy"
+        },
+        {
+          "name": "Dictate of Erebos",
+          "score": 1.901,
+          "source": "greedy"
+        },
+        {
+          "name": "Dragonologist",
+          "score": 1.8706,
+          "source": "greedy"
+        },
+        {
+          "name": "Spellskite",
+          "score": 1.8357,
+          "source": "greedy"
+        },
+        {
+          "name": "Phyrexian Devourer",
+          "score": 1.8297,
+          "source": "greedy"
+        },
+        {
+          "name": "Phyrexian Hulk",
+          "score": 1.8023,
+          "source": "greedy"
+        },
+        {
+          "name": "Phyrexian Vivisector",
+          "score": 1.7943,
+          "source": "greedy"
+        },
+        {
+          "name": "Termination Facilitator",
+          "score": 1.7916,
+          "source": "greedy"
+        },
+        {
+          "name": "Maralen of the Mornsong",
+          "score": 1.7599,
+          "source": "greedy"
+        },
+        {
+          "name": "Phyrexian Digester",
+          "score": 1.7455,
+          "source": "greedy"
+        },
+        {
+          "name": "Exultant Cultist",
+          "score": 1.7335,
+          "source": "greedy"
+        },
+        {
+          "name": "Terraformer",
+          "score": 1.7225,
+          "source": "greedy"
+        },
+        {
+          "name": "Treasure Cruise",
+          "score": 1.7197,
+          "source": "greedy"
+        },
+        {
+          "name": "Disciples of Gix",
+          "score": 1.6966,
+          "source": "greedy"
+        },
+        {
+          "name": "Research Assistant",
+          "score": 1.6822,
+          "source": "greedy"
+        },
+        {
+          "name": "Gixian Skullflayer",
+          "score": 1.6724,
+          "source": "greedy"
+        },
+        {
+          "name": "Fugitive Wizard",
+          "score": 1.6639,
+          "source": "greedy"
+        },
+        {
+          "name": "Cruel Sadist",
+          "score": 1.5782,
+          "source": "greedy"
+        },
+        {
+          "name": "Swamp",
+          "score": 1.55,
+          "source": "greedy"
+        },
+        {
+          "name": "Swamp",
+          "score": 1.55,
+          "source": "greedy"
+        },
+        {
+          "name": "Swamp",
+          "score": 1.55,
+          "source": "greedy"
+        },
+        {
+          "name": "Swamp",
+          "score": 1.55,
+          "source": "greedy"
+        },
+        {
+          "name": "Swamp",
+          "score": 1.55,
+          "source": "greedy"
+        },
+        {
+          "name": "Thunderbolts Conspiracy",
+          "score": 0.7368,
+          "source": "greedy"
+        },
+        {
+          "name": "Flash Photography",
+          "score": 0.6967,
+          "source": "greedy"
+        },
+        {
+          "name": "Spontaneous Mutation",
+          "score": 0.6884,
+          "source": "greedy"
+        },
+        {
+          "name": "Check for Traps",
+          "score": 0.6591,
+          "source": "greedy"
+        }
+      ],
+      "skipped": [
+        {
+          "name": "Murderous Rider",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Man o' War",
+          "reason": "unknown card"
+        },
+        {
+          "name": "Hullbreaker Horror",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Toxrill, the Shattered Host",
+          "reason": "unknown card"
+        },
+        {
+          "name": "Polluted Delta",
+          "reason": "land produces no mana"
+        },
+        {
+          "name": "Dreamtide Shores",
+          "reason": "unknown card"
+        },
+        {
+          "name": "Cyclonic Rift",
+          "reason": "singleton"
+        },
+        {
+          "name": "Farewell",
+          "reason": "color identity"
+        },
+        {
+          "name": "Ertai Resurrected // Ertai Resurrected",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Ertai's Familiar",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Legolas, Counter of Kills // Legolas, Counter of Kills",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Yenna, Redtooth Regent // Yenna, Redtooth Regent",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Azami, Lady of Scrolls // Azami, Lady of Scrolls",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Dryad's Revival // Dryad's Revival",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Eruth, Tormented Prophet // Eruth, Tormented Prophet",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Adagia, Windswept Bastion // Adagia, Windswept Bastion",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Red Dragon // Red Dragon",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Beledros Witherbloom // Beledros Witherbloom",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Ancient Gold Dragon // Ancient Gold Dragon",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Rammas Echor, Ancient Shield // Rammas Echor, Ancient Shield",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Chameleon, Master of Disguise // Chameleon, Master of Disguise",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Ulamog's Despoiler",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Pond Prophet // Pond Prophet",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Delina, Wild Mage // Delina, Wild Mage",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Tasha, the Witch Queen // Tasha, the Witch Queen",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Kairi, the Swirling Sky",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Errant and Giada // Errant and Giada",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Hazezon, Shaper of Sand // Hazezon, Shaper of Sand",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Golbez, Crystal Collector // Golbez, Crystal Collector",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Ancient Bronze Dragon // Ancient Bronze Dragon",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Ephemerate // Ephemerate",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Sheoldred, the Apocalypse // Sheoldred, the Apocalypse",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Faramir, Field Commander // Faramir, Field Commander",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Summon: Bahamut",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Risona, Asari Commander // Risona, Asari Commander",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Tiamat // Tiamat",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "A-Graveyard Shift",
+          "reason": "format not_legal"
+        },
+        {
+          "name": "Transcendent Dragon",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Flash",
+          "reason": "format banned"
+        },
+        {
+          "name": "Animate Spell",
+          "reason": "format not_legal"
+        }
+      ],
+      "slot_count": 99,
+      "remaining_slots": 0,
+      "pool_count": 285
+    },
+    "cut": {
+      "ok": true,
+      "removed": [],
+      "swapped": [
+        {
+          "out": "Cyclonic Rift",
+          "in": "Ray of Frost"
+        },
+        {
+          "out": "Rhystic Study",
+          "in": "Phyrexian Rager"
+        },
+        {
+          "out": "Negate",
+          "in": "Changing Loyalty"
+        },
+        {
+          "out": "Mana Leak",
+          "in": "Omen of the Dead"
+        },
+        {
+          "out": "Mystic Remora",
+          "in": "Dress Down"
+        },
+        {
+          "out": "Counterspell",
+          "in": "Agatha's Soul Cauldron"
+        },
+        {
+          "out": "Arcane Denial",
+          "in": "Borne Upon a Wind"
+        }
+      ],
+      "slot_count": 99,
+      "pool_count": 285
+    }
+  }
+}

@@ -1,18 +1,37 @@
+import contextvars
 import json
 from langchain.tools import tool
 from hybrid_search import RAGSearcher
-from inventory import get_card, list_inventory, move_card, FREE_POOL
+from inventory import get_cards, list_inventory, move_card, FREE_POOL
 from rules_validator import CommanderValidator
-from deck_state import DeckState
+from deck_state import DeckState, _normalize_key
 
-_searcher = None
+# Fallback for search_cards' owned_only when the model's tool call omits it.
+# Whoever starts a run should call set_deck_owned_only(deck.owned_only) once
+# beforehand; defaults to False (matching DeckState.owned_only's own default)
+# if nobody does, so this is a strict improvement over a hardcoded literal.
+_deck_owned_only: contextvars.ContextVar[bool] = contextvars.ContextVar("deck_owned_only", default=False)
+
+
+def set_deck_owned_only(value: bool) -> None:
+    _deck_owned_only.set(bool(value))
+
+
+# Same pattern as _deck_owned_only above, but for a fixed card allowlist (e.g.
+# the union of specific saved decks) instead of "anything I own". None means no
+# restriction; whoever starts a pool-only run calls set_deck_card_pool(deck.card_pool)
+# once beforehand so every search_cards call in that run is scoped to it.
+_deck_card_pool: contextvars.ContextVar[frozenset[str] | None] = contextvars.ContextVar(
+    "deck_card_pool", default=None
+)
+
+
+def set_deck_card_pool(names) -> None:
+    _deck_card_pool.set(frozenset(_normalize_key(n) for n in names) if names else None)
 
 
 def _get_searcher():
-    global _searcher
-    if _searcher is None:
-        _searcher = RAGSearcher()
-    return _searcher
+    return RAGSearcher.shared()
 
 
 def _json(data) -> str:
@@ -23,7 +42,7 @@ def _json(data) -> str:
 def search_cards(
     query: str,
     colors: list,
-    owned_only: bool = True,
+    owned_only: bool | None = None,
     limit: int = 5,
     max_card_price: float | None = None,
     currency: str = "usd",
@@ -32,13 +51,14 @@ def search_cards(
     role: str = "",
 ):
     """
-    Search Magic: The Gathering cards in the vector index and filter with SQLite.
-    Returns JSON.
+    Hybrid search over Magic cards: embedding (type+oracle, no card name) plus
+    lexical oracle substring match, then SQLite filters. Returns JSON.
 
     Args:
-        query: Semantic description of the card effect.
+        query: Effect description or oracle phrasing (e.g. "draw a card").
         colors: Allowed color identity, e.g. ["R", "U"].
         owned_only: True to search only owned cards, False for the full catalog.
+            Leave unset to use the deck's own owned_only setting.
         limit: Maximum number of cards to return.
         max_card_price: Optional per-card price cap in `currency`. Owned copies are still returned.
         currency: usd or eur.
@@ -46,10 +66,13 @@ def search_cards(
         cmc_max: Optional inclusive mana-value ceiling.
         role: Optional role class: land, ramp, draw, interaction, threat, token_producer, token_payoff.
     """
+    if owned_only is None:
+        owned_only = _deck_owned_only.get()
     results = _get_searcher().search_cards(
         query=query,
         allowed_colors=colors,
         owned_only=owned_only,
+        card_pool=_deck_card_pool.get(),
         limit=limit,
         max_card_price=max_card_price,
         currency=currency,
@@ -63,12 +86,44 @@ def search_cards(
 
 
 @tool
-def lookup_inventory(card_name: str) -> str:
-    """Look up one owned card: total copies and where they are allocated (free pool vs decks). Returns JSON."""
-    card = get_card(card_name)
-    if not card:
-        return _json({"ok": False, "error": f"'{card_name}' is not in the inventory."})
-    return _json({"ok": True, "card": card, "free_pool": FREE_POOL})
+def lookup_inventory(card_names: list[str]) -> str:
+    """
+    Look up owned cards in one call: total copies and where each is allocated
+    (free pool vs decks). Pass every name you need in a single list instead of
+    calling this once per card. Returns JSON keyed by the names you passed in;
+    a name not owned maps to null.
+    """
+    if not card_names:
+        return _json({"ok": False, "error": "card_names must be a non-empty list."})
+    found = get_cards(card_names)
+    return _json({"ok": True, "cards": found, "free_pool": FREE_POOL})
+
+
+@tool
+def get_card_info(name: str) -> str:
+    """
+    Look up one card by its exact name in the Oracle catalog (not the inventory --
+    this checks whether the card exists at all, regardless of ownership). Returns JSON.
+
+    Use this to confirm a commander or card name before assuming it's invalid. A
+    search_cards miss is NOT proof the name is wrong -- that's a semantic search over
+    card text and can miss an exact, real card. This is an exact lookup.
+
+    Under a pool-restricted run (see search_cards' card_pool), this refuses a real
+    card that exists in the catalog but isn't in the pool -- ok:false there means
+    "not available this run", not "not a real card".
+    """
+    from catalog import get_oracle_card
+
+    info = get_oracle_card(name)
+    if not info:
+        return _json({"ok": False, "error": f"'{name}' was not found in the catalog."})
+    pool = _deck_card_pool.get()
+    if pool is not None and _normalize_key(info["name"]) not in pool:
+        return _json(
+            {"ok": False, "error": f"'{info['name']}' exists but is not in the selected card pool."}
+        )
+    return _json({"ok": True, "card": info})
 
 
 @tool
@@ -104,7 +159,7 @@ def diagnose_deck_json(deck_json: str) -> str:
     Symbolic deck diagnosis: curve, avg CMC, lands, pips vs sources, role gaps, named deficits.
     Returns JSON. Does not use an LLM. Trust this over any count you might invent.
     """
-    from mana import diagnose_deck
+    from mana import diagnose_deck, strategy_from_name
 
     try:
         data = json.loads(deck_json)
@@ -113,7 +168,8 @@ def diagnose_deck_json(deck_json: str) -> str:
     except json.JSONDecodeError as exc:
         return _json({"ok": False, "error": f"Invalid JSON for deck_json: {exc}"})
 
-    report = diagnose_deck(DeckState.from_dict(data))
+    deck = DeckState.from_dict(data)
+    report = diagnose_deck(deck, strategy=strategy_from_name(deck.mana_strategy))
     report["ok"] = True
     return _json(report)
 

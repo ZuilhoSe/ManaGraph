@@ -1,0 +1,80 @@
+1 Adventurer's Inn
+1 Port Town
+1 Seachrome Coast
+1 Kabira Crossroads
+1 Radiant Fountain
+1 Glacial Fortress
+11 Island
+11 Plains
+1 Mystic Gate
+1 Deserted Beach
+1 Adarkar Wastes
+1 Prairie Stream
+1 Command Tower
+1 Reliquary Tower
+1 Skycloud Expanse
+1 Sol Ring
+1 Authority of the Consuls
+1 Path to Exile
+1 Cleric Class
+1 Soul's Attendant
+1 Soul Warden
+1 Excalibur II
+1 Profane Memento
+1 Restoration Magic
+1 Fellwar Stone
+1 Dawn of Hope
+1 Nyx-Fleece Ram
+1 Skrelv's Hive
+1 Counterspell
+1 White Sun's Twilight
+1 Faithful Mending
+1 Rest in Peace
+1 Lightning Greaves
+1 Hope Estheim
+1 Griffin Aerie
+1 Mind Stone
+1 Thought Vessel
+1 Revitalize
+1 Sanguine Sacrament
+1 Sanctify
+1 Arcane Signet
+1 Azorius Signet
+1 Talisman of Progress
+1 Gold-Forged Thopteryx
+1 Dovin's Veto
+1 Absorb
+1 Aerith Gainsborough
+1 Riot Control
+1 Heraldic Banner
+1 Haliya, Guided by Light
+1 Elenda's Hierophant
+1 Ghostly Prison
+1 Propaganda
+1 Smuggler's Share
+1 Sphinx's Revelation
+1 Fraying Sanity
+1 Pristine Talisman
+1 Union of the Third Path
+1 Will, Scion of Peace
+1 Grand Arbiter Augustin IV
+1 Beza, the Bounding Spring
+1 Congregate
+1 Cosmos Elixir
+1 Exemplar of Light
+1 Leyline of Hope
+1 Mangara, the Diplomat
+1 Well of Lost Dreams
+1 War Report
+1 Rhox Faithmender
+1 Space-Time Anomaly
+1 Test of Endurance
+1 The Water Crystal
+1 The Wind Crystal
+1 Supreme Verdict
+1 Venser's Journal
+1 Fumigate
+1 Jidoor, Aristocratic Capital
+1 Felidar Sovereign
+1 Approach of the Second Sun
+1 Drogskol Reaver

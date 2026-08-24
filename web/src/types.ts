@@ -4,6 +4,7 @@
 
 export type Intent = 'auto' | 'build' | 'improve' | 'substitute' | 'cut'
 export type Currency = 'usd' | 'eur'
+export type ManaStrategy = 'static' | 'hypergeometric'
 
 export interface DeckCardEntry {
   id: string
@@ -20,8 +21,14 @@ export interface DeckFormState {
   ownedCostZero: boolean
   currency: Currency
   maxCardPrice: string
+  priceCapExisting: boolean
   budgetCap: string
+  manaStrategy: ManaStrategy
   cards: DeckCardEntry[]
+  /** Saved deck names to build from as a fixed card pool (see fetchDeckPool) --
+   * empty means no pool restriction, same as today. Mutually exclusive in
+   * practice with ownedOnly: a pool is already narrower than "everything I own". */
+  poolDeckNames: string[]
 }
 
 export const emptyFormState: DeckFormState = {
@@ -33,6 +40,9 @@ export const emptyFormState: DeckFormState = {
   ownedCostZero: true,
   currency: 'usd',
   maxCardPrice: '',
+  priceCapExisting: false,
   budgetCap: '',
+  manaStrategy: 'hypergeometric',
   cards: [],
+  poolDeckNames: [],
 }
