@@ -16,7 +16,7 @@ from archetypes import (
     quotas_for,
     search_queries_for,
 )
-from deck_state import MAIN_DECK_SIZE, DeckState
+from deck_state import MAIN_DECK_SIZE, DeckState, _normalize_key
 from geometry import cosine, load_card_views, multi_view_cosine
 from inventory import get_card as get_inventory_card
 from mana import cmc_bucket, diagnose, produces_mana, shape_bonus, strategy_from_name
@@ -165,6 +165,12 @@ class DeckSolver:
             inv = get_inventory_card(name, self.db_path)
             self._owned[key] = inv["total_quantity"] if inv else 0
         return self._owned[key]
+
+    def _pool_norm(self, deck: DeckState) -> frozenset[str] | None:
+        """Normalized card_pool names, or None when the deck isn't pool-restricted."""
+        if not deck.pool_only or not deck.card_pool:
+            return None
+        return frozenset(_normalize_key(n) for n in deck.card_pool)
 
     def _plan(self, deck: DeckState, query: str = "") -> str:
         from_query = infer_archetype(query)
@@ -418,6 +424,27 @@ class DeckSolver:
             self._baseline_lookup = lookup
         return self._baseline_lookup.get(canonical_name.lower(), 0)
 
+    def _land_count_worsened(self, deck: DeckState, land_status: dict) -> bool:
+        """True when THIS turn's own delta is what pushed the land count past the
+        baseline it had at run start. should_fix_shape below intentionally skips
+        auto-correcting land shape for improve/substitute -- a deck the user built
+        land-heavy on purpose over prior turns shouldn't get its lands purged by an
+        unrelated "swap this one card" request. But that protection has no business
+        covering the case where the Architect's own delta, in this very turn, is
+        what created or worsened the excess -- that's not a standing choice to
+        respect, it's this turn's mistake to fix."""
+        if not deck.baseline_cards:
+            return False
+        current_count = land_status.get("count")
+        if current_count is None:
+            return False
+        baseline_count = 0
+        for name, qty in deck.baseline_cards.items():
+            info = self._info(name)
+            if info and "land" in (info.get("type_line") or "").lower():
+                baseline_count += qty
+        return current_count > baseline_count
+
     def _legality_reason(self, deck: DeckState, name: str, new_qty: int) -> str | None:
         """Hard-rule reasons a card cannot occupy `new_qty` copies in this deck."""
         info = self._info(name)
@@ -438,6 +465,9 @@ class DeckSolver:
         owned_qty = self._owned_qty(info["name"])
         if deck.owned_only and owned_qty < new_qty:
             return "not owned"
+        pool_norm = self._pool_norm(deck)
+        if pool_norm is not None and _normalize_key(info["name"]) not in pool_norm:
+            return "not in pool"
         unit = card_unit_price(info, deck.currency)
         current = 0
         key = deck._key(info["name"]) or deck._key(name)
@@ -494,14 +524,32 @@ class DeckSolver:
 
     def _seed_pool_from_retrieve(self, deck: DeckState, query: str) -> int:
         added = 0
-        for name in self._retrieve(deck, query):
-            if deck._key(name):
-                continue
-            before = deck.pool_count()
-            deck.add_to_pool(name, 1)
-            if deck.pool_count() > before:
-                added += 1
-        print(f"[Solver] seeded candidate_pool with {added} retrieved cards (pool={deck.pool_count()})")
+        # Cards the Architect just cut this same turn don't get re-seeded -- see
+        # _freshly_removed_names. Without this, seeding from the full card_pool
+        # allowlist (or a broad retrieval query) hands them straight back to
+        # fill() as if nothing happened.
+        removed_now = self._freshly_removed_names(deck)
+        # Pool-restricted decks skip vector retrieval entirely and seed straight
+        # from the allowlist -- guarantees every pool card is a swap/fill
+        # candidate, instead of depending on embedding relevance to rediscover
+        # them (the pool is already small and fixed, there's nothing to search for).
+        if deck.pool_only:
+            for name, qty in deck.card_pool.items():
+                if deck._key(name) or name.lower() in removed_now:
+                    continue
+                before = deck.pool_count()
+                deck.add_to_pool(name, qty)
+                if deck.pool_count() > before:
+                    added += 1
+        else:
+            for name in self._retrieve(deck, query):
+                if deck._key(name) or name.lower() in removed_now:
+                    continue
+                before = deck.pool_count()
+                deck.add_to_pool(name, 1)
+                if deck.pool_count() > before:
+                    added += 1
+        print(f"[Solver] seeded candidate_pool with {added} {'pool' if deck.pool_only else 'retrieved'} cards (pool={deck.pool_count()})")
         return added
 
     def solve(self, deck: DeckState, query: str = "", fill_to_99: bool = False) -> dict:
@@ -517,12 +565,25 @@ class DeckSolver:
         # deck. A targeted "swap this card" on an intentionally land-heavy list (Azusa,
         # Lord Windgrace, extra-land-drop shells) must not trigger a land purge nobody asked
         # for; the quota is also a flat heuristic that doesn't know those archetypes exist.
-        should_fix_shape = (
-            land_status.get("severity") in ("moderate", "severe")
-            and deck.intent in ("build", "cut")
+        should_fix_shape = land_status.get("severity") in ("moderate", "severe") and (
+            deck.intent in ("build", "cut") or self._land_count_worsened(deck, land_status)
+        )
+        # baseline_cards is the slot count this run started with (see DeckState.baseline_cards).
+        # An architect turn that removes more than it adds (unequal delta.add/delta.remove,
+        # instead of matched substitute pairs) can silently shrink an already-complete deck --
+        # nothing else in this function catches that for intent="improve"/"substitute" since
+        # should_fix_shape is gated to build/cut and n_stripped is 0 (nothing was illegal, it
+        # was just removed on purpose). Only "cut" is exempt: there, shrinking is the ask.
+        baseline_slot_count = sum(max(int(q), 0) for q in deck.baseline_cards.values())
+        unintended_shrink = (
+            baseline_slot_count == MAIN_DECK_SIZE
+            and deck.slot_count() < MAIN_DECK_SIZE
+            and deck.intent != "cut"
         )
 
-        should_retrieve = bool(deck.commander) and (fill_to_99 or n_stripped > 0 or should_fix_shape)
+        should_retrieve = bool(deck.commander) and (
+            fill_to_99 or n_stripped > 0 or should_fix_shape or unintended_shrink
+        )
         if should_retrieve:
             self._seed_pool_from_retrieve(deck, query)
 
@@ -535,11 +596,13 @@ class DeckSolver:
             fill_to_99
             or n_stripped > 0
             or should_fix_shape
+            or unintended_shrink
             or (deck.intent == "cut" and bool(deck.candidate_pool))
         )
         if need_fill:
-            max_adds = None if (fill_to_99 or should_fix_shape) else n_stripped
-            print(f"[Solver] Filling to {'99' if fill_to_99 or should_fix_shape else 'replace stripped'} "
+            deficit = deck.remaining_slots() if unintended_shrink else 0
+            max_adds = None if (fill_to_99 or should_fix_shape) else max(n_stripped, deficit)
+            print(f"[Solver] Filling to {'99' if fill_to_99 or should_fix_shape else 'replace stripped/shrink'} "
                   f"(max_adds={max_adds}, slots_left={deck.remaining_slots()})...")
             fill_report = self.fill(
                 deck, query=query, retrieve=False, max_adds=max_adds
@@ -931,6 +994,29 @@ class DeckSolver:
             cards.append({**info, "quantity": qty})
         return cards
 
+    def _freshly_removed_names(self, deck: DeckState) -> set[str]:
+        """Mirror of _freshly_touched_names, in the opposite direction: cards the
+        Architect just took OUT of deck.cards this round (via last_delta), which
+        _seed_pool_from_retrieve must not hand straight back to fill() -- a real
+        incident: pool_only + a shrink-refill (see unintended_shrink in solve())
+        re-seeds candidate_pool from the full card_pool allowlist, which still
+        contains every card the Architect just deliberately cut, and fill()'s
+        scorer has no notion that they were just rejected on purpose -- it just
+        sees legal, decently-scoring cards and adds them right back, silently
+        undoing the removal the Architect (and the user) asked for."""
+        delta = deck.last_delta or {}
+        names = {
+            str(item.get("name")).lower()
+            for item in delta.get("removed") or []
+            if item.get("name")
+        }
+        names.update(
+            str(item.get("out")).lower()
+            for item in delta.get("substituted") or []
+            if item.get("out")
+        )
+        return names
+
     def _freshly_touched_names(self, deck: DeckState) -> set[str]:
         """Cards the Architect placed into deck.cards this round (via last_delta) --
         protected from cut()'s same-pass pool sweep, so a deliberate addition/
@@ -1079,6 +1165,7 @@ class DeckSolver:
                     query=q,
                     allowed_colors=colors,
                     owned_only=deck.owned_only,
+                    card_pool=self._pool_norm(deck),
                     limit=50,
                     max_card_price=deck.max_card_price,
                     currency=deck.currency,

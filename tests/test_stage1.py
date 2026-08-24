@@ -197,7 +197,11 @@ class Stage1Tests(unittest.TestCase):
         )
         self.assertFalse(report["singleton_errors"])
         self.assertTrue(report["valid"])
-        self.assertIn("Incomplete", report["warnings"][0])
+        # Order isn't the point here -- this deck's own curve is small enough that
+        # 35 lands now also trips the hypergeometric land-target warning (mana_strategy
+        # defaults to hypergeometric on DeckState), so "Incomplete" isn't guaranteed
+        # to be first anymore. Presence is what this test actually checks for.
+        self.assertTrue(any("Incomplete" in w for w in report["warnings"]))
 
     def test_size_over_99(self):
         report = self.validator.validate_deck("Krenko, Mob Boss", {"Mountain": 100})

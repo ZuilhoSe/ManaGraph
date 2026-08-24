@@ -11,7 +11,9 @@ as warnings, matching how a deck is allowed to be a work in progress.
 
 Only reads/writes the shared `inventory`/`cards` tables directly (same
 pattern service/handlers/commanders.py already uses for `cards`) -- never
-edits inventory.py/rules_validator.py themselves.
+edits inventory.py. rules_validator.py did gain a couple of small additions
+for the card-pool feature (pool_only/card_pool support), made with the
+team-split owner's explicit go-ahead -- see legal_commanders_in_pool there.
 """
 
 import json
@@ -22,7 +24,7 @@ from datetime import datetime, timezone
 from catalog import DB_NAME, get_oracle_card
 from deck_state import DeckState
 from inventory import FREE_POOL, list_inventory
-from rules_validator import CommanderValidator
+from rules_validator import CommanderValidator, legal_commanders_in_pool
 
 LOCATION_PREFIX = "deck_"
 
@@ -324,3 +326,37 @@ def save_deck(name: str, commander: str, cards: dict[str, int]) -> dict:
         "location": location,
         "validation": validation,
     }
+
+
+def build_pool(names: list[str]) -> dict:
+    """Read-only union of the physical cards allocated to the given saved
+    decks, for the "build the best deck from this pool" flow (pool_only runs
+    -- see DeckState.card_pool). Never mutates inventory/decks, only reduces
+    what's already there.
+
+    Also returns every pool card that's commander-legal, not just the
+    original decks' own commanders -- any legendary creature (or "can be
+    your commander" card) physically in the combined pool is fair game for
+    the new deck's general, matching "build the best deck from this pool"
+    rather than "keep one of the old commanders"."""
+    if not names:
+        return {"pool": {}, "commanders": []}
+
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    try:
+        _ensure_schema(conn)
+        conn.commit()
+        placeholders = ",".join("?" for _ in names)
+        rows = conn.execute(
+            f"SELECT location FROM decks WHERE name IN ({placeholders})", names
+        ).fetchall()
+    finally:
+        conn.close()
+
+    pool: dict[str, int] = {}
+    for row in rows:
+        for entry in list_inventory(location=row["location"]):
+            pool[entry["card_name"]] = pool.get(entry["card_name"], 0) + entry["quantity"]
+
+    return {"pool": pool, "commanders": legal_commanders_in_pool(pool)}

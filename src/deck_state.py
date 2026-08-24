@@ -224,6 +224,15 @@ class DeckState:
     # color-source targets for this deck -- a user-facing config choice, not
     # something an agent delta sets (see apply_delta, which doesn't touch it).
     mana_strategy: str = "hypergeometric"
+    # A fixed allowlist of cards the deck may be built from (e.g. the union of
+    # two saved decks' physical cards), keyed the same way as `cards`. Distinct
+    # from candidate_pool: this is read-only input set once before a run, never
+    # mutated by the solver as it allocates. Empty means "no pool restriction".
+    card_pool: dict[str, int] = field(default_factory=dict)
+    # When True, only cards present in card_pool may enter the deck -- like
+    # owned_only but scoped to this specific allowlist instead of the whole
+    # collection. No-op when card_pool is empty.
+    pool_only: bool = False
 
     def slot_count(self) -> int:
         return sum(max(int(qty), 0) for qty in self.cards.values())
@@ -385,6 +394,7 @@ class DeckState:
             "target_slots": MAIN_DECK_SIZE,
             "remaining_slots": self.remaining_slots(),
             "owned_only": self.owned_only,
+            "pool_only": self.pool_only,
             "require_complete": self.require_complete,
             "currency": self.currency,
             "max_card_price": self.max_card_price,
@@ -419,6 +429,8 @@ class DeckState:
                 else "generic"
             ),
             candidate_pool=_clean_qty_map(data.get("candidate_pool")),
+            card_pool=_clean_qty_map(data.get("card_pool")),
+            pool_only=bool(data.get("pool_only", False)),
             price_cap_new_only=bool(data.get("price_cap_new_only", True)),
             baseline_cards=_clean_qty_map(data.get("baseline_cards")),
             last_delta=dict(data.get("last_delta") or {}),

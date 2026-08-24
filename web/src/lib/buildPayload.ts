@@ -3,11 +3,18 @@ import { cardsToDict } from './cardList'
 
 // Matches the shape that today gets passed by hand to initial_graph_state(query, deck)
 // in src/main_agent.py — this replaces the hardcoded query in __main__.
-export function buildPayload(state: DeckFormState) {
+//
+// `pool` is the resolved card_pool dict (see fetchDeckPool), fetched by the
+// caller (App.tsx) before calling this -- kept out of this function so it
+// stays a pure, synchronous mapping of form state to payload. Only meaningful
+// when state.poolDeckNames is non-empty; a pool restriction always wins over
+// "Only cards I own" since it's already the narrower constraint.
+export function buildPayload(state: DeckFormState, pool?: Record<string, number>) {
+  const poolActive = state.poolDeckNames.length > 0 && pool != null
   const deck: Record<string, unknown> = {
     commander: state.commander.trim(),
     cards: cardsToDict(state.cards),
-    owned_only: state.ownedOnly,
+    owned_only: poolActive ? false : state.ownedOnly,
     require_complete: state.requireComplete,
     owned_cost_zero: state.ownedCostZero,
     // Inverted on purpose: the checkbox asks "also cap cards already in the
@@ -15,6 +22,11 @@ export function buildPayload(state: DeckFormState) {
     price_cap_new_only: !state.priceCapExisting,
     currency: state.currency,
     mana_strategy: state.manaStrategy,
+  }
+
+  if (poolActive) {
+    deck.pool_only = true
+    deck.card_pool = pool
   }
 
   if (state.intent !== 'auto') deck.intent = state.intent

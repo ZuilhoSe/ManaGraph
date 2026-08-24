@@ -69,5 +69,9 @@ export function parseImportedPayload(raw: unknown): DeckFormState {
     budgetCap: typeof deck.budget_cap === 'number' ? String(deck.budget_cap) : '',
     manaStrategy,
     cards,
+    // Not part of the exported payload -- a pool is resolved to a plain
+    // card_pool dict at run time (see buildPayload), so there's no deck name
+    // to recover on import. Starts unrestricted, same as a fresh form.
+    poolDeckNames: [],
   }
 }

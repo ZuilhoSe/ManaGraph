@@ -1,10 +1,11 @@
 import json
 import os
+import sqlite3
 
-from catalog import card_unit_price, enrich_deck, get_oracle_card
-from deck_state import MAIN_DECK_SIZE, DeckState
+from catalog import _row_to_card, card_unit_price, ensure_schema, enrich_deck, get_oracle_card
+from deck_state import MAIN_DECK_SIZE, DeckState, _normalize_key
 from inventory import get_card as get_inventory_card
-from mana import land_alert
+from mana import diagnose_deck, strategy_from_name
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(SCRIPT_DIR)
@@ -34,6 +35,39 @@ def is_legal_commander(info: dict) -> bool:
 def commander_format_status(info: dict) -> str:
     legalities = info.get("legalities") or {}
     return legalities.get("commander") or "not_legal"
+
+
+def legal_commanders_in_pool(card_pool: dict, db_path: str = DB_NAME) -> list[str]:
+    """Every card_pool entry that could legally serve as commander -- not just
+    the source decks' own commanders, any qualifying card physically in the
+    pool. Shared by service/handlers/decks.build_pool (lets the web UI's
+    commander picker offer only these) and main_agent.architect_node (hands
+    the Architect a concrete answer space under pool_only instead of letting
+    it pick from training data and get rejected downstream).
+
+    One batched query instead of get_oracle_card() per pool card -- a pool
+    can run ~200 cards and that pattern was a measured ~150ms/card elsewhere
+    (see list_inventory_cards in service/handlers/inventory.py)."""
+    if not card_pool:
+        return []
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    try:
+        ensure_schema(conn)
+        placeholders = ",".join("?" for _ in card_pool)
+        rows = conn.execute(
+            f"SELECT * FROM cards WHERE name COLLATE NOCASE IN ({placeholders})",
+            list(card_pool),
+        ).fetchall()
+    finally:
+        conn.close()
+
+    commanders = []
+    for row in rows:
+        info = _row_to_card(row)
+        if is_legal_commander(info) and commander_format_status(info) not in ILLEGAL_COMMANDER_STATUS:
+            commanders.append(info["name"])
+    return sorted(commanders)
 
 
 class CommanderValidator:
@@ -72,6 +106,10 @@ class CommanderValidator:
                 "complete": False,
             }
 
+        pool_norm = (
+            {_normalize_key(n) for n in deck.card_pool} if deck.pool_only and deck.card_pool else None
+        )
+
         commander_errors = []
         if not is_legal_commander(cmd_info):
             commander_errors.append(
@@ -83,6 +121,10 @@ class CommanderValidator:
             commander_errors.append(
                 f"{cmd_info['name']} is {cmd_status} in Commander."
             )
+        if pool_norm is not None and _normalize_key(cmd_info["name"]) not in pool_norm:
+            commander_errors.append(
+                f"{cmd_info['name']} is not in the selected card pool."
+            )
 
         identity = list(deck.identity) if deck.identity else list(cmd_info["color_identity"])
         cmd_identity = set(identity)
@@ -93,10 +135,18 @@ class CommanderValidator:
         format_violations = []
         cards_not_found = []
         owned_violations = []
+        pool_violations = []
         price_violations = []
         warnings = []
 
-        alert = land_alert(enrichment["land_count"])
+        # Route through the deck's own mana_strategy (static vs. hypergeometric) instead
+        # of the bare, strategy-blind land_alert() -- otherwise this warning silently
+        # reports against the flat 34-38 quota even when the user picked the
+        # curve-aware hypergeometric target, disagreeing with what the Architect (which
+        # diagnoses via this same strategy) and the Solver (_rebuild_context, same
+        # strategy) already used to make their own decisions on this exact deck.
+        mana_report = diagnose_deck(deck, self.db_path, strategy=strategy_from_name(deck.mana_strategy))
+        alert = mana_report["land_alert"]
         if alert["severity"] in ("moderate", "severe"):
             direction = "too few" if alert["status"] == "low" else "too many"
             low, high = alert["quota"]
@@ -130,6 +180,9 @@ class CommanderValidator:
                 owned_violations.append(
                     f"{card_info['name']} (need {qty}, own {owned_qty})"
                 )
+
+            if pool_norm is not None and _normalize_key(card_info["name"]) not in pool_norm:
+                pool_violations.append(card_info["name"])
 
         slot_count = deck.slot_count()
         size_errors = []
@@ -193,6 +246,7 @@ class CommanderValidator:
                 format_violations,
                 cards_not_found,
                 owned_violations,
+                pool_violations,
                 size_errors,
                 price_violations,
             ]
@@ -218,6 +272,7 @@ class CommanderValidator:
             "format_errors": format_violations,
             "size_errors": size_errors,
             "owned_errors": owned_violations,
+            "pool_errors": pool_violations,
             "price_errors": price_violations,
             "unknown_cards": cards_not_found,
             "warnings": warnings,

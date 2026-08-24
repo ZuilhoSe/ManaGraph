@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from archetypes import quotas_for
-from catalog import DB_NAME, enrich_deck, get_oracle_card
+from catalog import DB_NAME, enrich_deck, get_oracle_cards
 from roles import role_counts
 
 from deck_analysis.card_classify import is_cheat_card
@@ -190,9 +190,16 @@ def diagnose(
 
 
 def diagnose_deck(deck, db_path: str = DB_NAME, strategy: ManaTargetStrategy | None = None) -> dict:
+    card_list = deck.card_list()
+    # One batched query for the whole decklist (+ commander) instead of a
+    # get_oracle_card() connection per card -- this runs on every architect
+    # turn and every Supervisor gate, so the per-card cost was paid twice per
+    # deck (once for the commander's own diagnosis, and again by every other
+    # caller doing the same for their own purposes).
+    lookup = get_oracle_cards([*card_list.keys(), deck.commander], db_path)
     cards = []
-    for name, qty in deck.card_list().items():
-        info = get_oracle_card(name, db_path) or {
+    for name, qty in card_list.items():
+        info = lookup.get(name.lower()) or {
             "name": name,
             "mana_cost": "",
             "oracle_text": "",
@@ -200,7 +207,7 @@ def diagnose_deck(deck, db_path: str = DB_NAME, strategy: ManaTargetStrategy | N
             "cmc": 0,
         }
         cards.append({**info, "quantity": qty})
-    commander = get_oracle_card(deck.commander, db_path) if deck.commander else None
+    commander = lookup.get(deck.commander.lower()) if deck.commander else None
     budget_used = None
     if deck.budget_cap is not None:
         budget_used = enrich_deck(deck, db_path)["budget_used"]

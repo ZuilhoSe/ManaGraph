@@ -157,6 +157,43 @@ def get_oracle_card(name: str, db_path: str = DB_NAME) -> dict | None:
         conn.close()
 
 
+def get_oracle_cards(names, db_path: str = DB_NAME) -> dict[str, dict]:
+    """Batched get_oracle_card: one query for every name, instead of one
+    connection+query per card -- diagnose_deck used to do exactly that (a
+    real measured cost elsewhere in this codebase, ~150ms/card, see
+    list_inventory_cards/legal_commanders_in_pool). Falls back to
+    get_oracle_card's slower split-card/DFC-face matching only for names the
+    batch query misses, so behavior stays identical to calling get_oracle_card
+    once per name -- just fast for the common case (an exact name match).
+
+    Returns {input name lowercased: card info}; a name that resolves to
+    nothing (like get_oracle_card returning None) is simply absent.
+    """
+    result: dict[str, dict] = {}
+    unique = [n for n in dict.fromkeys(names) if n]
+    if not unique:
+        return result
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    try:
+        ensure_schema(conn)
+        placeholders = ",".join("?" for _ in unique)
+        rows = conn.execute(
+            f"SELECT * FROM cards WHERE name COLLATE NOCASE IN ({placeholders})",
+            unique,
+        ).fetchall()
+    finally:
+        conn.close()
+    by_lower = {row["name"].lower(): _row_to_card(row) for row in rows}
+    for name in unique:
+        info = by_lower.get(name.lower())
+        if info is None:
+            info = get_oracle_card(name, db_path)
+        if info is not None:
+            result[name.lower()] = info
+    return result
+
+
 def card_unit_price(card: dict | None, currency: str = "usd") -> float | None:
     if not card:
         return None

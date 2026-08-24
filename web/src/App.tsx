@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import PromptPanel from './components/PromptPanel'
 import ConfigPanel from './components/ConfigPanel'
 import DeckCardList from './components/DeckCardList'
@@ -8,7 +8,7 @@ import type { RunStatus } from './components/RunPanel'
 import CollectionView from './components/CollectionView'
 import ImportExportBar from './components/ImportExportBar'
 import { buildPayload } from './lib/buildPayload'
-import { cancelRun, runDeck } from './lib/api'
+import { cancelRun, fetchDeckPool, runDeck } from './lib/api'
 import type { DeckRunEvent } from './lib/api'
 import { emptyFormState } from './types'
 import type { DeckFormState } from './types'
@@ -17,6 +17,13 @@ type Tab = 'build' | 'collection'
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('build')
+  // Collection mounts lazily on first visit, then stays mounted (see the tabs
+  // div below) -- mounting it eagerly on load would fire its data fetches
+  // (saved decks + inventory) even for a session that never opens that tab.
+  const [visitedCollection, setVisitedCollection] = useState(false)
+  useEffect(() => {
+    if (tab === 'collection') setVisitedCollection(true)
+  }, [tab])
   const [form, setForm] = useState<DeckFormState>(emptyFormState)
   const [runEvents, setRunEvents] = useState<DeckRunEvent[]>([])
   const [runStatus, setRunStatus] = useState<RunStatus | 'idle'>('idle')
@@ -34,7 +41,17 @@ export default function App() {
 
   async function handlePlay() {
     if (!canPlay) return
-    const payload = buildPayload(form)
+    let pool: Record<string, number> | undefined
+    if (form.poolDeckNames.length > 0) {
+      try {
+        pool = (await fetchDeckPool(form.poolDeckNames)).pool
+      } catch (err) {
+        setRunError(err instanceof Error ? err.message : String(err))
+        setRunStatus('error')
+        return
+      }
+    }
+    const payload = buildPayload(form, pool)
     const controller = new AbortController()
     abortRef.current = controller
     runIdRef.current = null
@@ -112,30 +129,41 @@ export default function App() {
         ))}
       </div>
 
-      {tab === 'build' ? (
-        <>
-          <div className="flex flex-col gap-4">
-            <PromptPanel value={form.query} onChange={(v) => set('query', v)} />
-            <ConfigPanel state={form} onChange={set} />
-            <DeckCardList cards={form.cards} onChange={(cards) => set('cards', cards)} />
+      {/* Once mounted, a tab stays mounted (hidden via CSS, not unmounted) so
+          switching tabs never discards in-progress state that only lives
+          locally in a component -- e.g. an open "Add deck" form in
+          Collection, or the paste-list buffer in DeckCardList. Only
+          `form`/`runEvents` live in App itself, but plenty of child-local
+          state doesn't, and unmounting would silently reset it every time,
+          indistinguishable from a reload. Build mounts immediately since
+          it's the default tab; Collection mounts lazily on first visit
+          (visitedCollection) so a session that never opens it doesn't pay
+          for its data fetches. */}
+      <div className={tab === 'build' ? 'contents' : 'hidden'}>
+        <div className="flex flex-col gap-4">
+          <PromptPanel value={form.query} onChange={(v) => set('query', v)} />
+          <ConfigPanel state={form} onChange={set} />
+          <DeckCardList cards={form.cards} onChange={(cards) => set('cards', cards)} />
 
-            {runStatus !== 'idle' && (
-              <RunPanel events={runEvents} status={runStatus} errorMessage={runError} />
-            )}
-          </div>
+          {runStatus !== 'idle' && (
+            <RunPanel events={runEvents} status={runStatus} errorMessage={runError} />
+          )}
+        </div>
 
-          <div className="mt-6">
-            <PlayBar
-              disabled={!canPlay}
-              disabledReason={!canPlay ? 'Describe what you want to do to enable play' : undefined}
-              loading={isRunning}
-              onPlay={handlePlay}
-              onStop={handleStop}
-            />
-          </div>
-        </>
-      ) : (
-        <CollectionView />
+        <div className="mt-6">
+          <PlayBar
+            disabled={!canPlay}
+            disabledReason={!canPlay ? 'Describe what you want to do to enable play' : undefined}
+            loading={isRunning}
+            onPlay={handlePlay}
+            onStop={handleStop}
+          />
+        </div>
+      </div>
+      {visitedCollection && (
+        <div className={tab === 'collection' ? 'contents' : 'hidden'}>
+          <CollectionView />
+        </div>
       )}
     </div>
   )

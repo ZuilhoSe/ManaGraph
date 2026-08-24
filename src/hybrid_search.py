@@ -14,6 +14,7 @@ import threading
 
 import chromadb
 from catalog import ensure_schema
+from deck_state import _normalize_key
 from embeddings import MiniLMStrategy, describe_embedding_device, place_model_on_device
 from geometry import identity_where
 from retrieval_text import (
@@ -131,6 +132,7 @@ class RAGSearcher:
         query,
         allowed_colors,
         owned_only=False,
+        card_pool=None,
         limit=5,
         max_card_price=None,
         currency="usd",
@@ -196,6 +198,8 @@ class RAGSearcher:
         try:
             for hit in merged:
                 name = hit["name"]
+                if card_pool is not None and _normalize_key(name) not in card_pool:
+                    continue
                 row = cursor.execute(
                     "SELECT price_usd, price_eur, type_line, oracle_text, keywords, cmc, legalities "
                     "FROM cards WHERE name = ? COLLATE NOCASE",

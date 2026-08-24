@@ -19,7 +19,7 @@ from pydantic import BaseModel
 
 from service.handlers.commanders import search_commanders
 from service.handlers.deck_run import cancel_deck_run, stream_deck_run
-from service.handlers.decks import add_missing_cards, delete_deck, get_deck, list_decks, save_deck
+from service.handlers.decks import add_missing_cards, build_pool, delete_deck, get_deck, list_decks, save_deck
 from service.handlers.inventory import delete_inventory_card, list_inventory_cards
 
 app = FastAPI(title="ManaGraph API")
@@ -89,6 +89,19 @@ def sync_decks_route(payload: SyncDecksRequest):
     add_missing_cards) -- covers decks saved before save_deck started
     including the commander automatically."""
     return add_missing_cards(payload.names)
+
+
+class BuildPoolRequest(BaseModel):
+    names: list[str]
+
+
+@app.post("/api/decks/pool")
+def build_pool_route(payload: BuildPoolRequest):
+    """Read-only union of the given decks' physical cards, for the "build the
+    best deck from this pool" flow (see build_pool) -- never mutates decks or
+    the collection. Also returns which pool cards are commander-legal, so the
+    UI can offer them as the new deck's general."""
+    return build_pool(payload.names)
 
 
 @app.get("/api/decks/{name:path}")

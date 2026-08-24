@@ -22,7 +22,7 @@ from catalog import DB_NAME, get_oracle_card
 from deck_state import diff_decks
 from main_agent import app as agent_graph, initial_graph_state, to_text
 from scryfall_download import download_and_process_scryfall
-from tools import set_deck_owned_only
+from tools import set_deck_card_pool, set_deck_owned_only
 from vectorize_cards import COLLECTION, generate_embeddings
 
 # Makes LangChain print each tool call / LLM step to stdout as it happens, which
@@ -295,6 +295,11 @@ def _run(query: str, deck: dict | None, q: "queue.Queue", cancel_flag: threading
             # so setting this once here covers every search_cards call the
             # Architect makes across every iteration of this run.
             set_deck_owned_only(state["deck"].get("owned_only", False))
+            # Same lifetime as owned_only above: constant for the whole run, only
+            # meaningful when pool_only is set (empty pool = no restriction).
+            set_deck_card_pool(
+                state["deck"].get("card_pool") if state["deck"].get("pool_only") else None
+            )
             initial_deck = state["deck"]
             final_deck = initial_deck
             _put(q, {"type": "start", "deck": initial_deck})

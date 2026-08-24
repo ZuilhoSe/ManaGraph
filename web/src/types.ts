@@ -25,6 +25,10 @@ export interface DeckFormState {
   budgetCap: string
   manaStrategy: ManaStrategy
   cards: DeckCardEntry[]
+  /** Saved deck names to build from as a fixed card pool (see fetchDeckPool) --
+   * empty means no pool restriction, same as today. Mutually exclusive in
+   * practice with ownedOnly: a pool is already narrower than "everything I own". */
+  poolDeckNames: string[]
 }
 
 export const emptyFormState: DeckFormState = {
@@ -40,4 +44,5 @@ export const emptyFormState: DeckFormState = {
   budgetCap: '',
   manaStrategy: 'hypergeometric',
   cards: [],
+  poolDeckNames: [],
 }

@@ -59,6 +59,22 @@ class ArchitectAgent:
         - If that search returns empty or few results, call list_inventory_cards, then search with owned_only=False.
         - Put owned swaps in delta.substitute or delta.add. Put unowned ideas in buy_list unless the user allowed a buy list.
 
+        CARD POOL RESTRICTION (pool_only on the current deck JSON -- do not confuse this
+        run-level config with candidate_pool, which is a field in YOUR OWN JSON output below,
+        used for extra ideas; they are unrelated despite the shared word):
+        - When pool_only is true, the deck may ONLY contain cards physically in the allowed
+          card_pool -- commander included. Nothing else may appear in commander, delta.add,
+          delta.substitute.in, or your own candidate_pool output. buy_list is meaningless here:
+          leave it empty, nothing may be bought.
+        - search_cards and get_card_info are both scoped to card_pool under pool_only -- an
+          empty search_cards result or a get_card_info ok:false does not necessarily mean the
+          card doesn't exist, it can mean it exists but isn't in the pool. Either way, do not
+          retry the same name: pick a different one that's actually in the pool.
+        - If the context includes a "LEGAL COMMANDERS IN THIS POOL" list, you MUST pick the
+          commander from that exact list, verbatim. Do not fall back on a commander you know
+          from general knowledge (even one that fits the request well) if it isn't listed --
+          it is not physically available and will be rejected, wasting a full turn.
+
         SEARCH STRATEGY:
         - Use Oracle-text phrasing: "deals damage to each creature", "destroy all creatures", not "global damage".
         - If a search is empty, retry with synonyms.

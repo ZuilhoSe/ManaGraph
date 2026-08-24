@@ -4,7 +4,7 @@ from langchain.tools import tool
 from hybrid_search import RAGSearcher
 from inventory import get_cards, list_inventory, move_card, FREE_POOL
 from rules_validator import CommanderValidator
-from deck_state import DeckState
+from deck_state import DeckState, _normalize_key
 
 # Fallback for search_cards' owned_only when the model's tool call omits it.
 # Whoever starts a run should call set_deck_owned_only(deck.owned_only) once
@@ -15,6 +15,19 @@ _deck_owned_only: contextvars.ContextVar[bool] = contextvars.ContextVar("deck_ow
 
 def set_deck_owned_only(value: bool) -> None:
     _deck_owned_only.set(bool(value))
+
+
+# Same pattern as _deck_owned_only above, but for a fixed card allowlist (e.g.
+# the union of specific saved decks) instead of "anything I own". None means no
+# restriction; whoever starts a pool-only run calls set_deck_card_pool(deck.card_pool)
+# once beforehand so every search_cards call in that run is scoped to it.
+_deck_card_pool: contextvars.ContextVar[frozenset[str] | None] = contextvars.ContextVar(
+    "deck_card_pool", default=None
+)
+
+
+def set_deck_card_pool(names) -> None:
+    _deck_card_pool.set(frozenset(_normalize_key(n) for n in names) if names else None)
 
 
 def _get_searcher():
@@ -59,6 +72,7 @@ def search_cards(
         query=query,
         allowed_colors=colors,
         owned_only=owned_only,
+        card_pool=_deck_card_pool.get(),
         limit=limit,
         max_card_price=max_card_price,
         currency=currency,
@@ -94,12 +108,21 @@ def get_card_info(name: str) -> str:
     Use this to confirm a commander or card name before assuming it's invalid. A
     search_cards miss is NOT proof the name is wrong -- that's a semantic search over
     card text and can miss an exact, real card. This is an exact lookup.
+
+    Under a pool-restricted run (see search_cards' card_pool), this refuses a real
+    card that exists in the catalog but isn't in the pool -- ok:false there means
+    "not available this run", not "not a real card".
     """
     from catalog import get_oracle_card
 
     info = get_oracle_card(name)
     if not info:
         return _json({"ok": False, "error": f"'{name}' was not found in the catalog."})
+    pool = _deck_card_pool.get()
+    if pool is not None and _normalize_key(info["name"]) not in pool:
+        return _json(
+            {"ok": False, "error": f"'{info['name']}' exists but is not in the selected card pool."}
+        )
     return _json({"ok": True, "card": info})
 
 

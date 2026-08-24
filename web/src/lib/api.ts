@@ -107,6 +107,24 @@ export interface SyncDecksResult {
   added: { deck: string; card: string }[]
 }
 
+export interface DeckPool {
+  /** Union of the given decks' physical cards -- read-only, doesn't touch them. */
+  pool: Record<string, number>
+  /** Every pool card that's commander-legal, not just the source decks' own
+   * commanders -- any eligible card physically in the combined pool qualifies. */
+  commanders: string[]
+}
+
+export async function fetchDeckPool(names: string[]): Promise<DeckPool> {
+  const res = await fetch(`${API_BASE}/api/decks/pool`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ names }),
+  })
+  if (!res.ok) throw new Error(`Deck pool request failed (${res.status})`)
+  return res.json()
+}
+
 // Adds each deck's commander to the collection if it's missing there (older
 // decks saved before save_deck started including the commander automatically
 // -- see add_missing_cards in service/handlers/decks.py). Can't recover a

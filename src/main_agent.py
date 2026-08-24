@@ -9,10 +9,10 @@ from langchain_core.messages import AIMessage
 from architect_agent import ArchitectAgent
 from inventory_agent import InventoryAgent
 from supervisor_agent import SupervisorAgent
-from deck_state import DeckState, diff_decks, extract_json, infer_task, proposal_has_work
+from deck_state import DeckState, diff_decks, extract_json, infer_task, proposal_has_work, _normalize_key
 from catalog import enrich_deck, get_oracle_card
 from mana import diagnose_deck, strategy_from_name
-from rules_validator import CommanderValidator
+from rules_validator import CommanderValidator, legal_commanders_in_pool
 from solver import DeckSolver
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -77,6 +77,38 @@ inventory_manager = InventoryAgent()
 supervisor = SupervisorAgent()
 
 
+def _pool_commander_note(deck: DeckState) -> str:
+    """When the deck is pool-restricted, the Architect otherwise has no way to
+    know which commander it's even allowed to pick -- deck.summary() carries
+    the pool_only flag but not the (potentially ~200-card) card_pool itself,
+    so a fresh build just falls back to picking a commander from general
+    knowledge (e.g. Muldrotha for a graveyard Sultai deck) with no idea it's
+    not physically available, which the Solver then strips and the Supervisor
+    rejects -- burning a full architect/inventory/solver/supervisor round trip
+    (and its LLM calls) on a choice that could never have worked. Skipped once
+    a legal commander is already set, so later turns don't pay this query
+    again for nothing."""
+    if not deck.pool_only or not deck.card_pool:
+        return ""
+    if deck.commander and _normalize_key(deck.commander) in {
+        _normalize_key(n) for n in deck.card_pool
+    }:
+        return ""
+    commanders = legal_commanders_in_pool(deck.card_pool)
+    if not commanders:
+        return (
+            "\n\nPOOL COMMANDER NOTE: pool_only is set, but no commander-legal card "
+            "exists in the allowed card_pool. Do not invent or recall a commander from "
+            "general knowledge -- leave commander empty and say so in notes."
+        )
+    return (
+        "\n\nLEGAL COMMANDERS IN THIS POOL (pool_only is set: you MUST pick the "
+        "commander from this exact list, verbatim -- not from general knowledge, even "
+        "a commander you're confident is strong for this request):\n"
+        + "\n".join(f"- {name}" for name in commanders)
+    )
+
+
 def _recent_feedback(state: GraphState) -> str:
     if not state["messages"]:
         return ""
@@ -119,6 +151,7 @@ def architect_node(state: GraphState):
         f"User request: {state['user_query']}\n\n"
         f"Current deck JSON:\n{json.dumps(deck.summary(), indent=2)}\n\n"
         f"Symbolic diagnosis (do not recompute):\n{json.dumps(diag_view, indent=2, default=str)}"
+        f"{_pool_commander_note(deck)}"
         f"{_recent_feedback(state)}"
     )
     result = architect.run(context)
