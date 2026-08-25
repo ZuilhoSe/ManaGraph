@@ -215,7 +215,7 @@ export default function ConfigPanel({ state, onChange }: ConfigPanelProps) {
         </button>
 
         {advancedOpen && (
-          <div className="mt-3 max-w-xs">
+          <div className="mt-3 max-w-xs space-y-3">
             <Field
               label="Mana calculator"
               hint="How land/color-source targets are computed for this deck."
@@ -231,6 +231,17 @@ export default function ConfigPanel({ state, onChange }: ConfigPanelProps) {
                 ))}
               </SelectField>
             </Field>
+
+            <CheckboxField
+              label="Decide commander by pool color fit"
+              checked={state.commanderByPoolFit}
+              onChange={(v) => onChange('commanderByPoolFit', v)}
+            />
+            <p className="-mt-2 text-xs text-surface-400">
+              Only applies when building from a card pool with no commander chosen: ranks the
+              pool's legal commanders by how well the pool's color mix supports each
+              one, instead of leaving the pick purely to the AI's judgment.
+            </p>
           </div>
         )}
       </div>

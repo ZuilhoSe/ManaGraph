@@ -27,6 +27,7 @@ export function buildPayload(state: DeckFormState, pool?: Record<string, number>
   if (poolActive) {
     deck.pool_only = true
     deck.card_pool = pool
+    if (state.commanderByPoolFit) deck.commander_by_pool_fit = true
   }
 
   if (state.intent !== 'auto') deck.intent = state.intent

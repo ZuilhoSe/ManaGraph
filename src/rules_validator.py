@@ -70,6 +70,76 @@ def legal_commanders_in_pool(card_pool: dict, db_path: str = DB_NAME) -> list[st
     return sorted(commanders)
 
 
+def rank_commanders_by_pool_fit(card_pool: dict, db_path: str = DB_NAME) -> list[dict]:
+    """Score every commander-legal card in card_pool by how well the pool's
+    actual color distribution supports it, highest first.
+
+    weighted_score = sum over pool cards p whose color_identity is a subset of
+    the commander's, of qty(p) * len(p.color_identity) / len(commander.color_identity)
+
+    Plain "count of on-color cards" always favors wider identities for free --
+    a 3-color pool is a strict superset of every 2-color and mono combination
+    inside it, so it wins by unioning smaller piles even with zero synergy.
+    Weighting each card by how much of the commander's own identity it uses
+    cancels that: a mono card is diluted under a wider commander, and a wide
+    identity only pulls ahead when the pool has real multicolor (gold-card)
+    depth to back it up. Same-identity commanders tie by design -- no opinion
+    on theme/archetype among them, left for a later iteration. A pool name
+    with no catalog match (typo, not yet in the bulk data) counts toward
+    neither raw_count nor weighted_score, so the two numbers stay consistent.
+
+    Gated behind DeckState.commander_by_pool_fit (default False) -- see
+    main_agent._pool_commander_note, the only caller."""
+    if not card_pool:
+        return []
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    try:
+        ensure_schema(conn)
+        placeholders = ",".join("?" for _ in card_pool)
+        rows = conn.execute(
+            f"SELECT * FROM cards WHERE name COLLATE NOCASE IN ({placeholders})",
+            list(card_pool),
+        ).fetchall()
+    finally:
+        conn.close()
+
+    identities: dict[str, set[str]] = {}
+    commanders: list[str] = []
+    for row in rows:
+        info = _row_to_card(row)
+        identities[_normalize_key(info["name"])] = set(info["color_identity"] or [])
+        if is_legal_commander(info) and commander_format_status(info) not in ILLEGAL_COMMANDER_STATUS:
+            commanders.append(info["name"])
+
+    pool_qty = {name: qty for name, qty in card_pool.items() if qty > 0}
+    results = []
+    for name in commanders:
+        cmdr_identity = identities.get(_normalize_key(name), set())
+        denom = len(cmdr_identity) or 1
+        raw_count = 0
+        weighted_score = 0.0
+        for card_name, qty in pool_qty.items():
+            card_key = _normalize_key(card_name)
+            if card_key == _normalize_key(name) or card_key not in identities:
+                continue
+            card_identity = identities[card_key]
+            if not card_identity.issubset(cmdr_identity):
+                continue
+            raw_count += qty
+            weighted_score += qty * (len(card_identity) / denom)
+        results.append(
+            {
+                "name": name,
+                "identity": sorted(cmdr_identity),
+                "raw_count": raw_count,
+                "weighted_score": round(weighted_score, 2),
+            }
+        )
+    results.sort(key=lambda r: (-r["weighted_score"], r["name"]))
+    return results
+
+
 class CommanderValidator:
     def __init__(self, db_path: str = DB_NAME):
         self.db_path = db_path

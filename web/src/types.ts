@@ -29,6 +29,11 @@ export interface DeckFormState {
    * empty means no pool restriction, same as today. Mutually exclusive in
    * practice with ownedOnly: a pool is already narrower than "everything I own". */
   poolDeckNames: string[]
+  /** Advanced option, default off. Only matters with a pool active and no
+   * commander chosen: ranks the pool's legal commanders by color fit
+   * (rules_validator.rank_commanders_by_pool_fit) instead of leaving the pick
+   * purely to the Architect's training-data bias. No-op otherwise. */
+  commanderByPoolFit: boolean
 }
 
 export const emptyFormState: DeckFormState = {
@@ -45,4 +50,5 @@ export const emptyFormState: DeckFormState = {
   manaStrategy: 'hypergeometric',
   cards: [],
   poolDeckNames: [],
+  commanderByPoolFit: false,
 }
