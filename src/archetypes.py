@@ -171,7 +171,7 @@ _PROFILES: dict[str, ArchetypeProfile] = {
     "reanimator": ArchetypeProfile(
         creature_is_threat=True,
         max_creatures=22,
-        quotas={"threat": (10, 20)},
+        quotas={"threat": (10, 20), "reanimate": (6, 14)},
         search_queries=("return target creature from graveyard", "enters from graveyard"),
     ),
     "generic": ArchetypeProfile(
@@ -293,6 +293,8 @@ def is_payoff_threat(
     archetype: str | None = "generic",
 ) -> bool:
     """Win pieces that are not 'any creature of the commander's types'."""
+    from roles import is_reanimate_card
+
     tl = (type_line or "").lower()
     if is_alt_win(oracle_text) or is_extra_turn(oracle_text):
         return True
@@ -303,6 +305,8 @@ def is_payoff_threat(
     if archetype == "voltron" and (
         "equip" in (oracle_text or "").lower() or "aura" in tl or "equipment" in tl
     ):
+        return True
+    if archetype == "reanimator" and is_reanimate_card(oracle_text):
         return True
     return False
 
@@ -326,4 +330,10 @@ def planned_roles(
     creature = any("creature" in face.lower() for face in (type_line or "").split("//"))
     if not profile.creature_is_threat and creature and not payoff:
         roles.discard("threat")
+    # classify_roles() falls back to "other" when nothing else fires, but that
+    # check runs before the discard above -- a creature whose only role was
+    # "threat" (stripped here because this archetype doesn't treat creatures
+    # as threats) must not come back as an empty set.
+    if not roles:
+        roles.add("other")
     return roles

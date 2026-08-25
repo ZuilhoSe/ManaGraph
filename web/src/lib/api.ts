@@ -157,6 +157,71 @@ export async function saveDeck(name: string, commander: string, cards: Record<st
   return res.json()
 }
 
+// Mirrors solver.py's DeckSolver.score_breakdown() return shape field for
+// field. eligible/reason are only set when this entry came from `pool_cards`
+// (see analyze_deck in service/handlers/deck_analysis_view.py).
+export interface CardScoreBreakdown {
+  name: string
+  type_line: string
+  oracle_text: string
+  cmc: number
+  mana_cost: string
+  price_usd: number | null
+  roles: string[]
+  shared_tokens: string[]
+  jaccard: number
+  chroma_distance: number | null
+  chroma_query: string | null
+  chroma_synergy: number | null
+  geometry: number | null
+  geometry_oracle: number | null
+  geometry_type: number | null
+  geometry_keywords: number | null
+  geometry_mana: number | null
+  theme_match: boolean
+  synergy: number
+  role_bonuses: Record<string, number>
+  role_score: number
+  tribe: number
+  token_align: number
+  redundancy: number
+  redundancy_with: string | null
+  curve_penalty: number
+  curve_bonus: number
+  land_bonus: number
+  mana_bonus: number
+  shape: number
+  value: number
+  total: number
+  eligible?: boolean
+  reason?: string | null
+}
+
+export interface DeckAnalysis {
+  archetype: string
+  identity: string[]
+  deck_cards: CardScoreBreakdown[]
+  pool_cards: CardScoreBreakdown[] | null
+}
+
+// archetype omitted lets the backend infer one from the commander's own
+// oracle text (see _resolve_archetype); pool omitted skips the "candidates
+// that didn't make it" comparison entirely (pool_cards comes back null).
+export async function analyzeDeck(
+  commander: string,
+  cards: Record<string, number>,
+  archetype?: string,
+  pool?: Record<string, number>,
+): Promise<DeckAnalysis> {
+  const res = await fetch(`${API_BASE}/api/deck/analyze`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ commander, cards, archetype: archetype || null, pool: pool || null }),
+  })
+  if (!res.ok) throw new Error(`Deck analysis failed (${res.status})`)
+  return res.json()
+}
+
 export type RunNode = 'architect' | 'inventory' | 'solver' | 'supervisor'
 
 export interface DeckDiffEntry {

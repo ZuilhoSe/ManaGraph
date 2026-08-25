@@ -18,6 +18,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from service.handlers.commanders import search_commanders
+from service.handlers.deck_analysis_view import analyze_deck
 from service.handlers.deck_run import cancel_deck_run, stream_deck_run
 from service.handlers.decks import add_missing_cards, build_pool, delete_deck, get_deck, list_decks, save_deck
 from service.handlers.inventory import delete_inventory_card, list_inventory_cards
@@ -144,3 +145,20 @@ def cancel_run(run_id: str):
     if not cancel_deck_run(run_id):
         raise HTTPException(status_code=404, detail="Unknown or already-finished run_id.")
     return {"ok": True}
+
+
+class AnalyzeDeckRequest(BaseModel):
+    commander: str
+    cards: dict[str, int]
+    archetype: str | None = None
+    pool: dict[str, int] | None = None
+
+
+@app.post("/api/deck/analyze")
+def analyze_deck_route(payload: AnalyzeDeckRequest):
+    """Read-only: scores every card in the given deck (and, if `pool` is
+    given, every pool card not already in the deck) via
+    DeckSolver.score_breakdown() -- for the Analysis tab's per-card
+    role/synergy/redundancy/curve breakdown. Never mutates a saved deck;
+    the caller supplies commander+cards fresh each time."""
+    return analyze_deck(payload.commander, payload.cards, payload.archetype, payload.pool)

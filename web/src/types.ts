@@ -6,6 +6,23 @@ export type Intent = 'auto' | 'build' | 'improve' | 'substitute' | 'cut'
 export type Currency = 'usd' | 'eur'
 export type ManaStrategy = 'static' | 'hypergeometric'
 
+// Mirrors archetypes.VALID_ARCHETYPES (src/archetypes.py) -- keep in sync by hand.
+export const VALID_ARCHETYPES = [
+  'control',
+  'mill',
+  'stax',
+  'combo',
+  'tokens',
+  'tribal',
+  'spellslinger',
+  'voltron',
+  'reanimator',
+  'aggro',
+  'midrange',
+  'generic',
+] as const
+export type Archetype = (typeof VALID_ARCHETYPES)[number]
+
 export interface DeckCardEntry {
   id: string
   name: string

@@ -44,6 +44,10 @@ _RAMP = (
     "treasure token",
     "create a treasure",
 )
+# Mana-doubling untap effects (Arbor Elf, Fyndhorn Elder, ...) don't say
+# "add" anywhere in their own text -- they untap a land so it can be tapped
+# again -- so the plain-substring _RAMP list above misses them.
+_UNTAP_LAND_RAMP = re.compile(r"untap target (forest|island|swamp|mountain|plains|land)")
 _DRAW_UNITS = (
     (re.compile(r"draw three cards"), 3),
     (re.compile(r"draw two cards"), 2),
@@ -90,6 +94,15 @@ _TOKEN_PAYOFF = (
     "whenever a token",
 )
 
+_REANIMATE = (
+    "return target creature card from your graveyard to the battlefield",
+    "return target creature card from a graveyard to the battlefield",
+    "put target creature card from your graveyard onto the battlefield",
+    "put target creature card from a graveyard onto the battlefield",
+    "return all creature cards from your graveyard to the battlefield",
+    "return all creature cards from all graveyards to the battlefield",
+)
+
 
 def _count_units(text: str, units: tuple) -> int:
     return sum(weight * len(rx.findall(text)) for rx, weight in units)
@@ -118,6 +131,17 @@ def _keywords_set(keywords) -> set[str]:
     return {str(k).lower() for k in keywords}
 
 
+def is_reanimate_card(oracle_text: str = "") -> bool:
+    """Recursion that puts a creature onto the battlefield from a graveyard.
+    Falls back to co-occurrence of graveyard/battlefield/creature for mass
+    effects (Living Death) that split the idea across sentences -- accepted
+    risk of a rare false positive, not a hard filter."""
+    ot = (oracle_text or "").lower()
+    if any(p in ot for p in _REANIMATE):
+        return True
+    return "creature" in ot and "graveyard" in ot and "battlefield" in ot
+
+
 def token_classes(type_line: str = "", oracle_text: str = "") -> set[str]:
     """Token producer vs token payoff from oracle templates, not creature types."""
     ot = (oracle_text or "").lower()
@@ -142,7 +166,7 @@ def classify_roles(type_line: str = "", oracle_text: str = "", keywords=None) ->
             continue
         if role:
             roles.add(role)
-    if not is_land and any(p in ot for p in _RAMP):
+    if not is_land and (any(p in ot for p in _RAMP) or _UNTAP_LAND_RAMP.search(ot)):
         roles.add("ramp")
     if is_card_advantage_draw(oracle_text):
         roles.add("draw")
@@ -152,6 +176,8 @@ def classify_roles(type_line: str = "", oracle_text: str = "", keywords=None) ->
         roles.add("threat")
     if any(p in ot for p in _MILL) or "mill" in _keywords_set(keywords):
         roles.add("mill")
+    if is_reanimate_card(oracle_text):
+        roles.add("reanimate")
     roles |= token_classes(type_line, oracle_text)
     if not roles:
         roles.add("other")
@@ -161,7 +187,13 @@ def classify_roles(type_line: str = "", oracle_text: str = "", keywords=None) ->
 def role_counts(cards: list[dict], archetype: str | None = None) -> dict[str, int]:
     from archetypes import planned_roles, quotas_for
 
-    keys = list(quotas_for(archetype)) + ["mill", "token_producer", "token_payoff", "other"]
+    keys = list(quotas_for(archetype)) + [
+        "mill",
+        "reanimate",
+        "token_producer",
+        "token_payoff",
+        "other",
+    ]
     counts = {role: 0 for role in keys}
     for card in cards:
         qty = int(card.get("quantity", 1))
