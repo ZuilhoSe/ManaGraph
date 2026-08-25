@@ -6,6 +6,23 @@ export type Intent = 'auto' | 'build' | 'improve' | 'substitute' | 'cut'
 export type Currency = 'usd' | 'eur'
 export type ManaStrategy = 'static' | 'hypergeometric'
 
+// Mirrors archetypes.VALID_ARCHETYPES (src/archetypes.py) -- keep in sync by hand.
+export const VALID_ARCHETYPES = [
+  'control',
+  'mill',
+  'stax',
+  'combo',
+  'tokens',
+  'tribal',
+  'spellslinger',
+  'voltron',
+  'reanimator',
+  'aggro',
+  'midrange',
+  'generic',
+] as const
+export type Archetype = (typeof VALID_ARCHETYPES)[number]
+
 export interface DeckCardEntry {
   id: string
   name: string
@@ -29,6 +46,11 @@ export interface DeckFormState {
    * empty means no pool restriction, same as today. Mutually exclusive in
    * practice with ownedOnly: a pool is already narrower than "everything I own". */
   poolDeckNames: string[]
+  /** Advanced option, default off. Only matters with a pool active and no
+   * commander chosen: ranks the pool's legal commanders by color fit
+   * (rules_validator.rank_commanders_by_pool_fit) instead of leaving the pick
+   * purely to the Architect's training-data bias. No-op otherwise. */
+  commanderByPoolFit: boolean
 }
 
 export const emptyFormState: DeckFormState = {
@@ -45,4 +67,5 @@ export const emptyFormState: DeckFormState = {
   manaStrategy: 'hypergeometric',
   cards: [],
   poolDeckNames: [],
+  commanderByPoolFit: false,
 }

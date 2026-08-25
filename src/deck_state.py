@@ -282,6 +282,12 @@ class DeckState:
     # owned_only but scoped to this specific allowlist instead of the whole
     # collection. No-op when card_pool is empty.
     pool_only: bool = False
+    # Advanced option, default off. When True (and pool_only, and no commander
+    # set yet), _pool_commander_note ranks the pool's legal commanders by
+    # rules_validator.rank_commanders_by_pool_fit instead of just listing them
+    # alphabetically -- steers the Architect toward whichever color identity
+    # the physical pool actually supports. No-op once a commander is already set.
+    commander_by_pool_fit: bool = False
     # Mana-base preference: type-line fragments (Gate, Snow, Cave). Soft unless
     # land_types_strict. Theme fragments (Room) seed the candidate pool from catalog.
     preferred_land_types: list[str] = field(default_factory=list)
@@ -455,6 +461,7 @@ class DeckState:
             "remaining_slots": self.remaining_slots(),
             "owned_only": self.owned_only,
             "pool_only": self.pool_only,
+            "commander_by_pool_fit": self.commander_by_pool_fit,
             "require_complete": self.require_complete,
             "currency": self.currency,
             "max_card_price": self.max_card_price,
@@ -494,6 +501,7 @@ class DeckState:
             candidate_pool=_clean_qty_map(data.get("candidate_pool")),
             card_pool=_clean_qty_map(data.get("card_pool")),
             pool_only=bool(data.get("pool_only", False)),
+            commander_by_pool_fit=bool(data.get("commander_by_pool_fit", False)),
             price_cap_new_only=bool(data.get("price_cap_new_only", True)),
             baseline_cards=_clean_qty_map(data.get("baseline_cards")),
             last_delta=dict(data.get("last_delta") or {}),

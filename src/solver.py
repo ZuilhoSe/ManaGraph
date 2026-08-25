@@ -910,13 +910,21 @@ class DeckSolver:
             return False, reason
         return True, "ok"
 
+    def warm_embeddings(self, names: list[str | None]):
+        """Public entrypoint for callers outside fill()/cut() (e.g. the Analysis
+        tab's score_breakdown() calls) that need geometry synergy without
+        running a full solve pass."""
+        self._warm_embeddings(names)
+
     def _warm_embeddings(self, names: list[str | None]):
         """Batch-load Chroma vectors for commander + candidates (id → vector)."""
         ids = []
+        seen = set()
         for name in names:
             info = self._info(name) if name else None
             card_id = (info or {}).get("id")
-            if card_id and card_id not in self._emb:
+            if card_id and card_id not in self._emb and card_id not in seen:
+                seen.add(card_id)
                 ids.append(card_id)
         if not ids:
             return
@@ -1233,7 +1241,46 @@ class DeckSolver:
         """Decompose score_candidate. skip_self avoids Jaccard=1 when the card is already in the 99."""
         parts = self._score_parts(deck, name, query, skip_self=skip_self)
         if parts.get("error"):
-            return {"name": name, "total": -999.0, "error": parts["error"]}
+            # Same key set as the success return below (zeroed/empty), so a
+            # caller that renders every field (e.g. the Analysis tab) doesn't
+            # need a second, error-only shape to special-case. "error" itself
+            # stays absent from the success dict -- tools.py's
+            # score_card_json checks `"error" not in breakdown` to set "ok".
+            return {
+                "name": name,
+                "type_line": "",
+                "oracle_text": "",
+                "cmc": 0,
+                "mana_cost": "",
+                "price_usd": None,
+                "roles": [],
+                "shared_tokens": [],
+                "jaccard": 0.0,
+                "chroma_distance": None,
+                "chroma_query": None,
+                "chroma_synergy": None,
+                "geometry": None,
+                "geometry_oracle": None,
+                "geometry_type": None,
+                "geometry_keywords": None,
+                "geometry_mana": None,
+                "theme_match": False,
+                "synergy": 0.0,
+                "role_bonuses": {},
+                "role_score": 0.0,
+                "tribe": 0.0,
+                "token_align": 0.0,
+                "redundancy": 0.0,
+                "redundancy_with": None,
+                "curve_penalty": 0.0,
+                "curve_bonus": 0.0,
+                "land_bonus": 0.0,
+                "mana_bonus": 0.0,
+                "shape": 0.0,
+                "value": 0.0,
+                "total": -999.0,
+                "error": parts["error"],
+            }
         return {
             "name": parts["name"],
             "type_line": parts["type_line"],

@@ -12,7 +12,7 @@ from supervisor_agent import SupervisorAgent
 from deck_state import DeckState, diff_decks, extract_json, infer_task, proposal_has_work, _normalize_key
 from catalog import enrich_deck, get_oracle_card
 from mana import diagnose_deck, strategy_from_name
-from rules_validator import CommanderValidator, legal_commanders_in_pool
+from rules_validator import CommanderValidator, legal_commanders_in_pool, rank_commanders_by_pool_fit
 from solver import DeckSolver
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -87,13 +87,43 @@ def _pool_commander_note(deck: DeckState) -> str:
     rejects -- burning a full architect/inventory/solver/supervisor round trip
     (and its LLM calls) on a choice that could never have worked. Skipped once
     a legal commander is already set, so later turns don't pay this query
-    again for nothing."""
+    again for nothing.
+
+    Plain listing leaves the pick itself to the Architect's training-data bias
+    (e.g. defaulting to a famous BG commander even when the pool's color mix
+    actually favors Sultai) -- deck.commander_by_pool_fit (advanced option,
+    default False) opts into ranking that list by
+    rules_validator.rank_commanders_by_pool_fit instead, so the Architect sees
+    which identity the physical pool actually supports before choosing."""
     if not deck.pool_only or not deck.card_pool:
         return ""
     if deck.commander and _normalize_key(deck.commander) in {
         _normalize_key(n) for n in deck.card_pool
     }:
         return ""
+
+    if deck.commander_by_pool_fit:
+        ranked = rank_commanders_by_pool_fit(deck.card_pool)
+        if not ranked:
+            return (
+                "\n\nPOOL COMMANDER NOTE: pool_only is set, but no commander-legal card "
+                "exists in the allowed card_pool. Do not invent or recall a commander from "
+                "general knowledge -- leave commander empty and say so in notes."
+            )
+        return (
+            "\n\nLEGAL COMMANDERS IN THIS POOL, RANKED BY COLOR FIT (pool_only is set: "
+            "you MUST pick the commander from this exact list, verbatim -- not from "
+            "general knowledge. weighted_score measures how well the pool's actual color "
+            "mix supports that identity -- higher is a stronger physical match. It says "
+            "nothing about theme/archetype: among close or tied scores, use your own "
+            "judgment on synergy, same as always):\n"
+            + "\n".join(
+                f"- {row['name']} ({''.join(row['identity']) or 'C'}): "
+                f"weighted_score={row['weighted_score']}, on-color cards={row['raw_count']}"
+                for row in ranked
+            )
+        )
+
     commanders = legal_commanders_in_pool(deck.card_pool)
     if not commanders:
         return (

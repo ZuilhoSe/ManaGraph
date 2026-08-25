@@ -6,6 +6,7 @@ import PlayBar from './components/PlayBar'
 import RunPanel from './components/RunPanel'
 import type { RunStatus } from './components/RunPanel'
 import CollectionView from './components/CollectionView'
+import AnalysisView from './components/AnalysisView'
 import ImportExportBar from './components/ImportExportBar'
 import { buildPayload } from './lib/buildPayload'
 import { cancelRun, fetchDeckPool, runDeck } from './lib/api'
@@ -13,16 +14,19 @@ import type { DeckRunEvent } from './lib/api'
 import { emptyFormState } from './types'
 import type { DeckFormState } from './types'
 
-type Tab = 'build' | 'collection'
+type Tab = 'build' | 'collection' | 'analysis'
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('build')
-  // Collection mounts lazily on first visit, then stays mounted (see the tabs
-  // div below) -- mounting it eagerly on load would fire its data fetches
-  // (saved decks + inventory) even for a session that never opens that tab.
+  // Collection/Analysis mount lazily on first visit, then stay mounted (see
+  // the tabs divs below) -- mounting them eagerly on load would fire their
+  // data fetches (saved decks + inventory) even for a session that never
+  // opens that tab.
   const [visitedCollection, setVisitedCollection] = useState(false)
+  const [visitedAnalysis, setVisitedAnalysis] = useState(false)
   useEffect(() => {
     if (tab === 'collection') setVisitedCollection(true)
+    if (tab === 'analysis') setVisitedAnalysis(true)
   }, [tab])
   const [form, setForm] = useState<DeckFormState>(emptyFormState)
   const [runEvents, setRunEvents] = useState<DeckRunEvent[]>([])
@@ -112,6 +116,7 @@ export default function App() {
           [
             ['build', 'Build'],
             ['collection', 'Collection'],
+            ['analysis', 'Analysis'],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -163,6 +168,11 @@ export default function App() {
       {visitedCollection && (
         <div className={tab === 'collection' ? 'contents' : 'hidden'}>
           <CollectionView />
+        </div>
+      )}
+      {visitedAnalysis && (
+        <div className={tab === 'analysis' ? 'contents' : 'hidden'}>
+          <AnalysisView />
         </div>
       )}
     </div>

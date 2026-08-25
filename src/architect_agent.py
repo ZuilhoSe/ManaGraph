@@ -97,6 +97,11 @@ class ArchitectAgent:
           commander from that exact list, verbatim. Do not fall back on a commander you know
           from general knowledge (even one that fits the request well) if it isn't listed --
           it is not physically available and will be rejected, wasting a full turn.
+        - When that list is "RANKED BY COLOR FIT", each entry's weighted_score reflects how
+          well the pool's physical color mix supports that identity -- prefer a high-scoring
+          commander over a low-scoring one when the user gave no theme/archetype to go on.
+          It is a color signal only, not synergy: among close or tied scores, decide by theme
+          the same way you would otherwise.
 
         SEARCH STRATEGY:
         - Use Oracle-text phrasing: "deals damage to each creature", "destroy all creatures", not "global damage".

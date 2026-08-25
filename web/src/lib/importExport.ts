@@ -73,5 +73,6 @@ export function parseImportedPayload(raw: unknown): DeckFormState {
     // card_pool dict at run time (see buildPayload), so there's no deck name
     // to recover on import. Starts unrestricted, same as a fresh form.
     poolDeckNames: [],
+    commanderByPoolFit: Boolean(deck.commander_by_pool_fit),
   }
 }
