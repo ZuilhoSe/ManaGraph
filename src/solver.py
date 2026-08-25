@@ -661,10 +661,12 @@ class DeckSolver:
     def _warm_embeddings(self, names: list[str | None]):
         """Batch-load Chroma vectors for commander + candidates (id → vector)."""
         ids = []
+        seen = set()
         for name in names:
             info = self._info(name) if name else None
             card_id = (info or {}).get("id")
-            if card_id and card_id not in self._emb:
+            if card_id and card_id not in self._emb and card_id not in seen:
+                seen.add(card_id)
                 ids.append(card_id)
         if not ids:
             return
