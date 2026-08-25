@@ -18,6 +18,7 @@ VALID_ARCHETYPES = (
     "reanimator",
     "aggro",
     "midrange",
+    "enchantments",
     "generic",
 )
 
@@ -65,6 +66,8 @@ class ArchetypeProfile:
     protect_roles: tuple[str, ...] = ()
     quotas: dict[str, tuple[int, int]] | None = None
     search_queries: tuple[str, ...] = ()
+    # Catalog names the Solver may seed when retrieval is thin (identity-filtered).
+    staple_names: tuple[str, ...] = ()
 
 
 _PROFILES: dict[str, ArchetypeProfile] = {
@@ -174,6 +177,82 @@ _PROFILES: dict[str, ArchetypeProfile] = {
         quotas={"threat": (10, 20)},
         search_queries=("return target creature from graveyard", "enters from graveyard"),
     ),
+    # Enchantress / Rooms / Auras: enchantments are the engine and the threats.
+    "enchantments": ArchetypeProfile(
+        enforce_tribe=False,
+        retrieve_tribe=False,
+        creature_is_threat=False,
+        max_creatures=16,
+        protect_roles=("draw", "ramp"),
+        quotas={
+            "threat": (6, 14),
+            "draw": (10, 16),
+            "ramp": (10, 16),
+            "interaction": (6, 12),
+        },
+        search_queries=(
+            "whenever an enchantment enters the battlefield",
+            "enchantress",
+            "constellation",
+            "aura you control",
+        ),
+        staple_names=(
+            "Enchantress's Presence",
+            "Argothian Enchantress",
+            "Mesa Enchantress",
+            "Verduran Enchantress",
+            "Eidolon of Blossoms",
+            "Satyr Enchanter",
+            "Sythis, Harvest's Hand",
+            "Setessan Champion",
+            "Sanctum Weaver",
+            "Destiny Spinner",
+            "Sterling Grove",
+            "Greater Auramancy",
+            "Sphere of Safety",
+            "Ghostly Prison",
+            "Propaganda",
+            "Aura Shards",
+            "Calix, Guided by Fate",
+            "Sigil of the Empty Throne",
+            "Starfield of Nyx",
+            "Hallowed Haunting",
+            "Wild Growth",
+            "Utopia Sprawl",
+            "Fertile Ground",
+            "Overgrowth",
+            "Wolfwillow Haven",
+            "Enchantress's Presence",
+            "Sol Ring",
+            "Arcane Signet",
+            "Chromatic Lantern",
+            "Fellwar Stone",
+            "Mind Stone",
+            "Cultivate",
+            "Kodama's Reach",
+            "Farseek",
+            "Nature's Lore",
+            "Three Visits",
+            "Open the Gates",
+            "Arixmethes, Slumbering Isle",
+            "Composer of Spring",
+            "Jukai Naturalist",
+            "Moon-Blessed Cleric",
+            "Idyllic Tutor",
+            "Enlightened Tutor",
+            "Replenish",
+            "Open the Vaults",
+            "Resurgent Belief",
+            "Bear Umbra",
+            "Banishing Light",
+            "Grasp of Fate",
+            "Darksteel Mutation",
+            "Kenrith's Transformation",
+            "Rhythm of the Wild",
+            "Hardened Scales",
+            "Branching Evolution",
+        ),
+    ),
     "generic": ArchetypeProfile(
         enforce_tribe=False,
         retrieve_tribe=False,
@@ -238,6 +317,20 @@ def infer_archetype(query: str) -> str:
         return "aggro"
     if "midrange" in q:
         return "midrange"
+    if any(
+        p in q
+        for p in (
+            "enchantress",
+            "enchantment",
+            "enchantments",
+            "aura",
+            "auras",
+            "room",
+            "rooms",
+            "duskmourn",
+        )
+    ):
+        return "enchantments"
     return "generic"
 
 

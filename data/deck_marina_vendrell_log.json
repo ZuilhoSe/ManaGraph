@@ -1,0 +1,482 @@
+{
+  "query": "rooms enchantress gate mana base and ramp",
+  "commander": "Marina Vendrell",
+  "filters": {
+    "archetype": "enchantments",
+    "preferred_land_types": [
+      "Gate"
+    ],
+    "theme_types": [
+      "Room"
+    ],
+    "land_types_strict": false
+  },
+  "retrieve": true,
+  "solve": {
+    "stripped": {
+      "removed": []
+    },
+    "fill": {
+      "ok": true,
+      "added": [
+        {
+          "name": "Defiled Crypt // Cadaver Lab",
+          "score": 4.9348,
+          "source": "greedy"
+        },
+        {
+          "name": "City of Brass",
+          "score": 11.3914,
+          "source": "greedy"
+        },
+        {
+          "name": "The World Tree",
+          "score": 9.3537,
+          "source": "greedy"
+        },
+        {
+          "name": "Path of Ancestry",
+          "score": 9.2505,
+          "source": "greedy"
+        },
+        {
+          "name": "Plaza of Heroes",
+          "score": 9.162,
+          "source": "greedy"
+        },
+        {
+          "name": "Command Tower",
+          "score": 9.0627,
+          "source": "greedy"
+        },
+        {
+          "name": "Exotic Orchard",
+          "score": 8.888,
+          "source": "greedy"
+        },
+        {
+          "name": "Mana Confluence",
+          "score": 8.7494,
+          "source": "greedy"
+        },
+        {
+          "name": "Myriad Landscape",
+          "score": 8.6898,
+          "source": "greedy"
+        },
+        {
+          "name": "Reliquary Tower",
+          "score": 8.6472,
+          "source": "greedy"
+        },
+        {
+          "name": "Sol Ring",
+          "score": 4.609,
+          "source": "greedy"
+        },
+        {
+          "name": "Killian, Decisive Mentor",
+          "score": 4.569,
+          "source": "greedy"
+        },
+        {
+          "name": "Satyr Enchanter",
+          "score": 4.3914,
+          "source": "greedy"
+        },
+        {
+          "name": "Calix, Guided by Fate",
+          "score": 4.1894,
+          "source": "greedy"
+        },
+        {
+          "name": "Setessan Champion",
+          "score": 4.1834,
+          "source": "greedy"
+        },
+        {
+          "name": "Open the Gates",
+          "score": 4.0365,
+          "source": "greedy"
+        },
+        {
+          "name": "Hateful Eidolon",
+          "score": 4.0019,
+          "source": "greedy"
+        },
+        {
+          "name": "Pearl-Ear, Imperial Advisor",
+          "score": 3.9662,
+          "source": "greedy"
+        },
+        {
+          "name": "Central Elevator // Promising Stairs",
+          "score": 3.947,
+          "source": "greedy"
+        },
+        {
+          "name": "Banishing Light",
+          "score": 3.9452,
+          "source": "greedy"
+        },
+        {
+          "name": "Tanglespan Lookout",
+          "score": 3.911,
+          "source": "greedy"
+        },
+        {
+          "name": "Arixmethes, Slumbering Isle",
+          "score": 3.8346,
+          "source": "greedy"
+        },
+        {
+          "name": "Sythis, Harvest's Hand",
+          "score": 3.8182,
+          "source": "greedy"
+        },
+        {
+          "name": "Starfield of Nyx",
+          "score": 3.8145,
+          "source": "greedy"
+        },
+        {
+          "name": "Smoky Lounge // Misty Salon",
+          "score": 4.6411,
+          "source": "greedy"
+        },
+        {
+          "name": "Surgical Suite // Hospital Room",
+          "score": 4.3871,
+          "source": "greedy"
+        },
+        {
+          "name": "Bottomless Pool // Locker Room",
+          "score": 4.3504,
+          "source": "greedy"
+        },
+        {
+          "name": "Argothian Enchantress",
+          "score": 3.7596,
+          "source": "greedy"
+        },
+        {
+          "name": "Kenrith's Transformation",
+          "score": 3.7106,
+          "source": "greedy"
+        },
+        {
+          "name": "Chromatic Lantern",
+          "score": 3.6139,
+          "source": "greedy"
+        },
+        {
+          "name": "Greenhouse // Rickety Gazebo",
+          "score": 3.5856,
+          "source": "greedy"
+        },
+        {
+          "name": "Mind Stone",
+          "score": 3.486,
+          "source": "greedy"
+        },
+        {
+          "name": "Arcane Signet",
+          "score": 3.2982,
+          "source": "greedy"
+        },
+        {
+          "name": "Fellwar Stone",
+          "score": 3.1437,
+          "source": "greedy"
+        },
+        {
+          "name": "Painter's Studio // Defaced Gallery",
+          "score": 2.1616,
+          "source": "greedy"
+        },
+        {
+          "name": "Grand Entryway // Elegant Rotunda",
+          "score": 1.9994,
+          "source": "greedy"
+        },
+        {
+          "name": "Nessian Wanderer",
+          "score": 1.91,
+          "source": "greedy"
+        },
+        {
+          "name": "Sterling Grove",
+          "score": 1.6352,
+          "source": "greedy"
+        },
+        {
+          "name": "Replenish",
+          "score": 1.4961,
+          "source": "greedy"
+        },
+        {
+          "name": "Aura Finesse",
+          "score": 1.4356,
+          "source": "greedy"
+        },
+        {
+          "name": "Bear Umbra",
+          "score": 1.4285,
+          "source": "greedy"
+        },
+        {
+          "name": "Daxos's Torment",
+          "score": 1.331,
+          "source": "greedy"
+        },
+        {
+          "name": "Roaring Furnace // Steaming Sauna",
+          "score": 1.3265,
+          "source": "greedy"
+        },
+        {
+          "name": "Hallowed Haunting",
+          "score": 1.2817,
+          "source": "greedy"
+        },
+        {
+          "name": "Derelict Attic // Widow's Walk",
+          "score": 1.2343,
+          "source": "greedy"
+        },
+        {
+          "name": "Experimental Lab // Staff Room",
+          "score": 1.1258,
+          "source": "greedy"
+        },
+        {
+          "name": "Underwater Tunnel // Slimy Aquarium",
+          "score": 0.9339,
+          "source": "greedy"
+        },
+        {
+          "name": "Eriette, the Beguiler",
+          "score": 0.8859,
+          "source": "greedy"
+        },
+        {
+          "name": "Aura Shards",
+          "score": 0.6089,
+          "source": "greedy"
+        },
+        {
+          "name": "Enchantress's Presence",
+          "score": 0.5779,
+          "source": "greedy"
+        },
+        {
+          "name": "Enlightened Tutor",
+          "score": 0.4067,
+          "source": "greedy"
+        },
+        {
+          "name": "Wild Growth",
+          "score": 0.3278,
+          "source": "greedy"
+        },
+        {
+          "name": "Kodama's Reach",
+          "score": 0.2902,
+          "source": "greedy"
+        },
+        {
+          "name": "Resurgent Belief",
+          "score": 0.2276,
+          "source": "greedy"
+        },
+        {
+          "name": "Sphere of Safety",
+          "score": 0.2159,
+          "source": "greedy"
+        },
+        {
+          "name": "Sigil of the Empty Throne",
+          "score": 0.1951,
+          "source": "greedy"
+        },
+        {
+          "name": "Three Visits",
+          "score": 0.1408,
+          "source": "greedy"
+        },
+        {
+          "name": "Strength from the Fallen",
+          "score": 0.1089,
+          "source": "greedy"
+        },
+        {
+          "name": "Idyllic Tutor",
+          "score": 0.0977,
+          "source": "greedy"
+        },
+        {
+          "name": "Grasp of Fate",
+          "score": 0.0117,
+          "source": "greedy"
+        },
+        {
+          "name": "Hardened Scales",
+          "score": 0.0075,
+          "source": "greedy"
+        },
+        {
+          "name": "Greater Auramancy",
+          "score": -0.0174,
+          "source": "greedy"
+        },
+        {
+          "name": "Wolfwillow Haven",
+          "score": -0.0405,
+          "source": "greedy"
+        },
+        {
+          "name": "Dazzling Theater // Prop Room",
+          "score": -0.0471,
+          "source": "greedy"
+        },
+        {
+          "name": "Dawn Evangel",
+          "score": -0.1088,
+          "source": "greedy"
+        },
+        {
+          "name": "Utopia Sprawl",
+          "score": -0.1118,
+          "source": "greedy"
+        },
+        {
+          "name": "Polluted Cistern // Dim Oubliette",
+          "score": -0.1174,
+          "source": "greedy"
+        },
+        {
+          "name": "Light-Paws, Emperor's Voice",
+          "score": -0.1331,
+          "source": "greedy"
+        },
+        {
+          "name": "Moon-Blessed Cleric",
+          "score": -0.1376,
+          "source": "greedy"
+        },
+        {
+          "name": "Darksteel Mutation",
+          "score": -0.1673,
+          "source": "greedy"
+        },
+        {
+          "name": "Rhythm of the Wild",
+          "score": -0.1753,
+          "source": "greedy"
+        },
+        {
+          "name": "Eidolon of Blossoms",
+          "score": -0.1973,
+          "source": "greedy"
+        },
+        {
+          "name": "Farseek",
+          "score": -0.2216,
+          "source": "greedy"
+        },
+        {
+          "name": "Open the Vaults",
+          "score": -0.3016,
+          "source": "greedy"
+        },
+        {
+          "name": "Ghostly Prison",
+          "score": -0.3869,
+          "source": "greedy"
+        },
+        {
+          "name": "Fertile Ground",
+          "score": -0.4452,
+          "source": "greedy"
+        },
+        {
+          "name": "Nature's Lore",
+          "score": -0.4953,
+          "source": "greedy"
+        }
+      ],
+      "skipped": [
+        {
+          "name": "Thran Portal",
+          "reason": "land produces no mana"
+        },
+        {
+          "name": "Reflecting Pool",
+          "reason": "land produces no mana"
+        },
+        {
+          "name": "Evolving Wilds",
+          "reason": "land produces no mana"
+        },
+        {
+          "name": "Terramorphic Expanse",
+          "reason": "land produces no mana"
+        }
+      ],
+      "slot_count": 99,
+      "remaining_slots": 0,
+      "pool_count": 34
+    },
+    "cut": {
+      "ok": true,
+      "removed": [],
+      "swapped": [],
+      "slot_count": 99,
+      "pool_count": 34
+    },
+    "land_alert": {
+      "status": "low",
+      "count": 31,
+      "quota": [
+        36,
+        38
+      ],
+      "delta": 5,
+      "pct": 0.139,
+      "severity": "severe"
+    }
+  },
+  "cut": {
+    "ok": true,
+    "removed": [],
+    "swapped": [],
+    "slot_count": 99,
+    "pool_count": 34
+  },
+  "composition": {
+    "Gate": 22,
+    "Room": 14
+  },
+  "diagnosis": {
+    "land_count": 31,
+    "roles": {
+      "land": 31,
+      "ramp": 9,
+      "draw": 16,
+      "interaction": 11,
+      "threat": 1,
+      "mill": 3,
+      "token_producer": 8,
+      "token_payoff": 0,
+      "other": 27
+    },
+    "deficits": [
+      "LAND SEVERE: 31 lands is too few by 5 vs quota 34-38 (14% off)",
+      "curve 2: 17 > 16 (high)",
+      "curve 3: 17 > 16 (high)",
+      "land: 31 < 34",
+      "ramp: 9 < 10",
+      "threat: 1 < 6"
+    ]
+  }
+}

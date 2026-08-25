@@ -147,6 +147,10 @@ def architect_node(state: GraphState):
     }
     if deck.archetype:
         diag_view["archetype"] = deck.archetype
+    if deck.preferred_land_types or deck.theme_types or deck.land_types_strict:
+        diag_view["preferred_land_types"] = list(deck.preferred_land_types)
+        diag_view["theme_types"] = list(deck.theme_types)
+        diag_view["land_types_strict"] = deck.land_types_strict
     context = (
         f"User request: {state['user_query']}\n\n"
         f"Current deck JSON:\n{json.dumps(deck.summary(), indent=2)}\n\n"
@@ -310,6 +314,12 @@ def initial_graph_state(query: str, deck: DeckState | dict | None = None) -> dic
         merged["require_complete"] = flags["require_complete"]
         if flags.get("archetype") and flags["archetype"] != "generic":
             merged["archetype"] = flags["archetype"]
+        if flags.get("preferred_land_types") and not merged.get("preferred_land_types"):
+            merged["preferred_land_types"] = flags["preferred_land_types"]
+        if flags.get("theme_types") and not merged.get("theme_types"):
+            merged["theme_types"] = flags["theme_types"]
+        if flags.get("land_types_strict"):
+            merged["land_types_strict"] = True
         deck = DeckState.from_dict(merged)
     else:
         deck.owned_only = deck.owned_only or flags["owned_only"]
@@ -318,6 +328,12 @@ def initial_graph_state(query: str, deck: DeckState | dict | None = None) -> dic
             not deck.archetype or deck.archetype == "generic"
         ):
             deck.archetype = flags["archetype"]
+        if flags.get("preferred_land_types") and not deck.preferred_land_types:
+            deck.preferred_land_types = list(flags["preferred_land_types"])
+        if flags.get("theme_types") and not deck.theme_types:
+            deck.theme_types = list(flags["theme_types"])
+        if flags.get("land_types_strict"):
+            deck.land_types_strict = True
         if flags["intent"] != "build" or deck.slot_count() > 0:
             deck.intent = flags["intent"]
             if flags["intent"] != "build":

@@ -267,6 +267,46 @@ def fill_deck_json(deck_json: str, query: str = "", retrieve: bool = False) -> s
 
 
 @tool
+def list_filter_matches(
+    fragment: str,
+    colors: list[str] | None = None,
+    lands_only: bool | None = None,
+    limit: int = 15,
+) -> str:
+    """
+    Count (and sample) catalog cards whose type_line matches a fragment under
+    color identity and commander legality. Use for Gate / Room / Cave / Snow
+    filters — do NOT invent long card lists; set preferred_land_types / theme_types
+    on the deck and let the Solver expand the catalog.
+    colors: identity letters e.g. ["W","U","B","R","G"]. Empty = no identity filter.
+    lands_only: true = only lands, false = exclude lands, omit = both.
+    """
+    from catalog_filters import cards_by_type_fragment
+
+    frag = (fragment or "").strip()
+    if not frag:
+        return _json({"ok": False, "error": "fragment is required"})
+    identity = list(colors) if colors else None
+    cards = cards_by_type_fragment(
+        frag, identity, commander_legal=True, lands_only=lands_only
+    )
+    sample = [
+        {"name": c.get("name"), "type_line": c.get("type_line")}
+        for c in cards[: max(0, min(int(limit or 15), 40))]
+    ]
+    return _json(
+        {
+            "ok": True,
+            "fragment": frag,
+            "identity": identity,
+            "lands_only": lands_only,
+            "count": len(cards),
+            "sample": sample,
+        }
+    )
+
+
+@tool
 def cut_deck_json(deck_json: str, query: str = "") -> str:
     """
     Cut over-budget / over-99 cards and swap weak 99 slots for better candidate_pool cards.

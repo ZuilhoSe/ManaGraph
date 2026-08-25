@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import os
 import re
+import sqlite3
 
 from catalog import (
     DB_NAME,
+    _row_to_card,
     acquisition_cost,
     card_unit_price,
     enrich_deck,
+    ensure_schema,
     get_oracle_card,
 )
 from archetypes import (
@@ -16,16 +20,50 @@ from archetypes import (
     quotas_for,
     search_queries_for,
 )
+from catalog_filters import (
+    identity_ok,
+    is_commander_legal,
+    names_by_type_fragment,
+    type_line_has_fragment,
+)
 from deck_state import MAIN_DECK_SIZE, DeckState, _normalize_key
 from geometry import cosine, load_card_views, multi_view_cosine
 from inventory import get_card as get_inventory_card
 from mana import cmc_bucket, diagnose, produces_mana, shape_bonus, strategy_from_name
-from roles import role_counts, role_need_bonus, token_classes
+from roles import ROLE_QUOTAS, role_counts, role_need_bonus, token_classes
 from rules_validator import (
     ILLEGAL_COMMANDER_STATUS,
     allows_any_number,
     commander_format_status,
     is_basic_land,
+)
+
+# Soft preference for lands whose type_line matches preferred_land_types.
+PREFERRED_LAND_BONUS = 1.2
+THEME_TYPE_BONUS = 0.9
+# Leave room for Command Tower / fixers when not land_types_strict.
+PREFERRED_LAND_FIXER_RESERVE = 6
+# Caps so filters do not dump the entire Gate/Room catalog into a 99.
+PREFERRED_LAND_COMMIT_CAP = 28
+THEME_POOL_CAP = 14  # max theme cards seeded into the pool per fragment
+THEME_SOFT_CAP = 12  # theme score bonus stops here
+THEME_HARD_CAP = 16  # further theme cards are skipped
+ARCHETYPE_GLUE_CAP = 56  # non-land oracle matches when retrieval is thin/unavailable
+ARCHETYPE_GLUE_PER_PHRASE = 12
+# Soft mana-base fixers seeded when preferred_land_types is set (not strict).
+PREFERRED_LAND_FIXERS = (
+    "Command Tower",
+    "Exotic Orchard",
+    "City of Brass",
+    "Mana Confluence",
+    "Reflecting Pool",
+    "Plaza of Heroes",
+    "The World Tree",
+    "Path of Ancestry",
+    "Evolving Wilds",
+    "Terramorphic Expanse",
+    "Myriad Landscape",
+    "Reliquary Tower",
 )
 
 STOPWORDS = {
@@ -235,6 +273,218 @@ class DeckSolver:
             "mana": mana,
         }
 
+    def _matches_preferred_land(self, info: dict, deck: DeckState) -> bool:
+        tl = info.get("type_line") or ""
+        if "land" not in tl.lower():
+            return False
+        return any(
+            type_line_has_fragment(tl, frag) for frag in (deck.preferred_land_types or [])
+        )
+
+    def _matches_theme_type(self, info: dict, deck: DeckState) -> bool:
+        tl = info.get("type_line") or ""
+        return any(type_line_has_fragment(tl, frag) for frag in (deck.theme_types or []))
+
+    def _land_count(self, deck: DeckState) -> int:
+        n = 0
+        for name, qty in deck.card_list().items():
+            info = self._info(name) or {}
+            if "land" in (info.get("type_line") or "").lower():
+                n += int(qty)
+        return n
+
+    def _theme_count(self, deck: DeckState, fragment: str | None = None) -> int:
+        frags = [fragment] if fragment else list(deck.theme_types or [])
+        if not frags:
+            return 0
+        n = 0
+        for name, qty in deck.card_list().items():
+            info = self._info(name) or {}
+            tl = info.get("type_line") or ""
+            if any(type_line_has_fragment(tl, frag) for frag in frags):
+                n += int(qty)
+        return n
+
+    def _pool_if_new(self, deck: DeckState, name: str) -> bool:
+        if not name or deck._key(name) or deck._pool_key(name):
+            return False
+        if deck.commander and name.lower() == deck.commander.lower():
+            return False
+        before = deck.pool_count()
+        deck.add_to_pool(name, 1)
+        return deck.pool_count() > before
+
+    def _seed_archetype_glue(self, deck: DeckState) -> int:
+        """Seed non-land staples: profile names first, then tight oracle phrases.
+
+        Broad oracle LIKE without Chroma previously flooded Un-/Alchemy junk and
+        left filter builds as Gates+Rooms+Swamps.
+        """
+        if deck.intent != "build":
+            return 0
+        identity = list(deck.identity or [])
+        profile = profile_for(deck.archetype)
+        added = 0
+
+        for name in profile.staple_names:
+            if added >= ARCHETYPE_GLUE_CAP:
+                break
+            info = self._info(name)
+            if not info:
+                continue
+            if "land" in (info.get("type_line") or "").lower():
+                continue
+            if not identity_ok(info.get("color_identity"), identity):
+                continue
+            if not is_commander_legal(info.get("legalities")):
+                continue
+            if self._pool_if_new(deck, info.get("name") or name):
+                added += 1
+
+        phrases = list(profile.search_queries)
+        if (deck.archetype or "") == "enchantments":
+            phrases.extend(
+                (
+                    "enchantress",
+                    "whenever an enchantment enters the battlefield",
+                    "constellation —",
+                )
+            )
+
+        if not os.path.exists(self.db_path):
+            if added:
+                print(f"[Solver] archetype glue: pool+={added} (archetype={deck.archetype})")
+            return added
+
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        try:
+            ensure_schema(conn)
+            for phrase in phrases:
+                if added >= ARCHETYPE_GLUE_CAP:
+                    break
+                token = (phrase or "").strip()
+                if len(token) < 8:
+                    continue
+                rows = conn.execute(
+                    """
+                    SELECT * FROM cards
+                    WHERE oracle_text LIKE ? COLLATE NOCASE
+                      AND type_line NOT LIKE '%Land%' COLLATE NOCASE
+                      AND name NOT LIKE 'A-%'
+                      AND type_line NOT LIKE '%Attraction%'
+                      AND type_line NOT LIKE '%Sticker%'
+                    ORDER BY cmc, name
+                    LIMIT ?
+                    """,
+                    (f"%{token}%", ARCHETYPE_GLUE_PER_PHRASE * 2),
+                ).fetchall()
+                per = 0
+                for row in rows:
+                    if added >= ARCHETYPE_GLUE_CAP or per >= ARCHETYPE_GLUE_PER_PHRASE:
+                        break
+                    card = _row_to_card(row)
+                    if not identity_ok(card.get("color_identity"), identity):
+                        continue
+                    if not is_commander_legal(card.get("legalities")):
+                        continue
+                    name = card.get("name") or ""
+                    if self._pool_if_new(deck, name):
+                        added += 1
+                        per += 1
+        finally:
+            conn.close()
+        if added:
+            print(f"[Solver] archetype glue: pool+={added} (archetype={deck.archetype})")
+        return added
+
+    def _seed_catalog_filters(self, deck: DeckState) -> dict:
+        """Expand preferred_land_types / theme_types from the catalog into the pool.
+
+        Caps theme dump and preferred-land commit so fill still has room for
+        staples/glue. Seeds archetype oracle glue when building.
+        """
+        report = {"theme_pool": 0, "land_pool": 0, "land_committed": 0, "glue": 0}
+        if not deck.commander:
+            return report
+        if not deck.theme_types and not deck.preferred_land_types and not deck.require_complete:
+            return report
+        if not deck.identity:
+            cmd = self._info(deck.commander)
+            if cmd:
+                deck.identity = list(cmd["color_identity"])
+        identity = list(deck.identity or [])
+
+        for frag in deck.theme_types or []:
+            matches = names_by_type_fragment(
+                frag, identity, lands_only=False, db_path=self.db_path
+            )
+            scored = []
+            for name in matches:
+                info = self._info(name) or {}
+                scored.append((float(info.get("cmc") or 0), name))
+            scored.sort()
+            for _cmc, name in scored[:THEME_POOL_CAP]:
+                if self._pool_if_new(deck, name):
+                    report["theme_pool"] += 1
+
+        preferred: list[str] = []
+        for frag in deck.preferred_land_types or []:
+            for name in names_by_type_fragment(
+                frag, identity, lands_only=True, db_path=self.db_path
+            ):
+                preferred.append(name)
+                if self._pool_if_new(deck, name):
+                    report["land_pool"] += 1
+
+        if deck.preferred_land_types and not deck.land_types_strict:
+            for name in PREFERRED_LAND_FIXERS:
+                if self._pool_if_new(deck, name):
+                    report["land_pool"] += 1
+
+        if deck.intent == "build" and preferred:
+            land_low = int(ROLE_QUOTAS["land"][0])
+            current = self._land_count(deck)
+            reserve = 0 if deck.land_types_strict else PREFERRED_LAND_FIXER_RESERVE
+            want = max(0, land_low - reserve - current)
+            want = min(
+                want,
+                max(0, PREFERRED_LAND_COMMIT_CAP - current),
+                deck.remaining_slots(),
+            )
+            for name in preferred:
+                if want <= 0:
+                    break
+                if deck._key(name):
+                    continue
+                ok, _reason = self.can_add(deck, name)
+                if not ok:
+                    continue
+                info = self._info(name) or {}
+                if self._skip_reason(info, deck):
+                    continue
+                self._commit_add(deck, name, 1)
+                report["land_committed"] += 1
+                want -= 1
+
+        if deck.intent == "build" and (
+            deck.theme_types or deck.preferred_land_types or deck.require_complete
+        ):
+            report["glue"] = self._seed_archetype_glue(deck)
+
+        if (
+            report["theme_pool"]
+            or report["land_pool"]
+            or report["land_committed"]
+            or report["glue"]
+        ):
+            print(
+                f"[Solver] catalog filters: theme_pool+={report['theme_pool']} "
+                f"land_pool+={report['land_pool']} committed_lands={report['land_committed']} "
+                f"glue+={report['glue']}"
+            )
+        return report
+
     def fill(
         self,
         deck: DeckState,
@@ -250,6 +500,7 @@ class DeckSolver:
             if cmd:
                 deck.identity = list(cmd["color_identity"])
 
+        self._seed_catalog_filters(deck)
         candidates = self._gather_names(deck, query, extra_candidates, retrieve)
         print(f"[Solver] fill: {len(candidates)} candidates, {deck.remaining_slots()} slots")
         added = []
@@ -270,7 +521,7 @@ class DeckSolver:
                     skipped.append({"name": name, "reason": reason})
                     continue
                 info = self._info(name) or {}
-                skip = self._skip_reason(info)
+                skip = self._skip_reason(info, deck)
                 if skip:
                     dead.add(name.lower())
                     skipped.append({"name": name, "reason": skip})
@@ -278,6 +529,10 @@ class DeckSolver:
                 ranked.append((self.score_candidate(deck, name, query), name))
             ranked.sort(reverse=True)
             if not ranked:
+                # Never pad the 99 with basics once lands are at quota — that is
+                # how filter-only builds used to dump 40+ Swamps.
+                if self._land_count(deck) >= int(ROLE_QUOTAS["land"][0]):
+                    break
                 basic = self._best_basic(deck)
                 if not basic or basic.lower() in dead:
                     break
@@ -361,7 +616,7 @@ class DeckSolver:
                 self._rebuild_context(deck, query)
                 break
             best_info = self._info(best) or {}
-            if self._skip_reason(best_info):
+            if self._skip_reason(best_info, deck):
                 deck.take_from_pool(best, 1)
                 self._rebuild_context(deck, query)
                 continue
@@ -556,6 +811,9 @@ class DeckSolver:
         """Strip illegal 99 cards, retrieve extras into the pool, fill holes, then cut."""
         stripped = self.strip_illegal(deck)
         n_stripped = sum(item["quantity"] for item in stripped["removed"])
+
+        if deck.commander and deck.intent == "build":
+            self._seed_catalog_filters(deck)
 
         land_status = {}
         if deck.commander:
@@ -767,11 +1025,25 @@ class DeckSolver:
             return TRIBE_MISS_PENALTY
         return 0.0
 
-    def _skip_reason(self, info: dict) -> str | None:
+    def _skip_reason(self, info: dict, deck: DeckState | None = None) -> str | None:
         if self._off_tribe_creature(info):
             return "off-tribe creature"
         if self._dead_land(info):
             return "land produces no mana"
+        if deck is None:
+            return None
+        tl = info.get("type_line") or ""
+        if deck.land_types_strict:
+            if "land" in tl.lower() and not is_basic_land(tl):
+                if not self._matches_preferred_land(info, deck):
+                    return "non-preferred land (land_types_strict)"
+        if "land" in tl.lower():
+            land_high = int(ROLE_QUOTAS["land"][1])
+            if self._land_count(deck) >= land_high:
+                return "land quota full"
+        if deck.theme_types and self._matches_theme_type(info, deck):
+            if self._theme_count(deck) >= THEME_HARD_CAP:
+                return "theme type cap"
         return None
 
     def _off_tribe_creature(self, info: dict) -> bool:
@@ -859,10 +1131,40 @@ class DeckSolver:
 
         shape = shape_bonus(info, ctx.get("mana"), deck.identity)
         curve_penalty = shape["curve_penalty"]
+        land_bonus = float(shape["land_bonus"] or 0.0)
+        pref_land = 0.0
+        theme_bonus = 0.0
+        land_urgent = 0.0
+        is_land = "land" in (info.get("type_line") or "").lower()
+        if deck.preferred_land_types and self._matches_preferred_land(info, deck):
+            pref_land = PREFERRED_LAND_BONUS
+            land_bonus += pref_land
+        if (
+            deck.theme_types
+            and self._matches_theme_type(info, deck)
+            and self._theme_count(deck) < THEME_SOFT_CAP
+        ):
+            theme_bonus = THEME_TYPE_BONUS
+        # When under land quota, lands must beat glue or 5c builds starve on mana.
+        if is_land and self._land_count(deck) < int(ROLE_QUOTAS["land"][0]):
+            land_urgent = 3.0
+            if deck.preferred_land_types and self._matches_preferred_land(info, deck):
+                land_urgent += 0.5
 
         unit = card_unit_price(info, deck.currency) or 0.0
         value = synergy / (unit + 0.5) if deck.budget_cap is not None else 0.0
-        total = 2.0 * synergy + role_score + tribe + token_align - 1.4 * redundancy + value + shape["total"]
+        total = (
+            2.0 * synergy
+            + role_score
+            + tribe
+            + token_align
+            - 1.4 * redundancy
+            + value
+            + shape["total"]
+            + pref_land
+            + theme_bonus
+            + land_urgent
+        )
         profile = ctx.get("profile") or profile_for(ctx.get("archetype"))
         cap = profile.max_creatures
         if cap is not None and is_creature_card(info.get("type_line") or ""):
@@ -907,7 +1209,7 @@ class DeckSolver:
             "redundancy_with": redundancy_with,
             "curve_penalty": curve_penalty,
             "curve_bonus": shape["curve_bonus"],
-            "land_bonus": shape["land_bonus"],
+            "land_bonus": land_bonus,
             "mana_bonus": shape["mana_bonus"],
             "shape": shape["total"],
             "value": value,
@@ -1084,7 +1386,7 @@ class DeckSolver:
             if not ok:
                 continue
             info = self._info(name) or {}
-            if self._skip_reason(info):
+            if self._skip_reason(info, deck):
                 continue
             score = self.score_candidate(deck, name, query)
             if best_score is None or score > best_score:
@@ -1093,6 +1395,21 @@ class DeckSolver:
         return best_name
 
     def _best_basic(self, deck: DeckState) -> str | None:
+        # Never suggest basics (or preferred lands-as-basics) once land quota is met.
+        if self._land_count(deck) >= int(ROLE_QUOTAS["land"][0]):
+            return None
+        # Prefer preferred-type lands still in the pool when land slots are short.
+        if deck.preferred_land_types:
+            for name in list(deck.candidate_pool):
+                info = self._info(name) or {}
+                if not self._matches_preferred_land(info, deck):
+                    continue
+                if self._skip_reason(info, deck):
+                    continue
+                ok, _reason = self.can_add(deck, name)
+                if ok:
+                    return info.get("name") or name
+
         colors = deck.identity or []
         names = [IDENTITY_BASICS[c] for c in colors if c in IDENTITY_BASICS]
         if not names:

@@ -1,12 +1,24 @@
 from langgraph.prebuilt import create_react_agent
 from llm_factory import LLMFactory
-from tools import diagnose_deck_json, get_card_info, list_inventory_cards, search_cards
+from tools import (
+    diagnose_deck_json,
+    get_card_info,
+    list_filter_matches,
+    list_inventory_cards,
+    search_cards,
+)
 
 
 class ArchitectAgent:
     def __init__(self):
         self.llm = LLMFactory.get_llm()
-        self.tools = [search_cards, list_inventory_cards, diagnose_deck_json, get_card_info]
+        self.tools = [
+            search_cards,
+            list_inventory_cards,
+            diagnose_deck_json,
+            get_card_info,
+            list_filter_matches,
+        ]
 
         self.system_prompt = """
         You are a Magic: The Gathering deck architect specializing in Commander.
@@ -54,6 +66,17 @@ class ArchitectAgent:
         - The committed main deck must stay at most 99 (see remaining_slots). Overflow → pool.
         - substitute keeps slot count stable when the 99 is already full and the user asked to swap.
 
+        TYPE FILTERS (preferred_land_types / theme_types / land_types_strict):
+        - When the user asks for a Gate mana base, Rooms, Caves, Snow lands, etc., SET these
+          fields on your JSON output (and/or keep values already on the deck JSON). Examples:
+          preferred_land_types: ["Gate"], theme_types: ["Room"], land_types_strict: true only
+          when they say "only gates" / exclusive mana base.
+        - Do NOT list every Gate or Room by name. Call list_filter_matches(fragment, colors)
+          if you need a count/sample. The Solver expands the catalog into the candidate pool
+          and prefers matching lands when filling.
+        - Your delta.add should still be 12-20 staples (enchantress engines, ramp, payoffs) —
+          not the full Gate/Room set.
+
         INVENTORY RULES:
         - If the user says "focus on cards I own", start with owned_only=True.
         - If that search returns empty or few results, call list_inventory_cards, then search with owned_only=False.
@@ -88,6 +111,9 @@ class ArchitectAgent:
           "archetype": "control" | "mill" | "tribal" | "tokens" | "combo" | "generic" | ...,
           "commander": "Card Name or empty string",
           "identity": ["R"],
+          "preferred_land_types": ["Gate"],
+          "theme_types": ["Room"],
+          "land_types_strict": false,
           "delta": {
             "add": [{"name": "Card Name", "quantity": 1}],
             "remove": [{"name": "Card Name", "quantity": 1}],
@@ -100,6 +126,7 @@ class ArchitectAgent:
           "notes": "short rationale"
         }
         delta.add should be a short seed. Most names belong in candidate_pool.
+        Omit preferred_land_types / theme_types when unused; copy them from the deck JSON when set.
         Do not claim the deck is legal; the Solver and symbolic validator own that.
 
         DIAGNOSIS:

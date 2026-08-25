@@ -98,6 +98,53 @@ def infer_intent(query: str, has_cards: bool = False) -> str:
     return "improve" if has_cards else "build"
 
 
+def infer_build_filters(query: str) -> dict:
+    """Symbolic land/theme filters from natural language. Catalog expands them."""
+    q = (query or "").lower()
+    preferred: list[str] = []
+    theme: list[str] = []
+    strict = False
+
+    if any(p in q for p in ("only gates", "mana base of only gates", "gates only", "only gate")):
+        preferred.append("Gate")
+        strict = True
+    elif any(p in q for p in ("guildgate", "gate mana", "gates as", "mana base of gates", "gate lands")):
+        preferred.append("Gate")
+    elif re.search(r"\bgates?\b", q):
+        preferred.append("Gate")
+
+    if any(p in q for p in ("snow lands", "snow mana", "snow-covered", "snow covered")):
+        if "Snow" not in preferred:
+            preferred.append("Snow")
+    if re.search(r"\bcaves?\b", q) and "Cave" not in preferred:
+        preferred.append("Cave")
+    if re.search(r"\bdeserts?\b", q) and "Desert" not in preferred:
+        preferred.append("Desert")
+
+    if any(p in q for p in ("duskmourn rooms", "room unlock", "unlock doors")):
+        theme.append("Room")
+    elif re.search(r"\brooms?\b", q):
+        theme.append("Room")
+
+    # Dedup preserve order
+    def _uniq(items: list[str]) -> list[str]:
+        seen = set()
+        out = []
+        for x in items:
+            key = x.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(x)
+        return out
+
+    return {
+        "preferred_land_types": _uniq(preferred),
+        "theme_types": _uniq(theme),
+        "land_types_strict": strict,
+    }
+
+
 def infer_task(query: str, has_cards: bool = False) -> dict:
     intent = infer_intent(query, has_cards)
     q = (query or "").lower()
@@ -127,11 +174,13 @@ def infer_task(query: str, has_cards: bool = False) -> dict:
         or bool(re.search(r"\bfull\b.{0,40}\bdeck\b", q))
         or bool(re.search(r"\bbuild\b.{0,80}\bdeck\b", q))
     )
+    filters = infer_build_filters(query)
     return {
         "intent": intent,
         "owned_only": owned_only,
         "require_complete": full_build,
         "archetype": infer_archetype(query),
+        **filters,
     }
 
 
@@ -233,6 +282,11 @@ class DeckState:
     # owned_only but scoped to this specific allowlist instead of the whole
     # collection. No-op when card_pool is empty.
     pool_only: bool = False
+    # Mana-base preference: type-line fragments (Gate, Snow, Cave). Soft unless
+    # land_types_strict. Theme fragments (Room) seed the candidate pool from catalog.
+    preferred_land_types: list[str] = field(default_factory=list)
+    theme_types: list[str] = field(default_factory=list)
+    land_types_strict: bool = False
 
     def slot_count(self) -> int:
         return sum(max(int(qty), 0) for qty in self.cards.values())
@@ -341,6 +395,12 @@ class DeckState:
         plan = delta.get("archetype")
         if plan in VALID_ARCHETYPES:
             self.archetype = plan
+        if "preferred_land_types" in delta and isinstance(delta.get("preferred_land_types"), list):
+            self.preferred_land_types = [str(x) for x in delta["preferred_land_types"] if x]
+        if "theme_types" in delta and isinstance(delta.get("theme_types"), list):
+            self.theme_types = [str(x) for x in delta["theme_types"] if x]
+        if "land_types_strict" in delta:
+            self.land_types_strict = bool(delta.get("land_types_strict"))
         commander = delta.get("commander")
         if commander:
             self.set_commander(commander)
@@ -404,6 +464,9 @@ class DeckState:
             "intent": self.intent,
             "archetype": self.archetype,
             "mana_strategy": self.mana_strategy,
+            "preferred_land_types": list(self.preferred_land_types),
+            "theme_types": list(self.theme_types),
+            "land_types_strict": self.land_types_strict,
             "cards": self.card_list(),
             "candidate_pool": {name: qty for name, qty in self.candidate_pool.items() if qty > 0},
             "last_delta": self.last_delta,
@@ -439,6 +502,11 @@ class DeckState:
                 if data.get("mana_strategy") in VALID_MANA_STRATEGIES
                 else "hypergeometric"
             ),
+            preferred_land_types=[
+                str(x) for x in (data.get("preferred_land_types") or []) if x
+            ],
+            theme_types=[str(x) for x in (data.get("theme_types") or []) if x],
+            land_types_strict=bool(data.get("land_types_strict", False)),
         )
         if deck.commander:
             deck.set_commander(deck.commander)

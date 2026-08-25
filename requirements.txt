@@ -9,3 +9,7 @@ pandas
 matplotlib
 fastapi
 uvicorn
+# chromadb 1.5.x pulls pydantic-settings 2.15+, which needs pydantic>=2.7
+# (_signature). scipy 1.18+ needs numpy>=2.
+pydantic>=2.10,<3
+numpy>=2.0,<2.8
