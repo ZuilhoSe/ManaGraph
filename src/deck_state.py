@@ -50,6 +50,7 @@ def _normalize_key(name: str) -> str:
 
 VALID_INTENTS = ("build", "improve", "substitute", "cut")
 VALID_MANA_STRATEGIES = ("static", "hypergeometric")
+STATE_SCHEMA_VERSION = "1"
 
 
 def infer_intent(query: str, has_cards: bool = False) -> str:
@@ -187,6 +188,8 @@ def infer_task(query: str, has_cards: bool = False) -> dict:
 def proposal_has_work(proposal: dict | None) -> bool:
     if not proposal:
         return False
+    if proposal.get("operations"):
+        return True
     payload = proposal.get("delta") if isinstance(proposal.get("delta"), dict) else proposal
     for key in ("add", "remove", "substitute", "substitutions", "candidate_pool", "pool"):
         if payload.get(key):
@@ -205,7 +208,7 @@ def _qty_items(items) -> list[tuple[str, int]]:
         else:
             continue
         name = str(name).strip()
-        if not name or qty == 0:
+        if not name or qty <= 0:
             continue
         parsed.append((name, qty))
     return parsed
@@ -213,10 +216,18 @@ def _qty_items(items) -> list[tuple[str, int]]:
 
 def _clean_qty_map(cards) -> dict[str, int]:
     clean = {}
+    keys = {}
     for name, qty in (cards or {}).items():
         qty = int(qty)
         if name and qty > 0:
-            clean[str(name)] = qty
+            text = str(name).strip()
+            key = _normalize_key(text)
+            canonical = keys.get(key)
+            if canonical:
+                clean[canonical] += qty
+            else:
+                keys[key] = text
+                clean[text] = qty
     return clean
 
 
@@ -242,7 +253,11 @@ def _substitutions(items) -> list[tuple[str, str, int, str]]:
 class DeckState:
     """First-class Commander deck: commander + 99 slots + budget constraints."""
 
+    schema_version: str = STATE_SCHEMA_VERSION
     commander: str = ""
+    # Monotonic revision owned by the Manager. It protects against stale
+    # proposals being applied after another transition.
+    revision: int = 0
     cards: dict[str, int] = field(default_factory=dict)
     identity: list[str] = field(default_factory=list)
     owned_only: bool = False
@@ -335,6 +350,8 @@ class DeckState:
             self.candidate_pool[name] = quantity
 
     def take_from_pool(self, name: str, quantity: int = 1) -> int:
+        if quantity <= 0:
+            return 0
         key = self._pool_key(name)
         if not key:
             return 0
@@ -355,7 +372,6 @@ class DeckState:
             return
         key = self._key(name)
         if quantity < 0:
-            self.remove_card(name, -quantity)
             return
         if key:
             self.cards[key] += quantity
@@ -363,6 +379,8 @@ class DeckState:
             self.cards[name] = quantity
 
     def remove_card(self, name: str, quantity: int = 1):
+        if quantity <= 0:
+            return
         key = self._key(name)
         if not key:
             return
@@ -444,6 +462,7 @@ class DeckState:
         ):
             self.add_to_pool(name, qty)
         self.last_delta = applied
+        self.revision += 1
         return self
 
     def to_dict(self) -> dict:
@@ -454,7 +473,9 @@ class DeckState:
 
     def summary(self) -> dict:
         return {
+            "schema_version": self.schema_version,
             "commander": self.commander,
+            "revision": self.revision,
             "identity": self.identity,
             "slot_count": self.slot_count(),
             "target_slots": MAIN_DECK_SIZE,
@@ -483,7 +504,9 @@ class DeckState:
     def from_dict(cls, data: dict | None) -> DeckState:
         data = data or {}
         deck = cls(
+            schema_version=str(data.get("schema_version") or STATE_SCHEMA_VERSION),
             commander=data.get("commander") or "",
+            revision=max(0, int(data.get("revision", 0) or 0)),
             cards=_clean_qty_map(data.get("cards")),
             identity=list(data.get("identity") or []),
             owned_only=bool(data.get("owned_only", False)),

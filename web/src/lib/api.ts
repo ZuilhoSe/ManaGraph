@@ -25,6 +25,25 @@ export async function deleteInventoryCard(name: string): Promise<void> {
   if (!res.ok) throw new Error(`Delete card failed (${res.status})`)
 }
 
+export interface AllocationCommand {
+  schema_version?: string
+  card: string
+  source: string
+  destination: string
+  quantity: number
+  confirmation_id: string
+}
+
+export async function allocateInventoryCard(command: AllocationCommand): Promise<unknown> {
+  const res = await fetch(`${API_BASE}/api/inventory/allocate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ schema_version: '1', ...command }),
+  })
+  if (!res.ok) throw new Error(`Inventory allocation failed (${res.status})`)
+  return res.json()
+}
+
 export interface CommanderCandidate {
   name: string
   type_line: string
@@ -239,6 +258,11 @@ export interface DeckDiff {
 
 export interface DeckRunEvent {
   type: 'run_id' | 'start' | 'log' | 'node_start' | 'node' | 'error' | 'done' | 'cancelled'
+  schema_version?: string
+  event_type?: 'run_started' | 'node_started' | 'node_finished' | 'log' | 'state_changed' | 'validation' | 'error' | 'done' | 'cancelled'
+  sequence?: number
+  state_revision?: number
+  payload?: Record<string, unknown>
   /** Which node (architect/inventory/solver/supervisor) this event is about.
    *  On an "error"/"cancelled" event, this is the node that was running when it stopped. */
   node?: RunNode
@@ -246,6 +270,8 @@ export interface DeckRunEvent {
   text?: string
   deck?: Record<string, unknown>
   validation?: { valid: boolean; error?: string; warnings?: string[] }
+  gate_decision?: { decision?: string; reason_codes?: string[]; next_action?: string }
+  manager_explanation?: string
   supervisor_decision?: string
   solver_report?: unknown
   message?: string

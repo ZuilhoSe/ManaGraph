@@ -20,6 +20,7 @@ from langchain_core.globals import set_debug
 
 from catalog import DB_NAME, get_oracle_card
 from deck_state import diff_decks
+from contracts import RunEvent, SCHEMA_VERSION
 from main_agent import app as agent_graph, initial_graph_state, to_text
 from scryfall_download import download_and_process_scryfall
 from tools import set_deck_card_pool, set_deck_owned_only
@@ -117,8 +118,9 @@ class _QueueWriter:
       propagates out of the stream loop.
     """
 
-    def __init__(self, q: "queue.Queue"):
+    def __init__(self, q: "queue.Queue", emit=None):
         self._q = q
+        self._emit_event = emit
         self._buffer = ""
         self._swallowing = False
         self._capturing: list[str] | None = None
@@ -159,7 +161,10 @@ class _QueueWriter:
             self._swallow_next_line = True
             return
         if line:
-            _put(self._q, {"type": "log", "text": line})
+            if self._emit_event:
+                self._emit_event("log", "log", "manager", {"text": line})
+            else:
+                _put(self._q, {"type": "log", "text": line})
             if "/error]" in line:
                 self._swallow_next_line = True
         self._last_header = line
@@ -173,7 +178,15 @@ class _QueueWriter:
         for call in message.get("tool_calls") or []:
             name = call.get("name", "?")
             args = json.dumps(call.get("args", {}), default=str)
-            _put(self._q, {"type": "log", "text": f"→ {name}({args})"})
+            if self._emit_event:
+                self._emit_event(
+                    "log",
+                    "log",
+                    "manager",
+                    {"text": f"→ {name}({args})"},
+                )
+            else:
+                _put(self._q, {"type": "log", "text": f"→ {name}({args})"})
 
     def flush(self) -> None:
         pass
@@ -182,7 +195,10 @@ class _QueueWriter:
         line = _ANSI_RE.sub("", self._buffer).rstrip()
         self._buffer = ""
         if line and not self._swallowing:
-            _put(self._q, {"type": "log", "text": line})
+            if self._emit_event:
+                self._emit_event("log", "log", "manager", {"text": line})
+            else:
+                _put(self._q, {"type": "log", "text": line})
 
 
 def _ensure_catalog() -> None:
@@ -267,15 +283,49 @@ def cancel_deck_run(run_id: str) -> bool:
     return True
 
 
-def _run(query: str, deck: dict | None, q: "queue.Queue", cancel_flag: threading.Event) -> None:
-    writer = _QueueWriter(q)
+def _run(
+    query: str,
+    deck: dict | None,
+    q: "queue.Queue",
+    cancel_flag: threading.Event,
+    run_id: str,
+) -> None:
     current_node: str | None = None
     cancelled = False
+    sequence = 0
+
+    def emit(
+        compatibility_type: str,
+        event_type: str,
+        node: str,
+        payload: dict | None = None,
+        state_revision: int = 0,
+    ) -> None:
+        nonlocal sequence
+        sequence += 1
+        event = RunEvent(
+            schema_version=SCHEMA_VERSION,
+            run_id=run_id,
+            sequence=sequence,
+            node=node or "manager",
+            state_revision=max(0, int(state_revision or 0)),
+            event_type=event_type,
+            payload=payload or {},
+        ).model_dump()
+        # Keep the existing UI's top-level event names while making the
+        # canonical protocol available through event_type/payload.
+        event["type"] = compatibility_type
+        event["ts"] = time.time()
+        if payload:
+            event.update(payload)
+        q.put(event)
+
+    writer = _QueueWriter(q, emit=emit)
     try:
         with contextlib.redirect_stdout(writer):
             _ensure_data_ready()
             if cancel_flag.is_set():
-                _put(q, {"type": "cancelled", "node": current_node})
+                emit("cancelled", "cancelled", current_node or "manager")
                 return
             state = initial_graph_state(query, deck)
             # Fail in milliseconds, not after an ~8-minute run: if a commander
@@ -302,7 +352,13 @@ def _run(query: str, deck: dict | None, q: "queue.Queue", cancel_flag: threading
             )
             initial_deck = state["deck"]
             final_deck = initial_deck
-            _put(q, {"type": "start", "deck": initial_deck})
+            emit(
+                "start",
+                "run_started",
+                "manager",
+                {"deck": initial_deck},
+                initial_deck.get("revision", 0),
+            )
             # stream_mode=["updates", "debug"]: "debug" adds a "task" event the
             # instant a node starts (before it produces any output), so we know
             # which node -- and therefore which agent's LLM call -- is running
@@ -313,35 +369,59 @@ def _run(query: str, deck: dict | None, q: "queue.Queue", cancel_flag: threading
                     break
                 if mode == "debug" and payload.get("type") == "task":
                     current_node = payload["payload"]["name"]
-                    _put(q, {"type": "node_start", "node": current_node})
+                    emit("node_start", "node_started", current_node)
                     continue
                 if mode != "updates":
                     continue
                 for node_name, partial in payload.items():
-                    event: dict = {"type": "node", "node": node_name}
+                    event_payload: dict = {}
                     messages = partial.get("messages") or []
                     if messages:
                         last = messages[-1]
-                        event["agent"] = getattr(last, "name", node_name)
-                        event["text"] = to_text(getattr(last, "content", None))
-                    for key in ("deck", "validation", "supervisor_decision", "solver_report"):
+                        event_payload["agent"] = getattr(last, "name", node_name)
+                        event_payload["text"] = to_text(getattr(last, "content", None))
+                    for key in (
+                        "deck",
+                        "validation",
+                        "gate_decision",
+                        "manager_explanation",
+                        "supervisor_decision",
+                        "solver_report",
+                    ):
                         if key in partial:
-                            event[key] = partial[key]
+                            event_payload[key] = partial[key]
                     if "deck" in partial:
                         final_deck = partial["deck"]
-                    _put(q, event)
+                    emit(
+                        "node",
+                        "node_finished",
+                        node_name,
+                        event_payload,
+                        (event_payload.get("deck") or {}).get("revision", 0),
+                    )
         writer.flush_remainder()
     except Exception as exc:  # surface to the UI instead of a silent 500 mid-stream
         writer.flush_remainder()
-        _put(q, {"type": "error", "message": str(exc), "node": current_node})
+        emit(
+            "error",
+            "error",
+            current_node or "manager",
+            {"message": str(exc)},
+        )
     else:
         if cancelled:
-            _put(q, {"type": "cancelled", "node": current_node})
+            emit("cancelled", "cancelled", current_node or "manager")
         else:
             # Computed from the before/after card_list()s, not from any agent's
             # self-reported delta -- the architect/solver "swap" notes can drift
             # from what the deck state actually ended up with.
-            _put(q, {"type": "done", "deck_diff": diff_decks(initial_deck, final_deck)})
+            emit(
+                "done",
+                "done",
+                "manager",
+                {"deck_diff": diff_decks(initial_deck, final_deck)},
+                (final_deck or {}).get("revision", 0),
+            )
     finally:
         q.put(_SENTINEL)
 
@@ -363,11 +443,30 @@ def stream_deck_run(query: str, deck: dict | None):
         _cancel_flags[run_id] = cancel_flag
 
     q: "queue.Queue" = queue.Queue()
-    thread = threading.Thread(target=_run, args=(query, deck, q, cancel_flag), daemon=True)
+    thread = threading.Thread(
+        target=_run,
+        args=(query, deck, q, cancel_flag, run_id),
+        daemon=True,
+    )
     thread.start()
 
     try:
-        yield json.dumps({"type": "run_id", "run_id": run_id, "ts": time.time()}) + "\n"
+        yield (
+            json.dumps(
+                {
+                    "type": "run_id",
+                    "schema_version": SCHEMA_VERSION,
+                    "event_type": "run_started",
+                    "run_id": run_id,
+                    "sequence": 0,
+                    "node": "manager",
+                    "state_revision": 0,
+                    "payload": {},
+                    "ts": time.time(),
+                }
+            )
+            + "\n"
+        )
         while True:
             item = q.get()
             if item is _SENTINEL:

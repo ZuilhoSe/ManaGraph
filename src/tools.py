@@ -2,7 +2,7 @@ import contextvars
 import json
 from langchain.tools import tool
 from hybrid_search import RAGSearcher
-from inventory import get_cards, list_inventory, move_card, FREE_POOL
+from inventory import get_cards, list_inventory, FREE_POOL
 from rules_validator import CommanderValidator
 from deck_state import DeckState, _normalize_key
 
@@ -127,6 +127,24 @@ def get_card_info(name: str) -> str:
 
 
 @tool
+def get_card_facts(name: str) -> str:
+    """Return deterministic capability flags derived from the card's Oracle text."""
+    from catalog import get_oracle_card
+    from symbolic_cards import classify_card
+
+    info = get_oracle_card(name)
+    if not info:
+        return _json({"ok": False, "error": f"'{name}' was not found in the catalog."})
+    facts = classify_card(
+        info["name"],
+        info.get("type_line", ""),
+        info.get("oracle_text", ""),
+        info.get("keywords"),
+    )
+    return _json({"ok": True, "facts": facts.to_dict()})
+
+
+@tool
 def list_inventory_cards(location: str = "") -> str:
     """
     List cards in the physical collection. Returns JSON.
@@ -148,9 +166,15 @@ def move_inventory_card(card_name: str, source: str, destination: str, quantity:
     Typical locations: 'free_pool' and deck keys like 'deck_krenko'.
     Only call this when the user explicitly asked to allocate, add, or remove cards from a deck.
     """
-    result = move_card(card_name, source, destination, quantity)
-    result["ok"] = bool(result.get("ok"))
-    return _json(result)
+    return _json(
+        {
+            "ok": False,
+            "error": (
+                "LLM inventory moves are disabled. The Manager must issue an "
+                "AllocationCommand with explicit confirmation."
+            ),
+        }
+    )
 
 
 @tool

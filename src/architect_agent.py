@@ -3,13 +3,14 @@ from llm_factory import LLMFactory
 from tools import (
     diagnose_deck_json,
     get_card_info,
+    get_card_facts,
     list_filter_matches,
     list_inventory_cards,
     search_cards,
 )
 
 
-class ArchitectAgent:
+class ManagerAgent:
     def __init__(self):
         self.llm = LLMFactory.get_llm()
         self.tools = [
@@ -17,11 +18,12 @@ class ArchitectAgent:
             list_inventory_cards,
             diagnose_deck_json,
             get_card_info,
+            get_card_facts,
             list_filter_matches,
         ]
 
         self.system_prompt = """
-        You are a Magic: The Gathering deck architect specializing in Commander.
+        You are the planning manager of a Magic: The Gathering Commander system.
         Use search_cards to find synergies. Tools return JSON.
         search_cards is hybrid: embedding over type+oracle (not the card name) plus
         lexical oracle match, so \"draw a card\" finds Phyrexian Arena, not Card Draw.
@@ -112,26 +114,25 @@ class ArchitectAgent:
         OUTPUT:
         Your final message MUST be a single JSON object (no markdown), shape:
         {
+          "schema_version": "1",
+          "base_revision": 0,
           "intent": "build" | "improve" | "substitute" | "cut",
           "archetype": "control" | "mill" | "tribal" | "tokens" | "combo" | "generic" | ...,
           "commander": "Card Name or empty string",
-          "identity": ["R"],
-          "preferred_land_types": ["Gate"],
-          "theme_types": ["Room"],
-          "land_types_strict": false,
-          "delta": {
-            "add": [{"name": "Card Name", "quantity": 1}],
-            "remove": [{"name": "Card Name", "quantity": 1}],
-            "substitute": [
-              {"out": "Current Card", "in": "Better Card", "quantity": 1, "reason": "why this slot"}
-            ]
-          },
-          "candidate_pool": [{"name": "Overflow Card", "quantity": 1}],
+          "operations": [
+            {"kind": "add", "card": "Card Name", "quantity": 1},
+            {"kind": "remove", "card": "Current Card", "quantity": 1},
+            {"kind": "substitute", "out": "Current Card", "in": "Better Card", "quantity": 1, "reason": "why this slot"},
+            {"kind": "candidate", "card": "Overflow Card", "quantity": 1}
+          ],
+          "candidates": [{"name": "Card Name", "quantity": 1}],
           "buy_list": [{"name": "Card Name", "quantity": 1, "instead_of": "optional"}],
-          "notes": "short rationale"
+          "rationale": "short rationale"
         }
-        delta.add should be a short seed. Most names belong in candidate_pool.
-        Omit preferred_land_types / theme_types when unused; copy them from the deck JSON when set.
+        Use deck JSON's revision as base_revision. Operations are proposals only;
+        the Manager resolves names, derives identity, and applies them atomically.
+        Do not emit identity, preferred_land_types, theme_types, or arbitrary DeckState fields.
+        Keep a short seed in operations and use candidates for extra ideas.
         Do not claim the deck is legal; the Solver and symbolic validator own that.
 
         DIAGNOSIS:
@@ -149,3 +150,7 @@ class ArchitectAgent:
 
     def run(self, query: str):
         return self.graph.invoke({"messages": [("user", query)]})
+
+
+# Compatibility name for callers that still import the pre-manager component.
+ArchitectAgent = ManagerAgent

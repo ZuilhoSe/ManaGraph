@@ -109,6 +109,9 @@ Research stages (do not skip 3.5 for TDA): **1 DeckState → 2 fill/cut → 3 ge
   - `vectorize_cards.py`: Batch indexing into ChromaDB.
   - `hybrid_search.py`: Hybrid retrieve — MiniLM over type+oracle documents (card **name is metadata only**) plus SQLite lexical oracle match, then identity / price / role filters.
   - `retrieval_text.py`: Shared document format, junk filters, lexical phrase expansion, merge ranking.
+  - `contracts.py`: Versioned, strict contracts between the LLM manager and deterministic core.
+  - `manager_core.py`: Atomic, revision-checked plan application; catalog facts are never trusted from model output.
+  - `symbolic_cards.py`: Deterministic card capability predicates and query requirement families.
   - `rules_validator.py`: Deterministic Commander legality, size, identity, singleton, budget.
   - `llm_factory.py`: Swap LLM providers via environment variables.
   - `tools.py`: LangChain `@tool` wrappers; tools return JSON.
@@ -156,10 +159,22 @@ python src/vectorize_cards.py --rebuild
 
 `build_dataset.py --rebuild` does the same Chroma step as part of the full pipeline.
 
+The LLM is a planning manager only. It proposes typed operations; the Manager
+resolves cards through the catalog, applies plans atomically, runs the
+deterministic Solver/CommanderValidator, and owns the final gate. Inventory
+agents have read-only tools; physical allocation requires an explicit
+confirmation command.
+
 4. **Tests** (validator, deltas, fill/cut, geometry; no API key):
 
 ```bash
-python -m unittest tests.test_stage1 tests.test_stage2 tests.test_stage3 tests.test_stage35 tests.test_invariants tests.test_retrieval
+python -m unittest discover -s tests
+```
+
+Run the deterministic full-deck selection benchmark:
+
+```bash
+python scripts/eval_selection.py
 ```
 
 5. **Run the multi-agent loop** (JSON delta → inventory → fill/cut → symbolic supervisor):

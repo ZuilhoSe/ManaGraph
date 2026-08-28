@@ -330,7 +330,7 @@ export default function CollectionView() {
 
   return (
     <div className="flex flex-col gap-4">
-      <SavedDecksSection />
+      <SavedDecksSection onDeckChange={load} />
       <Section
         title="Collection"
         subtitle={status === 'ready' ? `${cards.length} unique cards · ${totalCopies} copies` : 'Loading...'}

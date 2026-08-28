@@ -6,11 +6,13 @@ from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
 from langchain_core.messages import AIMessage
 
-from architect_agent import ArchitectAgent
-from inventory_agent import InventoryAgent
+from architect_agent import ManagerAgent
 from supervisor_agent import SupervisorAgent
 from deck_state import DeckState, diff_decks, extract_json, infer_task, proposal_has_work, _normalize_key
 from catalog import enrich_deck, get_oracle_card
+from contracts import ArchitectPlan, parse_architect_plan
+from manager_core import apply_plan, build_intent_spec
+from inventory import get_cards
 from mana import diagnose_deck, strategy_from_name
 from rules_validator import CommanderValidator, legal_commanders_in_pool, rank_commanders_by_pool_fit
 from solver import DeckSolver
@@ -67,13 +69,18 @@ class GraphState(TypedDict):
     inventory_report: str
     deck: dict
     proposal: dict
+    plan_result: dict
+    intent_spec: dict
     supervisor_decision: str
+    gate_decision: dict
+    manager_explanation: str
     validation: dict
     solver_report: dict
 
 
-architect = ArchitectAgent()
-inventory_manager = InventoryAgent()
+manager = ManagerAgent()
+# Compatibility alias for integrations that inspect the old graph module.
+architect = manager
 supervisor = SupervisorAgent()
 
 
@@ -183,6 +190,7 @@ def architect_node(state: GraphState):
         diag_view["land_types_strict"] = deck.land_types_strict
     context = (
         f"User request: {state['user_query']}\n\n"
+        f"Validated intent spec:\n{json.dumps(build_intent_spec(state['user_query'], deck).model_dump(), indent=2)}\n\n"
         f"Current deck JSON:\n{json.dumps(deck.summary(), indent=2)}\n\n"
         f"Symbolic diagnosis (do not recompute):\n{json.dumps(diag_view, indent=2, default=str)}"
         f"{_pool_commander_note(deck)}"
@@ -190,7 +198,14 @@ def architect_node(state: GraphState):
     )
     result = architect.run(context)
     architect_reply = to_text(result["messages"][-1].content)
-    proposal = extract_json(architect_reply) or {}
+    raw_proposal = extract_json(architect_reply) or {}
+    try:
+        proposal = parse_architect_plan(
+            raw_proposal,
+            base_revision=deck.revision,
+        ).model_dump(by_alias=True)
+    except Exception as exc:
+        proposal = {"_parse_error": f"Invalid manager plan: {exc}"}
     return {
         "messages": [AIMessage(content=architect_reply, name="architect")],
         "architect_reply": architect_reply,
@@ -200,31 +215,45 @@ def architect_node(state: GraphState):
 
 
 def inventory_node(state: GraphState):
-    print("\n[Node: Inventory] Applying delta and checking collection...")
+    print("\n[Node: Manager] Applying validated plan and checking collection...")
     deck = DeckState.from_dict(state.get("deck"))
-    proposal = state.get("proposal") or extract_json(state.get("architect_reply") or "") or {}
-    parse_error = None
-    if not proposal_has_work(proposal):
-        parse_error = "Architect output was not valid JSON with a delta (add, remove, substitute, or buy_list)."
-    else:
-        commander = proposal.get("commander") or deck.commander
-        if commander and not (proposal.get("identity") or deck.identity):
-            info = get_oracle_card(commander)
-            if info:
-                proposal.setdefault("identity", info["color_identity"])
-        deck.apply_delta(proposal)
+    proposal = state.get("proposal") or {}
+    parse_error = proposal.get("_parse_error") or None
+    plan_result = {}
+    if not parse_error:
+        try:
+            plan = ArchitectPlan.model_validate(proposal)
+            explicit_change = any(
+                phrase in state["user_query"].lower()
+                for phrase in (
+                    "change commander",
+                    "switch commander",
+                    "set commander",
+                    "use as commander",
+                )
+            )
+            result = apply_plan(
+                deck,
+                plan,
+                allow_commander_change=not deck.commander or explicit_change,
+            )
+            plan_result = result.model_dump(by_alias=True)
+            if result.rejected:
+                parse_error = "; ".join(item.message for item in result.rejected)
+        except Exception as exc:
+            parse_error = f"Manager plan rejected: {exc}"
 
-    context = (
-        f"User request: {state['user_query']}\n\n"
-        f"Deck JSON:\n{json.dumps(deck.summary())}\n\n"
-        f"Architect proposal:\n{json.dumps(proposal)}"
-    )
-    result = inventory_manager.run(context)
-    agent_text = to_text(result["messages"][-1].content)
+    touched = []
+    for operation in (plan_result.get("applied") or []):
+        for key in ("card", "in", "out"):
+            if operation.get(key):
+                touched.append(operation[key])
+    inventory_cards = get_cards(sorted(set(touched))) if touched else {}
     report = {
         "parse_error": parse_error,
         "enrichment": enrich_deck(deck),
-        "agent": extract_json(agent_text) or {"notes": agent_text},
+        "inventory": inventory_cards,
+        "plan_result": plan_result,
     }
     payload = json.dumps(report, default=str)
     return {
@@ -232,17 +261,21 @@ def inventory_node(state: GraphState):
         "inventory_report": payload,
         "deck": deck.to_dict(),
         "proposal": proposal,
+        "plan_result": plan_result,
     }
 
 
 def solver_node(state: GraphState):
     print("\n[Node: Solver] Repair / fill / cut...")
     deck = DeckState.from_dict(state.get("deck"))
+    before = deck.to_dict()
     solver = DeckSolver()
     query = state.get("user_query") or ""
     report = solver.solve(
         deck, query=query, fill_to_99=bool(deck.require_complete and deck.commander)
     )
+    if deck.card_list() != DeckState.from_dict(before).card_list():
+        deck.revision += 1
     payload = json.dumps(report, default=str)
     stripped = len((report.get("stripped") or {}).get("removed") or [])
     added = len((report.get("fill") or {}).get("added") or [])
@@ -258,7 +291,6 @@ def solver_node(state: GraphState):
 def supervisor_node(state: GraphState):
     print("\n[Node: Supervisor] Symbolic gate...")
     deck = DeckState.from_dict(state.get("deck"))
-    proposal = state.get("proposal") or {}
     solver_report = state.get("solver_report") or {}
     solver_did = bool(
         ((solver_report.get("stripped") or {}).get("removed"))
@@ -266,10 +298,10 @@ def supervisor_node(state: GraphState):
         or ((solver_report.get("cut") or {}).get("swapped"))
         or ((solver_report.get("cut") or {}).get("removed"))
     )
-    if not proposal_has_work(proposal) and not solver_did:
+    if not state.get("plan_result", {}).get("state_changed") and not solver_did:
         validation = {
             "valid": False,
-            "error": "Architect did not return an add, remove, substitute, candidate_pool, or buy_list.",
+            "error": "Manager did not apply a state-changing plan.",
             "warnings": [],
         }
     else:
@@ -286,6 +318,11 @@ def supervisor_node(state: GraphState):
     return {
         "messages": [AIMessage(content=evaluation["text"], name="supervisor")],
         "supervisor_decision": evaluation["decision"],
+        "gate_decision": {
+            key: evaluation.get(key)
+            for key in ("schema_version", "decision", "valid", "reason_codes", "reasons", "warnings", "next_action")
+        },
+        "manager_explanation": evaluation.get("explanation", ""),
         "validation": evaluation.get("validation") or validation,
     }
 
@@ -293,9 +330,13 @@ def supervisor_node(state: GraphState):
 def route_evaluation(state: GraphState):
     decision = (state.get("supervisor_decision") or "").upper()
     iterations = state.get("iterations", 0)
+    next_action = (state.get("gate_decision") or {}).get("next_action", "")
 
     if decision == "APPROVED":
         print("\n[Router] Supervisor APPROVED. Ending process.")
+        return END
+    if next_action in ("clarify", "confirm"):
+        print(f"\n[Router] Gate requires {next_action}. Ending process.")
         return END
     if iterations >= 3:
         print("\n[Router] Maximum iterations reached. Ending process to prevent infinite loop.")
@@ -368,6 +409,12 @@ def initial_graph_state(query: str, deck: DeckState | dict | None = None) -> dic
             deck.intent = flags["intent"]
             if flags["intent"] != "build":
                 deck.require_complete = False
+    # Identity is a catalog-derived fact, not a user/LLM-controlled setting.
+    if deck.commander:
+        commander_info = get_oracle_card(deck.commander)
+        if commander_info:
+            deck.commander = commander_info["name"]
+            deck.identity = list(commander_info.get("color_identity") or [])
     # Snapshot once, before any node touches the deck: this is what
     # price_cap_new_only compares against for the whole run, regardless of
     # how many architect/solver iterations follow.
@@ -380,7 +427,11 @@ def initial_graph_state(query: str, deck: DeckState | dict | None = None) -> dic
         "inventory_report": "",
         "deck": deck.to_dict(),
         "proposal": {},
+        "plan_result": {},
+        "intent_spec": build_intent_spec(query, deck).model_dump(),
         "supervisor_decision": "",
+        "gate_decision": {},
+        "manager_explanation": "",
         "validation": {},
         "solver_report": {},
     }

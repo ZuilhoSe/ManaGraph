@@ -238,3 +238,16 @@ def move_card(card_name: str, source: str, destination: str, quantity: int = 1) 
         }
     finally:
         conn.close()
+
+
+def execute_allocation(command) -> dict:
+    """Execute a physical move only after a Manager-issued confirmation."""
+    confirmation_id = getattr(command, "confirmation_id", "")
+    if not confirmation_id:
+        return {"ok": False, "error": "allocation requires explicit confirmation_id"}
+    return move_card(
+        command.card,
+        command.source,
+        command.destination,
+        command.quantity,
+    )

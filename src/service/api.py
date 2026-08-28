@@ -9,19 +9,24 @@ so backend AI work there can happen without needing to touch this service.
 
 import os
 import sys
+from dataclasses import fields
+from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from service.handlers.commanders import search_commanders
 from service.handlers.deck_analysis_view import analyze_deck
 from service.handlers.deck_run import cancel_deck_run, stream_deck_run
 from service.handlers.decks import add_missing_cards, build_pool, delete_deck, get_deck, list_decks, save_deck
 from service.handlers.inventory import delete_inventory_card, list_inventory_cards
+from contracts import AllocationCommand, SCHEMA_VERSION
+from deck_state import DeckState
+from inventory import execute_allocation
 
 app = FastAPI(title="ManaGraph API")
 
@@ -50,6 +55,15 @@ def delete_inventory_card_route(name: str):
     if not delete_inventory_card(name):
         raise HTTPException(status_code=404, detail=f"'{name}' was not found in the collection.")
     return {"ok": True}
+
+
+@app.post("/api/inventory/allocate")
+def allocate_inventory_card(payload: AllocationCommand):
+    """Execute a physical move only with a Manager-issued confirmation token."""
+    result = execute_allocation(payload)
+    if not result.get("ok"):
+        raise HTTPException(status_code=400, detail=result.get("error", "allocation failed"))
+    return result
 
 
 @app.get("/api/commanders")
@@ -124,8 +138,36 @@ def delete_deck_route(name: str, remove_cards: bool = False):
 
 
 class DeckRunRequest(BaseModel):
-    query: str
-    deck: dict | None = None
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: str = SCHEMA_VERSION
+    query: str = Field(min_length=1, max_length=10000)
+    deck: dict[str, Any] | None = None
+
+    @field_validator("schema_version")
+    @classmethod
+    def validate_schema_version(cls, value):
+        if value != SCHEMA_VERSION:
+            raise ValueError(f"unsupported schema_version: {value}")
+        return value
+
+    @field_validator("deck")
+    @classmethod
+    def validate_deck_payload(cls, value):
+        if value is None:
+            return value
+        allowed = {field.name for field in fields(DeckState)} | {"slot_count", "complete"}
+        unknown = sorted(set(value) - allowed)
+        if unknown:
+            raise ValueError(f"unknown deck fields: {', '.join(unknown)}")
+        for collection in ("cards", "candidate_pool", "card_pool", "baseline_cards"):
+            entries = value.get(collection) or {}
+            if not isinstance(entries, dict):
+                raise ValueError(f"deck.{collection} must be an object")
+            if any(int(quantity) <= 0 for quantity in entries.values()):
+                raise ValueError(f"deck.{collection} quantities must be positive")
+        DeckState.from_dict(value)
+        return value
 
 
 @app.post("/api/deck/run")

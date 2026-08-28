@@ -1,5 +1,6 @@
 import json
 
+from contracts import GateDecision
 from deck_state import DeckState
 from rules_validator import CommanderValidator
 
@@ -31,12 +32,20 @@ def deterministic_gate(validation: dict | None) -> dict:
     reasons = flatten_errors(validation)
     valid = bool(validation.get("valid")) and not reasons
     decision = "APPROVED" if valid else "REJECTED"
-    return {
-        "decision": decision,
-        "valid": valid,
-        "reasons": reasons,
-        "warnings": list(validation.get("warnings") or []),
-    }
+    reason_codes = [
+        key for key in ERROR_KEYS if validation.get(key)
+    ]
+    if validation.get("error"):
+        reason_codes.append("validation_error")
+    gate = GateDecision(
+        decision=decision,
+        valid=valid,
+        reason_codes=reason_codes,
+        reasons=reasons,
+        warnings=list(validation.get("warnings") or []),
+        next_action="finish" if valid else "repair",
+    )
+    return gate.model_dump()
 
 
 class SupervisorAgent:
@@ -88,6 +97,7 @@ class SupervisorAgent:
         return {
             **gate,
             "validation": validation or {},
+            "explanation": explanation,
             "text": "\n".join(lines),
         }
 

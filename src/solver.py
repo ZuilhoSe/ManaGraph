@@ -31,6 +31,7 @@ from geometry import cosine, load_card_views, multi_view_cosine
 from inventory import get_card as get_inventory_card
 from mana import cmc_bucket, diagnose, produces_mana, shape_bonus, strategy_from_name
 from roles import ROLE_QUOTAS, role_counts, role_need_bonus, token_classes
+from symbolic_cards import classify_card, requirement_families
 from rules_validator import (
     ILLEGAL_COMMANDER_STATUS,
     allows_any_number,
@@ -492,6 +493,7 @@ class DeckSolver:
         extra_candidates: list[str] | None = None,
         retrieve: bool = False,
         max_adds: int | None = None,
+        complete_fallback: bool = False,
     ) -> dict:
         if not deck.commander:
             return {"ok": False, "error": "No commander set.", "added": []}
@@ -531,9 +533,12 @@ class DeckSolver:
             if not ranked:
                 # Never pad the 99 with basics once lands are at quota — that is
                 # how filter-only builds used to dump 40+ Swamps.
-                if self._land_count(deck) >= int(ROLE_QUOTAS["land"][0]):
+                if (
+                    self._land_count(deck) >= int(ROLE_QUOTAS["land"][0])
+                    and not complete_fallback
+                ):
                     break
-                basic = self._best_basic(deck)
+                basic = self._best_basic(deck, allow_overquota=complete_fallback)
                 if not basic or basic.lower() in dead:
                     break
                 ok, _reason = self.can_add(deck, basic)
@@ -863,7 +868,11 @@ class DeckSolver:
             print(f"[Solver] Filling to {'99' if fill_to_99 or should_fix_shape else 'replace stripped/shrink'} "
                   f"(max_adds={max_adds}, slots_left={deck.remaining_slots()})...")
             fill_report = self.fill(
-                deck, query=query, retrieve=False, max_adds=max_adds
+                deck,
+                query=query,
+                retrieve=False,
+                max_adds=max_adds,
+                complete_fallback=bool(should_fix_shape and deck.intent == "build"),
             )
             if fill_to_99 and deck.remaining_slots() > 0:
                 extra = self.fill(deck, query=query, retrieve=True)
@@ -1047,7 +1056,8 @@ class DeckSolver:
                     return "non-preferred land (land_types_strict)"
         if "land" in tl.lower():
             land_high = int(ROLE_QUOTAS["land"][1])
-            if self._land_count(deck) >= land_high:
+            allow_complete_basic = deck.require_complete and is_basic_land(tl)
+            if self._land_count(deck) >= land_high and not allow_complete_basic:
                 return "land quota full"
         if deck.theme_types and self._matches_theme_type(info, deck):
             if self._theme_count(deck) >= THEME_HARD_CAP:
@@ -1153,6 +1163,30 @@ class DeckSolver:
             and self._theme_count(deck) < THEME_SOFT_CAP
         ):
             theme_bonus = THEME_TYPE_BONUS
+        facts = classify_card(
+            info.get("name") or name,
+            info.get("type_line") or "",
+            info.get("oracle_text") or "",
+            info.get("keywords"),
+        )
+        requested = set(requirement_families(query))
+        symbolic_bonus = sum(
+            0.45
+            for family, enabled in (
+                ("counter", facts.is_counter),
+                ("removal", facts.is_removal),
+                ("draw", facts.is_draw),
+                ("ramp", facts.is_ramp),
+                ("protection", facts.is_protection),
+                ("extra_combat", facts.is_extra_combat),
+                ("evasion", facts.is_evasion),
+                ("tutor", facts.is_tutor),
+                ("token_engine", facts.is_token_engine),
+                ("graveyard", facts.is_graveyard),
+                ("sacrifice", facts.is_sacrifice),
+            )
+            if family in requested and enabled
+        )
         # When under land quota, lands must beat glue or 5c builds starve on mana.
         if is_land and self._land_count(deck) < int(ROLE_QUOTAS["land"][0]):
             land_urgent = 3.0
@@ -1172,6 +1206,7 @@ class DeckSolver:
             + pref_land
             + theme_bonus
             + land_urgent
+            + symbolic_bonus
         )
         profile = ctx.get("profile") or profile_for(ctx.get("archetype"))
         cap = profile.max_creatures
@@ -1221,6 +1256,8 @@ class DeckSolver:
             "mana_bonus": shape["mana_bonus"],
             "shape": shape["total"],
             "value": value,
+            "symbolic_facts": facts.to_dict(),
+            "symbolic_bonus": symbolic_bonus,
             "total": total,
             "info": info,
         }
@@ -1278,6 +1315,8 @@ class DeckSolver:
                 "mana_bonus": 0.0,
                 "shape": 0.0,
                 "value": 0.0,
+                "symbolic_facts": {},
+                "symbolic_bonus": 0.0,
                 "total": -999.0,
                 "error": parts["error"],
             }
@@ -1327,6 +1366,8 @@ class DeckSolver:
             "mana_bonus": round(parts.get("mana_bonus") or 0.0, 4),
             "shape": round(parts.get("shape") or 0.0, 4),
             "value": round(parts["value"], 4),
+            "symbolic_facts": parts.get("symbolic_facts") or {},
+            "symbolic_bonus": round(parts.get("symbolic_bonus") or 0.0, 4),
             "total": round(parts["total"], 4),
         }
 
@@ -1441,12 +1482,14 @@ class DeckSolver:
                 best_name = name
         return best_name
 
-    def _best_basic(self, deck: DeckState) -> str | None:
+    def _best_basic(self, deck: DeckState, allow_overquota: bool = False) -> str | None:
         # Never suggest basics (or preferred lands-as-basics) once land quota is met.
-        if self._land_count(deck) >= int(ROLE_QUOTAS["land"][0]):
+        if self._land_count(deck) >= int(ROLE_QUOTAS["land"][1]) and not allow_overquota:
             return None
         # Prefer preferred-type lands still in the pool when land slots are short.
-        if deck.preferred_land_types:
+        if deck.preferred_land_types and (
+            self._land_count(deck) < int(ROLE_QUOTAS["land"][1]) or not allow_overquota
+        ):
             for name in list(deck.candidate_pool):
                 info = self._info(name) or {}
                 if not self._matches_preferred_land(info, deck):
@@ -1530,7 +1573,7 @@ class DeckSolver:
                     allowed_colors=colors,
                     owned_only=deck.owned_only,
                     card_pool=self._pool_norm(deck),
-                    limit=50,
+                    limit=40,
                     max_card_price=deck.max_card_price,
                     currency=deck.currency,
                     n_results=160,
