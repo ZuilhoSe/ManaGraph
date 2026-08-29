@@ -107,6 +107,8 @@ Research stages (do not skip 3.5 for TDA): **1 DeckState → 2 fill/cut → 3 ge
   - `inventory.py`: Check availability and move cards between the free pool and decks.
   - `embeddings.py`: Strategy pattern for embedding providers (model-agnostic).
   - `vectorize_cards.py`: Batch indexing into ChromaDB.
+  - `data_collection.py`: Offline-first source adapters, normalization,
+    provenance, and normalized external deck/recommendation persistence.
   - `hybrid_search.py`: Hybrid retrieve — MiniLM over type+oracle documents (card **name is metadata only**) plus SQLite lexical oracle match, then identity / price / role filters.
   - `retrieval_text.py`: Shared document format, junk filters, lexical phrase expansion, merge ranking.
   - `contracts.py`: Versioned, strict contracts between the LLM manager and deterministic core.
@@ -150,6 +152,95 @@ This runs, in order: Scryfall download → Chroma oracle index → metadata stam
 MiniLM encoding uses **CUDA** when PyTorch sees a GPU (batch size 256). If `torch.cuda.is_available()` is false, it falls back to CPU and prints a warning.
 
 Useful flags: `--rebuild` (drop and re-encode Chroma), `--skip-download` (reuse SQLite), `--skip-views`, `--skip-inventory`.
+
+### Coleta de fontes externas
+
+O coletor mantém a tabela legada `cards` e adiciona tabelas normalizadas
+`sources`, `datasets`, `external_decks`, `deck_cards`, `recommendations`,
+`cooccurrence` e `provenance`. A ingestão é transacional e reexecutável;
+nomes crus ficam armazenados para auditoria e IDs do catálogo são usados
+quando resolvíveis.
+
+No EDHREC, o formato público `container.json_dict.cardlists[].cardviews[]`
+é normalizado sem scraping de HTML. Cada recomendação preserva categoria/tag,
+posição, quantidade de inclusões (`inclusion_count`), universo
+(`potential_decks`), percentual (`inclusion_percent`, de 0 a 100), sinergia,
+salt e metadados no SQLite; o JSON original permanece em `raw_json`. Em uma
+página de comandante, cada comandante→carta também vira uma aresta
+`commander_recommendation` em `cooccurrence`, permitindo consultas de
+relações carta-carta mesmo quando a página não fornece pares explícitos.
+As colunas novas são uma migração aditiva (versão de esquema 3): bancos
+existentes não são apagados nem reconstruídos.
+
+```bash
+# Oracle/Scryfall oficial (cache local + SQLite)
+python scripts/collect_data.py --source scryfall
+
+# Offline: JSONL ou JSONL.GZ exportado do bulk
+python scripts/collect_data.py --source scryfall --fixture path/to/oracle_cards.jsonl.gz
+
+# Fixtures JSON de deck/recomendações; --chroma cria coleções adicionais
+python scripts/collect_data.py --source moxfield --fixture fixtures/moxfield.json --chroma
+python scripts/collect_data.py --source edhrec --fixture fixtures/edhrec.json --chroma
+
+# Sem URL/deck: descobre listagens públicas, pagina e busca detalhes
+python scripts/collect_data.py --source moxfield --chroma
+python scripts/collect_data.py --source edhrec --chroma
+
+# Uma URL pública explicitamente autorizada pelo operador (modo compatível)
+python scripts/collect_data.py --source edhrec --url https://example.invalid/export.json
+```
+
+Opções úteis incluem `--db-path`, `--chroma-path`, `--cache-dir`, `--dataset-id`,
+`--sha256`,
+`--limit`, `--max-pages`, `--page-size`, `--max-commanders`, `--dry-run`,
+`--rebuild`, `--timeout`, `--retries`, `--rate-limit`, `--user-agent`,
+`--no-details`, `--no-commander-pages` e `--no-robots` (somente quando houver
+permissão explícita). Sem entrada, Moxfield usa a listagem pública paginada e
+o endpoint público de detalhes; EDHREC usa suas páginas JSON públicas gerais e
+segue os comandantes descobertos até o limite configurado. Todos os endpoints
+podem ser substituídos por `--search-url`, `--deck-url-template`,
+`--deck-url-fallback-template`, `--listing-url`, `--top-url-template` e
+`--commander-url-template`. Em coleta pública EDHREC, `--limit` limita os
+comandantes detalhados (e `--max-commanders` define o padrão); `--max-pages`
+limita as páginas gerais.
+
+No Moxfield, o resumo usa `publicId` (ou o ID extraído de `publicUrl`) — não o
+`id` interno do resultado de busca. O detalhe tenta
+`/v3/decks/all/{publicId}` e, somente para uma resposta HTTP 404 explícita,
+`/v2/decks/all/{publicId}`. O fallback pode ser desligado quando um template
+autorizado próprio for usado; respostas 401/403 nunca acionam outro endpoint.
+Se a busca não trouxer `publicId` nem `publicUrl`, o resumo é preservado e
+nenhum detalhe é solicitado com o `id` interno. O resultado informa
+`summary_count`, `summaries_without_public_id`, `detail_successes` e
+`detail_fallback_attempts`, para distinguir resumos válidos de decklists
+enriquecidas ou falhas de detalhe.
+
+Na verificação pública de 28/08/2026, um `GET` sem credenciais para
+`/v2/decks/all/{publicId}` retornou JSON com `publicId`, `commanders` e
+`mainboard`; esse é o fundamento do fallback v2. Isso não constitui uma API
+oficial nem garante disponibilidade futura: o v3 observado na coleta retornou
+404 e endpoints não documentados podem mudar.
+
+Moxfield e EDHREC não têm API pública oficial. Os endpoints Moxfield acima são
+interfaces não documentadas usadas por clientes públicos e podem mudar; a
+documentação comunitária que motivou o fallback é a
+[nota de design do moxtags](https://github.com/natefinch/moxtags/blob/main/DESIGN.md).
+O JSON do EDHREC (`json.edhrec.com`) também não é uma API/export autorizado:
+referências comunitárias apenas descrevem arquivos estáticos usados pelo site.
+Não há fallback para HTML, `__NEXT_DATA__`, proxy, credencial ou automação de
+navegador. Um 401/403 é uma falha terminal clara; use um export autorizado por
+`--fixture`/`--file` ou um `--listing-url` explicitamente fornecido pelo
+operador com permissão.
+
+O coletor consulta robots.txt, respeita intervalo entre requisições, faz
+retries limitados para 429/5xx, usa cache por URL/hash e guarda
+tamanho/timestamp/proveniência. Consulte o
+[FAQ do EDHREC](https://edhrec.com/faq) e os
+[Termos do EDHREC](https://edhrec.com/terms) antes de configurar qualquer
+coleta. Dados de recomendação são sugestões de origem; legalidade para
+montagem continua sendo validada pelo catálogo/`rules_validator`, não por
+EDHREC ou Moxfield.
 
 After changing the embedding document format (e.g. dropping card names from Chroma text), rebuild the index:
 

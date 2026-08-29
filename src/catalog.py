@@ -9,6 +9,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(SCRIPT_DIR)
 DATA_DIR = os.path.join(BASE_DIR, "data")
 DB_NAME = os.path.join(DATA_DIR, "managraph.db")
+COLLECTION_SCHEMA_VERSION = "3"
 
 os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -77,6 +78,211 @@ def ensure_schema(conn: sqlite3.Connection):
             value TEXT
         )
         """
+    )
+    # The original cards/catalog_meta tables are intentionally left intact.
+    # Collection data lives in separate normalized tables so old catalog,
+    # validator, inventory, and solver callers remain source-compatible.
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS sources (
+            source_id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            adapter TEXT NOT NULL,
+            base_url TEXT,
+            terms_url TEXT,
+            robots_url TEXT,
+            license TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS datasets (
+            dataset_id TEXT PRIMARY KEY,
+            source_id TEXT NOT NULL,
+            dataset_type TEXT NOT NULL,
+            version TEXT,
+            url TEXT,
+            local_path TEXT,
+            sha256 TEXT,
+            byte_size INTEGER,
+            fetched_at TEXT NOT NULL,
+            metadata_json TEXT NOT NULL DEFAULT '{}',
+            FOREIGN KEY (source_id) REFERENCES sources(source_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS external_decks (
+            deck_id TEXT PRIMARY KEY,
+            source_id TEXT NOT NULL,
+            external_id TEXT NOT NULL,
+            name TEXT,
+            commander_name_raw TEXT,
+            commander_card_id TEXT,
+            format TEXT,
+            url TEXT,
+            dataset_id TEXT,
+            raw_hash TEXT,
+            license TEXT,
+            collected_at TEXT NOT NULL,
+            metadata_json TEXT NOT NULL DEFAULT '{}',
+            UNIQUE (source_id, external_id),
+            FOREIGN KEY (source_id) REFERENCES sources(source_id),
+            FOREIGN KEY (dataset_id) REFERENCES datasets(dataset_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS deck_cards (
+            deck_id TEXT NOT NULL,
+            card_name_raw TEXT NOT NULL,
+            card_id TEXT,
+            quantity INTEGER NOT NULL CHECK (quantity > 0),
+            section TEXT NOT NULL DEFAULT 'mainboard',
+            raw_json TEXT NOT NULL DEFAULT '{}',
+            provenance_id INTEGER,
+            PRIMARY KEY (deck_id, card_name_raw, section),
+            FOREIGN KEY (deck_id) REFERENCES external_decks(deck_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS recommendations (
+            source_id TEXT NOT NULL,
+            dataset_id TEXT,
+            commander_card_id TEXT,
+            card_id TEXT,
+            card_name_raw TEXT NOT NULL,
+            score REAL,
+            rank INTEGER,
+            recommendation_type TEXT NOT NULL DEFAULT 'recommendation',
+            category TEXT,
+            inclusion_count INTEGER,
+            potential_decks INTEGER,
+            inclusion_percent REAL,
+            synergy REAL,
+            salt_score REAL,
+            raw_json TEXT NOT NULL DEFAULT '{}',
+            metadata_json TEXT NOT NULL DEFAULT '{}',
+            collected_at TEXT NOT NULL,
+            PRIMARY KEY (
+                source_id, dataset_id, commander_card_id,
+                card_name_raw, recommendation_type
+            ),
+            FOREIGN KEY (source_id) REFERENCES sources(source_id),
+            FOREIGN KEY (dataset_id) REFERENCES datasets(dataset_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS cooccurrence (
+            source_id TEXT NOT NULL,
+            dataset_id TEXT,
+            card_id_a TEXT,
+            card_id_b TEXT,
+            card_name_a_raw TEXT NOT NULL,
+            card_name_b_raw TEXT NOT NULL,
+            occurrence_count INTEGER NOT NULL DEFAULT 1 CHECK (occurrence_count >= 0),
+            score REAL,
+            relation_type TEXT NOT NULL DEFAULT 'cooccurrence',
+            category TEXT,
+            inclusion_percent REAL,
+            synergy REAL,
+            raw_json TEXT NOT NULL DEFAULT '{}',
+            metadata_json TEXT NOT NULL DEFAULT '{}',
+            collected_at TEXT NOT NULL,
+            PRIMARY KEY (
+                source_id, dataset_id, card_name_a_raw, card_name_b_raw
+            ),
+            FOREIGN KEY (source_id) REFERENCES sources(source_id),
+            FOREIGN KEY (dataset_id) REFERENCES datasets(dataset_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS provenance (
+            provenance_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            entity_type TEXT NOT NULL,
+            entity_key TEXT NOT NULL,
+            source_id TEXT NOT NULL,
+            dataset_id TEXT,
+            raw_name TEXT,
+            raw_hash TEXT NOT NULL,
+            license TEXT,
+            collected_at TEXT NOT NULL,
+            raw_json TEXT,
+            metadata_json TEXT NOT NULL DEFAULT '{}',
+            UNIQUE (entity_type, entity_key, source_id, dataset_id, raw_hash),
+            FOREIGN KEY (source_id) REFERENCES sources(source_id),
+            FOREIGN KEY (dataset_id) REFERENCES datasets(dataset_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_datasets_source
+            ON datasets(source_id, fetched_at);
+        CREATE INDEX IF NOT EXISTS idx_external_decks_source
+            ON external_decks(source_id, external_id);
+        CREATE INDEX IF NOT EXISTS idx_deck_cards_card
+            ON deck_cards(card_id, card_name_raw);
+        CREATE INDEX IF NOT EXISTS idx_recommendations_commander
+            ON recommendations(commander_card_id, rank);
+        CREATE INDEX IF NOT EXISTS idx_cooccurrence_cards
+            ON cooccurrence(card_id_a, card_id_b);
+        CREATE INDEX IF NOT EXISTS idx_provenance_entity
+            ON provenance(entity_type, entity_key, collected_at);
+        """
+    )
+    # The collector was added after the original catalog.  Keep upgrades
+    # additive for databases created by an earlier checkout or by a partial
+    # migration; never rebuild/drop a table that existing callers may use.
+    migrations = {
+        "sources": {
+            "terms_url": "TEXT",
+            "robots_url": "TEXT",
+        },
+        "datasets": {
+            "version": "TEXT",
+            "metadata_json": "TEXT NOT NULL DEFAULT '{}'",
+        },
+        "external_decks": {
+            "dataset_id": "TEXT",
+            "raw_hash": "TEXT",
+            "license": "TEXT",
+            "metadata_json": "TEXT NOT NULL DEFAULT '{}'",
+        },
+        "deck_cards": {
+            "raw_json": "TEXT NOT NULL DEFAULT '{}'",
+            "provenance_id": "INTEGER",
+        },
+        "recommendations": {
+            "dataset_id": "TEXT",
+            "raw_json": "TEXT NOT NULL DEFAULT '{}'",
+            "category": "TEXT",
+            "inclusion_count": "INTEGER",
+            "potential_decks": "INTEGER",
+            "inclusion_percent": "REAL",
+            "synergy": "REAL",
+            "salt_score": "REAL",
+            "metadata_json": "TEXT NOT NULL DEFAULT '{}'",
+        },
+        "cooccurrence": {
+            "dataset_id": "TEXT",
+            "raw_json": "TEXT NOT NULL DEFAULT '{}'",
+            "relation_type": "TEXT NOT NULL DEFAULT 'cooccurrence'",
+            "category": "TEXT",
+            "inclusion_percent": "REAL",
+            "synergy": "REAL",
+            "metadata_json": "TEXT NOT NULL DEFAULT '{}'",
+        },
+        "provenance": {
+            "dataset_id": "TEXT",
+            "raw_json": "TEXT",
+            "metadata_json": "TEXT NOT NULL DEFAULT '{}'",
+        },
+    }
+    for table, columns_to_add in migrations.items():
+        existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+        for column, definition in columns_to_add.items():
+            if column not in existing:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+    conn.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_recommendations_card_metrics
+            ON recommendations(card_id, inclusion_percent, synergy)
+        """
+    )
+    conn.execute(
+        "INSERT OR REPLACE INTO catalog_meta (key, value) VALUES (?, ?)",
+        ("collection_schema_version", COLLECTION_SCHEMA_VERSION),
     )
     conn.commit()
 
