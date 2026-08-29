@@ -1,5 +1,10 @@
 # Plano de melhoria do motor de montagem de decks
 
+> **Documento detalhado do roadmap:** a ordem oficial agora está em
+> [`ontology-first-roadmap.md`](ontology-first-roadmap.md). Este arquivo mantém
+> os detalhes de dados, modelos e integração; `ONTOLOGY.md` é o contrato da
+> representação funcional e o Stage 3.6 precisa passar antes do TDA.
+
 ## Objetivo
 
 Evoluir o ManaGraph de um sistema que recupera cartas relevantes para um
@@ -63,6 +68,19 @@ Devem ser a fonte factual para:
 
 O Oracle deve alimentar os predicados simbolicos. O texto Oracle nao deve ser
 substituido por uma classificacao livre do LLM.
+
+### Forge
+
+O [Forge](https://github.com/Card-Forge/forge) entra como fonte de bootstrap e
+validacao da ontologia. Uma release fixada de `cardsfolder` pode fornecer
+efeitos, custos, eventos, `DeckHas` e `DeckNeeds` para gerar candidatos a
+objetos, predicates e relacoes antes da anotacao do catalogo.
+
+Esses dados nao substituem Scryfall/Oracle e nao viram dependencia de runtime.
+O mapeamento deve ser validado contra um conjunto rotulado manualmente,
+registrar divergencias de Oracle e manter os artefatos derivados de Forge como
+validacao interna. A taxonomia de arquetipos do Forge nao deve ser importada
+para o schema mecanico.
 
 ### Moxfield
 
@@ -189,7 +207,11 @@ Somente `oracle_rule`, `catalog_field` e `curated_rule` podem afetar a
 selecao de producao. Uma classificacao assistida pelo LLM precisa passar por
 revisao antes de entrar no catalogo confiavel.
 
-## Fase 1 — Baseline estatistico
+## Workstream 1 — Baseline estatistico e observacao
+
+Este workstream apoia o Stage 3.6 e nao substitui a ontologia. Coocorrencia,
+PMI e dados de Moxfield/EDHREC devem permanecer separados do score funcional
+ate serem normalizados por contexto.
 
 Criar primeiro uma referencia sem rede neural.
 
@@ -251,7 +273,7 @@ score_total = score_functional + 0.1 * popularity_prior
 O objetivo e impedir que EDHREC ou Moxfield transforme o sistema em um
 recomendador de staples.
 
-## Fase 2 — Dataset de compatibilidade
+## Workstream 2 — Dataset de compatibilidade
 
 O exemplo de treinamento deve representar contexto, nao apenas uma carta:
 
@@ -304,7 +326,7 @@ coocorrencia global            0.45
 
 Os pesos sao pontos de partida e devem ser calibrados pelo benchmark.
 
-## Fase 3 — Modelo de compatibilidade
+## Workstream 3 — Modelo de compatibilidade
 
 Treinar primeiro um modelo pequeno para:
 
@@ -330,7 +352,7 @@ Features importantes:
 Um modelo de gradient boosting ou MLP provavelmente sera suficiente no inicio.
 Nao ha necessidade de fine-tunar um LLM para essa etapa.
 
-## Fase 4 — Retrieval contrastivo
+## Workstream 4 — Retrieval contrastivo
 
 Depois do baseline, treinar embeddings com pares:
 
@@ -354,7 +376,7 @@ effect_families
 
 O embedding descobre candidatos. O Solver continua decidindo.
 
-## Fase 5 — Descoberta de combinacoes novas
+## Workstream 5 — Descoberta de combinacoes novas
 
 Listas historicas sozinhas nao conseguem ensinar combinacoes ausentes delas.
 Para gerar hipoteses novas:
@@ -488,15 +510,20 @@ O rationale gerado pelo LLM nunca deve alterar score, estado ou legalidade.
 
 ## Ordem de implementacao
 
-1. Consolidar `CardFacts` e familias de efeitos.
-2. Construir o grafo simbolico de cartas.
-3. Implementar coocorrencia e PMI.
-4. Adicionar Moxfield/EDHREC como features e priors autorizados.
-5. Treinar um reranker pequeno.
-6. Treinar embeddings contrastivos.
-7. Criar busca composicional de combinacoes.
-8. Avaliar commanders e arquetipos nao vistos.
-9. So depois considerar fine-tuning de modelos maiores.
+A ordem abaixo segue [`ontology-first-roadmap.md`](ontology-first-roadmap.md):
+
+1. Fixar uma release do Forge e implementar a mineração de `cardsfolder`.
+2. Congelar `schema_v1.yaml`, consumidores e testes de aceitação do Stage 3.6.
+3. Implementar extração Tier 1/Tier 2 e medir cobertura por predicate.
+4. Validar predicates antes de usá-los em score, corte ou constraint.
+5. Construir o grafo de supply/demand e integrar diagnóstico tipado ao solver.
+6. Rodar as ablações do harness do Lucas e confirmar mudança explicável em
+   fill/cut.
+7. Implementar o baseline estatístico e PMI como observação contextual.
+8. Adicionar Moxfield/EDHREC como priors fracos e auditáveis.
+9. Treinar o modelo de compatibilidade e, depois, retrieval contrastivo.
+10. Criar busca composicional e medir novidade funcional.
+11. Só depois iniciar TDA, epidemiologia e modelos maiores.
 
 ## Criterios de sucesso
 
