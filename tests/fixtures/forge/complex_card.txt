@@ -1,0 +1,16 @@
+Name: Forge Test Engine
+ManaCost: {2}{R}
+Types: Artifact
+Oracle: {T}: Add {R}. Create a Treasure token.
+DeckHas: Ability$Token
+DeckNeeds: Ability$Counters
+A:AB$ Mana | Cost$ T | Produced$ R
+A:AB$ Token | Cost$ 2 | TokenScript$ c_a_treasure_sac | SubAbility$ DB$Draw
+A:DB$ Draw | NumCards$ 1
+T:Mode$ ChangesZone | Destination$ Battlefield
+T:Mode$ Sacrificed
+K:Flash
+ALTERNATE
+Name: Forge Test Engine // Alternate
+Oracle: Exile target card from a graveyard.
+A:SP$ ChangeZone | Origin$ Graveyard | Destination$ Exile

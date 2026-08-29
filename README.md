@@ -169,7 +169,7 @@ salt e metadados no SQLite; o JSON original permanece em `raw_json`. Em uma
 página de comandante, cada comandante→carta também vira uma aresta
 `commander_recommendation` em `cooccurrence`, permitindo consultas de
 relações carta-carta mesmo quando a página não fornece pares explícitos.
-As colunas novas são uma migração aditiva (versão de esquema 3): bancos
+As colunas novas são uma migração aditiva (versão de esquema 4): bancos
 existentes não são apagados nem reconstruídos.
 
 ```bash
@@ -241,6 +241,26 @@ tamanho/timestamp/proveniência. Consulte o
 coleta. Dados de recomendação são sugestões de origem; legalidade para
 montagem continua sendo validada pelo catálogo/`rules_validator`, não por
 EDHREC ou Moxfield.
+
+### Validação Forge + Scryfall
+
+O catálogo canônico pode ser cruzado com o artefato Forge e todas as cartas
+ficam exploráveis na página local de validação:
+
+```bash
+python scripts/enrich_ontology.py
+python -m uvicorn service.api:app --app-dir src --reload --port 8000
+```
+
+Abra `http://localhost:8000/ontology-validator`. A página permite pesquisar e
+filtrar cartas, consultar o registro completo do Scryfall, os fatos
+normalizados e a DSL do Forge, marcar `accepted`, `rejected` ou `uncertain`,
+comparar as abas Scryfall, Forge e Final, confirmar cada campo semântico,
+selecionar a fonte adotada por carta, adicionar labels/observações e exportar
+`data/ontology/gold_set_v1.jsonl`. A exportação registra essas escolhas para
+reprocessamento posterior.
+O cruzamento cria as tabelas aditivas `ontology_cards`, `forge_records` e
+`ontology_reviews`; a tabela legada `cards` não é substituída.
 
 After changing the embedding document format (e.g. dropping card names from Chroma text), rebuild the index:
 

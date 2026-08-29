@@ -74,6 +74,40 @@ Não anotar cartas antes de congelar esse contrato.
 O LLM pode propor labels durante a preparação offline; nunca deve anotar em
 runtime nem alterar diretamente legalidade ou score.
 
+#### Entrega inicial Phase A/B
+
+O contrato v1 está em `data/ontology/schema_v1.yaml`, com carregamento e
+validação em `src/ontology/schema.py`. O Tier 0 está em
+`scripts/mine_forge.py`: recebe somente uma `cardsfolder` local (diretório ou
+zip), emite JSONL intermediário e usa `data/ontology/forge_mapping.yaml` para
+candidatos mecânicos e validação `DeckHas`/`DeckNeeds`. A release/commit são
+configuráveis por argumento ou ambiente e permanecem nulos quando não
+fornecidos; não há download, execução ou dependência de Forge no runtime.
+Fixtures cobrem duplicação, faces alternativas, Oracle e cadeias
+`SubAbility$`. Cross-check com Scryfall, gold set, Tier 1/2 e consumo pelo
+grafo/solver continuam nas fases seguintes.
+
+#### Camada semântica factual inicial
+
+Antes de promover qualquer descoberta a predicate, o artefato Forge também
+emite `card.facts` por face. Essa camada normaliza, sem apagar a evidência
+bruta:
+
+- símbolos, custos genéricos, cores indicadas pelo custo e símbolos variáveis;
+- supertipos, tipos de carta e subtipos;
+- poder e resistência, inclusive expressões como `*` e `2+*`;
+- keywords e categorias de DSL (`ability`, `keyword`, `static`,
+  `replacement`, `trigger` e `svar`), com contagens;
+- `color_identity: null` com origem `scryfall_pending`.
+
+As cores encontradas no `ManaCost` são apenas cores indicadas pelo custo; elas
+não são a identidade de cor Commander. A identidade, Oracle canônico,
+legalidade e demais fatos oficiais continuam vindo do Scryfall. Assim, o
+minerador pode usar o conteúdo estrutural do Forge sem transformar uma
+inferência parcial em verdade do jogo. A próxima expansão é cobrir alvos,
+condições, magnitudes e efeitos DSL restantes, sempre mantendo a linha bruta
+como evidência.
+
 ### C. Validação
 
 1. Criar um gold set estratificado de 300–500 cartas, começando por uma amostra

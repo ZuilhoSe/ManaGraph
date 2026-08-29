@@ -1,0 +1,101 @@
+{
+  "config_version": "1.0.0",
+  "name": "scryfall-forge-final-v1",
+  "source_enabled": {
+    "scryfall": true,
+    "forge": true,
+    "resolved": true
+  },
+  "field_sources": {
+    "name": "scryfall",
+    "mana_cost": "scryfall",
+    "mana_value": "scryfall",
+    "colors": "scryfall",
+    "color_identity": "scryfall",
+    "type_line": "scryfall",
+    "keywords": "scryfall",
+    "power": "scryfall",
+    "toughness": "scryfall",
+    "produced_mana": "scryfall",
+    "oracle_text": "scryfall",
+    "legalities": "scryfall",
+    "id": "scryfall",
+    "oracle_id": "scryfall",
+    "layout": "scryfall",
+    "faces": "scryfall",
+    "types": "resolved",
+    "symbols": "resolved",
+    "colored_pips": "resolved",
+    "generic_pips": "resolved",
+    "loyalty": "scryfall",
+    "defense": "scryfall",
+    "all_parts": "scryfall",
+    "effects": "forge",
+    "costs": "forge",
+    "triggers": "forge",
+    "subabilities": "forge",
+    "deck_has": "forge",
+    "deck_needs": "forge",
+    "deck_hints": "forge",
+    "candidates": "forge",
+    "warnings": "forge",
+    "ability_kinds": "resolved",
+    "effect_count": "resolved",
+    "trigger_count": "resolved",
+    "forge_keywords_not_in_scryfall": "resolved"
+  },
+  "field_enabled": {
+    "scryfall": {
+      "name": true,
+      "mana_cost": true,
+      "mana_value": true,
+      "colors": true,
+      "color_identity": true,
+      "type_line": true,
+      "keywords": true,
+      "power": true,
+      "toughness": true,
+      "produced_mana": true,
+      "oracle_text": true,
+      "legalities": true,
+      "id": true,
+      "oracle_id": true,
+      "layout": true,
+      "faces": true,
+      "types": true,
+      "symbols": true,
+      "colored_pips": true,
+      "generic_pips": true,
+      "loyalty": true,
+      "defense": true,
+      "all_parts": true
+    },
+    "forge": {
+      "effects": true,
+      "costs": true,
+      "triggers": true,
+      "subabilities": true,
+      "deck_has": true,
+      "deck_needs": true,
+      "deck_hints": true,
+      "candidates": true,
+      "warnings": true,
+      "ability_kinds": true,
+      "effect_count": true,
+      "trigger_count": true,
+      "forge_keywords_not_in_scryfall": true
+    }
+  },
+  "value_filters": {
+    "scryfall": {},
+    "forge": {}
+  },
+  "raw_enabled": {
+    "scryfall": true,
+    "forge": true
+  },
+  "raw_fields": {
+    "scryfall": ["*"],
+    "forge": ["*"]
+  }
+}

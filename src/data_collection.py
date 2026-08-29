@@ -1759,7 +1759,7 @@ def ingest_oracle_lines(
                     oracle_text_from_scryfall(card), json.dumps(card.get("color_identity", [])),
                     card.get("type_line", ""), json.dumps(card.get("legalities", {})),
                     parse_price(prices.get("usd")), parse_price(prices.get("eur")),
-                    keywords_from_scryfall(card),
+                    keywords_from_scryfall(card), canonical_json(card),
                 )
             )
             count += 1
@@ -1767,8 +1767,8 @@ def ingest_oracle_lines(
                 conn.executemany(
                     """INSERT OR REPLACE INTO cards
                     (id, name, mana_cost, cmc, oracle_text, color_identity, type_line,
-                     legalities, price_usd, price_eur, keywords)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                     legalities, price_usd, price_eur, keywords, scryfall_json)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     rows,
                 )
                 rows = []
@@ -1776,8 +1776,8 @@ def ingest_oracle_lines(
             conn.executemany(
                 """INSERT OR REPLACE INTO cards
                 (id, name, mana_cost, cmc, oracle_text, color_identity, type_line,
-                 legalities, price_usd, price_eur, keywords)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                 legalities, price_usd, price_eur, keywords, scryfall_json)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 rows,
             )
         set_meta(conn, "price_snapshot_at", utc_now())

@@ -372,6 +372,12 @@ class DataCollectionTests(unittest.TestCase):
             self.assertEqual(result["cards"], 1)
             self.assertEqual(get_oracle_card("New Oracle Card", self.db)["id"], "new")
             conn = sqlite3.connect(self.db)
+            raw = json.loads(
+                conn.execute(
+                    "SELECT scryfall_json FROM cards WHERE id='new'"
+                ).fetchone()[0]
+            )
+            self.assertEqual(raw["name"], "New Oracle Card")
             self.assertEqual(
                 conn.execute("SELECT COUNT(*) FROM datasets WHERE source_id='scryfall'").fetchone()[0],
                 1,

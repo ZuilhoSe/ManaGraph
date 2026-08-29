@@ -1,12 +1,17 @@
 # Config and secrets
 .env
 .env.local
+.env.*
+!.env.example
 
-# Python cache
+# Python cache and virtualenvs
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.pytest_cache/
+.venv/
+venv/
 
 # Jupyter notebooks (optional, skip checkpoints)
 .ipynb_checkpoints/
@@ -25,3 +30,10 @@ data/managraph.db
 data/*.db
 data/*.sqlite3
 data/card_views.npz
+
+# Mined/generated ontology artifacts (schema, mapping, and model_config stay tracked)
+data/ontology/*.jsonl
+
+# Frontend local artifacts (also listed in web/.gitignore)
+web/node_modules/
+web/dist/

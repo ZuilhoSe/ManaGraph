@@ -5,6 +5,7 @@ langchain>=0.1.10
 langchain-google-genai>=0.0.9
 langchain-anthropic
 python-dotenv
+PyYAML>=6.0
 pandas
 matplotlib
 fastapi

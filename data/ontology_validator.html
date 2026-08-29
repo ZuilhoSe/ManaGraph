@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ManaGraph · Ontology validator</title>
+  <style>
+    :root { color-scheme: dark; --bg:#10131a; --panel:#191e28; --line:#303949; --text:#edf2f7; --muted:#98a4b5; --accent:#79b8ff; --good:#65d39a; --bad:#ff8d9a; --warn:#f2c66d; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:14px/1.45 system-ui,-apple-system,Segoe UI,sans-serif; }
+    main { max-width:1500px; margin:0 auto; padding:24px; }
+    h1,h2,h3 { margin:0 0 8px; } h1 { font-size:24px; } h2 { font-size:17px; } h3 { font-size:14px; color:var(--accent); }
+    p { color:var(--muted); margin:4px 0; }
+    button,input,select,textarea { border:1px solid var(--line); border-radius:7px; background:#111620; color:var(--text); padding:8px 10px; font:inherit; }
+    button { cursor:pointer; } button:hover { border-color:var(--accent); } button.primary { background:#234b75; border-color:#4f8ec9; }
+    header { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; margin-bottom:18px; }
+    .actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .stats { display:grid; grid-template-columns:repeat(6,minmax(110px,1fr)); gap:10px; margin-bottom:16px; }
+    .stat,.panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; }
+    .stat { padding:12px; } .stat strong { display:block; font-size:21px; } .stat span { color:var(--muted); font-size:12px; }
+    .filters { padding:12px; display:grid; grid-template-columns:2fr 1fr 100px 1fr 130px 130px auto; gap:8px; margin-bottom:16px; }
+    .workspace { display:grid; grid-template-columns:minmax(420px,1fr) minmax(420px,1.25fr); gap:16px; align-items:start; }
+    .panel { overflow:hidden; } .panel-head { padding:14px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; gap:8px; align-items:center; }
+    #card-list { max-height:calc(100vh - 285px); overflow:auto; }
+    .card-row { padding:11px 14px; border-bottom:1px solid #252c38; cursor:pointer; }
+    .card-row:hover,.card-row.selected { background:#222b39; } .card-row strong { display:block; }
+    .meta { color:var(--muted); font-size:12px; margin-top:3px; } .pill { display:inline-block; padding:2px 6px; border-radius:99px; border:1px solid var(--line); margin:2px 3px 0 0; font-size:11px; }
+    .matched { color:var(--good); } .unmatched { color:var(--warn); } .accepted { color:var(--good); } .rejected { color:var(--bad); } .uncertain { color:var(--warn); }
+    #detail { padding:16px; max-height:calc(100vh - 285px); overflow:auto; } .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .fact { background:#111620; border:1px solid var(--line); border-radius:8px; padding:10px; } .fact pre { max-height:260px; overflow:auto; }
+    pre { white-space:pre-wrap; word-break:break-word; color:#cbd6e5; font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace; margin:6px 0 0; }
+    .review { margin-top:14px; padding-top:14px; border-top:1px solid var(--line); } .review-buttons { display:flex; gap:7px; flex-wrap:wrap; margin:8px 0; }
+    .review-buttons button.active { outline:2px solid var(--accent); } textarea { width:100%; min-height:70px; resize:vertical; } label { color:var(--muted); font-size:12px; display:block; margin:8px 0 4px; }
+    .tabs { display:flex; gap:4px; border-bottom:1px solid var(--line); margin:14px 0 12px; } .tab { border:0; border-radius:7px 7px 0 0; color:var(--muted); } .tab.active { background:#263c58; color:var(--text); }
+    .source-choice { display:flex; align-items:center; gap:7px; color:var(--text); } .source-choice input { accent-color:var(--accent); }
+    .field-list { display:grid; gap:7px; margin-top:8px; } .field-row { display:grid; grid-template-columns:auto 150px 1fr; align-items:start; gap:8px; padding:8px; border:1px solid var(--line); border-radius:7px; background:#111620; }
+    .field-row input { accent-color:var(--good); margin-top:3px; } .field-row strong { color:var(--text); font-size:12px; } .field-row pre { max-height:90px; overflow:auto; margin:0; font-size:11px; }
+    .pager { padding:10px 14px; display:flex; justify-content:space-between; align-items:center; gap:8px; border-top:1px solid var(--line); }
+    .error { color:var(--bad); padding:10px 14px; } .empty { color:var(--muted); padding:20px 14px; }
+    @media (max-width:1000px) { .workspace { grid-template-columns:1fr; } #card-list,#detail { max-height:none; } .filters { grid-template-columns:1fr 1fr 90px 1fr; } .stats { grid-template-columns:repeat(3,1fr); } }
+    @media (max-width:600px) { main { padding:12px; } header { display:block; } .actions { margin-top:12px; } .filters { grid-template-columns:1fr 1fr; } .stats { grid-template-columns:repeat(2,1fr); } .detail-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>ManaGraph · Ontology validator</h1>
+      <p>Explore Scryfall, inspect Forge facts, and build a reviewed golden set.</p>
+    </div>
+    <div class="actions">
+      <button id="refresh">Refresh</button>
+      <button id="export" class="primary">Generate golden set</button>
+      <a id="download" hidden href="/api/ontology/gold-set/download">Download JSONL</a>
+    </div>
+  </header>
+
+  <section class="stats" id="stats"></section>
+  <section id="cards-view">
+  <form class="panel filters" id="filters">
+    <input id="q" placeholder="Search name, Oracle, type…">
+    <input id="card-type" placeholder="Card type">
+    <select id="color"><option value="">Any color</option><option value="W">W</option><option value="U">U</option><option value="B">B</option><option value="R">R</option><option value="G">G</option><option value="C">Colorless</option></select>
+    <input id="keyword" placeholder="Keyword">
+    <select id="forge-status"><option value="">Forge: any</option><option value="matched">Matched</option><option value="unmatched">Unmatched</option></select>
+    <select id="review-status"><option value="">Review: any</option><option value="unreviewed">Unreviewed</option><option value="accepted">Accepted</option><option value="rejected">Rejected</option><option value="uncertain">Uncertain</option></select>
+    <button type="submit" class="primary">Filter</button>
+  </form>
+
+  <div id="message" class="error" hidden></div>
+  <section class="workspace">
+    <div class="panel">
+      <div class="panel-head"><h2>Cards</h2><span id="result-count" class="meta"></span></div>
+      <div id="card-list"><div class="empty">Loading…</div></div>
+      <div class="pager"><button id="previous">Previous</button><span id="page-info" class="meta"></span><button id="next">Next</button></div>
+    </div>
+    <div class="panel">
+      <div id="detail"><div class="empty">Select a card to inspect every available field.</div></div>
+    </div>
+  </section>
+  </section>
+</main>
+<script>
+  const state = { page: 1, pageSize: 50, selected: null, detail: null, reviewStatus: 'unreviewed', selectedSource: 'resolved', activeTab: 'final' };
+  const $ = (id) => document.getElementById(id);
+  const json = (value) => JSON.stringify(value ?? {}, null, 2);
+  const api = async (url, options) => {
+    const response = await fetch(url, options);
+    if (!response.ok) throw new Error((await response.json().catch(() => ({}))).detail || `Request failed (${response.status})`);
+    return response.json();
+  };
+  const params = () => {
+    const p = new URLSearchParams({ page: state.page, page_size: state.pageSize });
+    [['q','q'],['card-type','card_type'],['color','color'],['keyword','keyword'],['forge-status','forge_status'],['review-status','review_status']]
+      .forEach(([id,key]) => { const value = $(id).value.trim(); if (value) p.set(key, value); });
+    return p;
+  };
+  const showError = (error) => { $('message').textContent = error.message || String(error); $('message').hidden = false; };
+  const clearError = () => { $('message').hidden = true; };
+  async function loadStats() {
+    const data = await api('/api/ontology/stats');
+    const reviews = data.reviews || {};
+    $('stats').innerHTML = [
+      ['Scryfall cards', data.cards], ['Forge records', data.forge_records],
+      ['Forge records matched', data.forge_matched], ['Scryfall cards linked', data.cards_with_forge],
+      ['Forge unmatched', data.forge_unmatched],
+      ['Reviewed', (reviews.accepted || 0) + (reviews.rejected || 0) + (reviews.uncertain || 0)]
+    ].map(([label,value]) => `<div class="stat"><strong>${value.toLocaleString()}</strong><span>${label}</span></div>`).join('');
+  }
+  function renderCards(data) {
+    $('result-count').textContent = `${data.total.toLocaleString()} result(s)`;
+    $('page-info').textContent = `Page ${data.page} / ${Math.max(data.pages,1)}`;
+    $('previous').disabled = data.page <= 1; $('next').disabled = data.page >= data.pages;
+    $('card-list').innerHTML = data.cards.length ? data.cards.map(card => {
+      const status = card.review_status || 'unreviewed';
+      const colors = (card.color_identity || []).join('') || 'C';
+      const facts = card.forge_facts?.front || {};
+      const types = facts.types?.card_types?.join(' ') || '';
+      return `<div class="card-row ${card.id === state.selected ? 'selected' : ''}" data-card-id="${card.id}">
+        <strong>${escapeHtml(card.name)}</strong>
+        <div class="meta">${escapeHtml(card.type_line || types)} · ${escapeHtml(card.mana_cost || '—')} · ${colors}
+          · <span class="${card.forge_match_status}">Forge ${card.forge_match_status}</span>
+          · <span class="${status}">${status}</span></div>
+        ${(card.keywords || []).map(keyword => `<span class="pill">${escapeHtml(keyword)}</span>`).join('')}
+      </div>`;
+    }).join('') : '<div class="empty">No cards match these filters.</div>';
+  }
+  const escapeHtml = (value) => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  async function loadCards() {
+    clearError();
+    const data = await api(`/api/ontology/cards?${params()}`);
+    renderCards(data);
+  }
+  function renderDetail(data) {
+    state.detail = data;
+    const review = data.review || { status:'unreviewed', labels:[], notes:'' };
+    state.reviewStatus = review.status;
+    state.activeTab = 'final';
+    $('detail').innerHTML = `
+      <h2>${escapeHtml(data.name)}</h2>
+      <p>${escapeHtml(data.type_line || '')} · ${escapeHtml(data.mana_cost || 'No mana cost')} · Scryfall ID: ${escapeHtml(data.id)}</p>
+      <div class="tabs">
+        <button class="tab" data-source-tab="scryfall">Scryfall</button>
+        <button class="tab" data-source-tab="forge">Forge</button>
+        <button class="tab" data-source-tab="final">Final</button>
+      </div>
+      <section data-source-panel="scryfall">
+        <div class="fact"><h3>Canonical semantic facts</h3><pre>${escapeHtml(json(data.canonical_facts))}</pre></div>
+        <div class="fact"><h3>Scryfall / Oracle — complete record</h3><pre>${escapeHtml(json(data.scryfall))}</pre></div>
+      </section>
+      <section data-source-panel="forge">
+        <div class="fact"><h3>Forge facts</h3><pre>${escapeHtml(json(data.forge_facts))}</pre></div>
+        <div class="fact"><h3>Ontology candidates</h3><pre>${escapeHtml(json(data.forge_candidates))}</pre></div>
+        <div class="fact"><h3>Forge — complete record</h3><pre>${escapeHtml(json(data.forge))}</pre></div>
+      </section>
+      <section data-source-panel="final">
+        <p>This is the result of the global model configuration, applied to every card.</p>
+        <div class="fact"><h3>Configured final model</h3><pre>${escapeHtml(json(data.model_facts))}</pre></div>
+        <div class="fact"><h3>Resolved semantic facts</h3><pre>${escapeHtml(json(data.resolved_facts))}</pre></div>
+      </section>
+      <div class="review">
+        <h3>Human validation</h3>
+        <div class="review-buttons">
+          ${['accepted','rejected','uncertain','unreviewed'].map(status => `<button data-review-status="${status}" class="${review.status === status ? 'active' : ''}">${status}</button>`).join('')}
+        </div>
+        <label for="labels">Labels / expected predicates (comma-separated)</label>
+        <input id="labels" value="${escapeHtml((review.labels || []).join(', '))}" placeholder="produces(mana), rewards(etb)">
+        <label for="notes">Notes</label>
+        <textarea id="notes" placeholder="Why is this label correct or incorrect?">${escapeHtml(review.notes || '')}</textarea>
+        <button id="save-review" class="primary">Save review</button>
+      </div>
+      `;
+    const selectTab = (tab) => {
+      state.activeTab = tab;
+      document.querySelectorAll('[data-source-tab]').forEach(item => item.classList.toggle('active', item.dataset.sourceTab === tab));
+      document.querySelectorAll('[data-source-panel]').forEach(item => { item.hidden = item.dataset.sourcePanel !== tab; });
+    };
+    document.querySelectorAll('[data-source-tab]').forEach(button => button.onclick = () => selectTab(button.dataset.sourceTab));
+    selectTab(state.activeTab);
+    document.querySelectorAll('[data-review-status]').forEach(button => button.onclick = () => {
+      state.reviewStatus = button.dataset.reviewStatus;
+      document.querySelectorAll('[data-review-status]').forEach(item => item.classList.toggle('active', item === button));
+    });
+    $('save-review').onclick = saveReview;
+  }
+  async function loadDetail(id) {
+    state.selected = id;
+    const data = await api(`/api/ontology/cards/${encodeURIComponent(id)}`);
+    renderDetail(data);
+  }
+  async function saveReview() {
+    const labels = $('labels').value.split(',').map(label => label.trim()).filter(Boolean);
+    const data = await api('/api/ontology/reviews', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+      card_id: state.selected, status: state.reviewStatus, labels, notes: $('notes').value
+    })});
+    renderDetail(data); await Promise.all([loadStats(), loadCards()]);
+  }
+  $('card-list').onclick = (event) => { const row = event.target.closest('[data-card-id]'); if (row) loadDetail(row.dataset.cardId).catch(showError); };
+  $('filters').onsubmit = (event) => { event.preventDefault(); state.page = 1; loadCards().catch(showError); };
+  $('previous').onclick = () => { state.page--; loadCards().catch(showError); };
+  $('next').onclick = () => { state.page++; loadCards().catch(showError); };
+  $('refresh').onclick = () => Promise.all([loadStats(), loadCards()]).catch(showError);
+  $('export').onclick = async () => { try { const result = await api('/api/ontology/gold-set/export', { method:'POST' }); $('download').hidden = false; $('message').className = 'meta'; $('message').textContent = `Golden set generated: ${result.count} reviewed cards.`; $('message').hidden = false; } catch (error) { showError(error); } };
+  Promise.all([loadStats(), loadCards()]).catch(showError);
+</script>
+</body>
+</html>

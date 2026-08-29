@@ -10,13 +10,15 @@ so backend AI work there can happen without needing to touch this service.
 import os
 import sys
 from dataclasses import fields
+from pathlib import Path
 from typing import Any
+from typing import Literal
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from service.handlers.commanders import search_commanders
@@ -24,11 +26,24 @@ from service.handlers.deck_analysis_view import analyze_deck
 from service.handlers.deck_run import cancel_deck_run, stream_deck_run
 from service.handlers.decks import add_missing_cards, build_pool, delete_deck, get_deck, list_decks, save_deck
 from service.handlers.inventory import delete_inventory_card, list_inventory_cards
+from service.handlers.ontology import (
+    export_gold_set,
+    get_model_config,
+    get_ontology_card,
+    list_ontology_cards,
+    model_field_catalog,
+    model_field_values,
+    ontology_stats,
+    rebuild_model_facts,
+    save_model_config,
+    save_ontology_review,
+)
 from contracts import AllocationCommand, SCHEMA_VERSION
 from deck_state import DeckState
 from inventory import execute_allocation
 
 app = FastAPI(title="ManaGraph API")
+ONTOLOGY_PAGE = Path(__file__).resolve().parents[2] / "data" / "ontology_validator.html"
 
 app.add_middleware(
     CORSMiddleware,
@@ -204,3 +219,123 @@ def analyze_deck_route(payload: AnalyzeDeckRequest):
     role/synergy/redundancy/curve breakdown. Never mutates a saved deck;
     the caller supplies commander+cards fresh each time."""
     return analyze_deck(payload.commander, payload.cards, payload.archetype, payload.pool)
+
+
+@app.get("/ontology-validator", response_class=FileResponse)
+def ontology_validator_page():
+    """Serve the zero-build review page kept in ``data``."""
+    if not ONTOLOGY_PAGE.is_file():
+        raise HTTPException(status_code=404, detail="ontology_validator.html is missing")
+    return FileResponse(ONTOLOGY_PAGE, media_type="text/html")
+
+
+@app.get("/api/ontology/stats")
+def ontology_stats_route():
+    return ontology_stats()
+
+
+@app.get("/api/ontology/model-config")
+def get_model_config_route():
+    return get_model_config()
+
+
+@app.post("/api/ontology/model-config")
+def save_model_config_route(payload: dict[str, Any]):
+    try:
+        return save_model_config(payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/ontology/model-config/rebuild")
+def rebuild_model_facts_route():
+    return rebuild_model_facts()
+
+
+@app.get("/api/ontology/model-catalog")
+def model_field_catalog_route():
+    return {"fields": model_field_catalog()}
+
+
+@app.get("/api/ontology/model-catalog/values")
+def model_field_values_route(
+    source: str,
+    field: str,
+    q: str = "",
+    page: int = 1,
+    page_size: int = 100,
+):
+    try:
+        return model_field_values(source, field, q, page, page_size)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.get("/api/ontology/cards")
+def ontology_cards_route(
+    q: str = "",
+    card_type: str = "",
+    color: str = "",
+    keyword: str = "",
+    forge_status: str = "",
+    review_status: str = "",
+    page: int = 1,
+    page_size: int = 50,
+):
+    return list_ontology_cards(
+        query=q,
+        card_type=card_type,
+        color=color,
+        keyword=keyword,
+        forge_status=forge_status,
+        review_status=review_status,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@app.get("/api/ontology/cards/{card_id}")
+def ontology_card_route(card_id: str):
+    card = get_ontology_card(card_id)
+    if card is None:
+        raise HTTPException(status_code=404, detail=f"Card '{card_id}' was not found.")
+    return card
+
+
+class OntologyReviewRequest(BaseModel):
+    card_id: str
+    status: Literal["unreviewed", "accepted", "rejected", "uncertain"]
+    selected_source: Literal["scryfall", "forge", "resolved"] = "resolved"
+    field_checks: dict[str, Any] = {}
+    labels: list[str] = []
+    notes: str = ""
+
+
+@app.post("/api/ontology/reviews")
+def save_ontology_review_route(payload: OntologyReviewRequest):
+    try:
+        return save_ontology_review(
+            payload.card_id,
+            payload.status,
+            payload.labels,
+            payload.notes,
+            payload.selected_source,
+            payload.field_checks,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/ontology/gold-set/export")
+def export_ontology_gold_set_route():
+    return export_gold_set()
+
+
+@app.get("/api/ontology/gold-set/download")
+def download_ontology_gold_set():
+    result = export_gold_set()
+    return FileResponse(
+        result["path"],
+        media_type="application/x-ndjson",
+        filename="gold_set_v1.jsonl",
+    )

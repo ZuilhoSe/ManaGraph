@@ -109,7 +109,7 @@ subject to the existing hard constraints (99, identity, singleton, legality, P_m
 ### Phase A — Contract and schema (≈1 week)
 
 - [ ] Pin a Forge release and record its tag/commit in `catalog_meta`.
-- [ ] Write `data/ontology/schema_v1.yaml`: resources, events, predicates, capability enum, threat classes.
+- [x] Write `data/ontology/schema_v1.yaml`: resources, events, predicates, capability enum, threat classes.
 - [ ] For each predicate, name its **consumer** in code. Delete any predicate with no consumer.
 - [ ] Define the gold-set sampling plan (below).
 - [ ] Write the two acceptance tests as failing tests in `tests/test_ontology_acceptance.py`.
@@ -122,10 +122,20 @@ Four tiers, cheapest first. Each card gets a `source` field recording which tier
 
 **Tier 0 — Forge bootstrap.** Run `scripts/mine_forge.py` against the pinned
 `res/cardsfolder` release. Emit an intermediate artifact containing effects,
-costs, triggers, `DeckHas` and `DeckNeeds`, plus candidate mappings to the
-mechanics-first schema. Forge seeds the event vocabulary and supplies a large
+costs, triggers, `DeckHas` and `DeckNeeds`, plus a factual `card.facts` layer
+for mana symbols, cost colours, types, subtypes, power/toughness, keywords and
+DSL ability kinds. Candidate mappings to the mechanics-first schema remain a
+separate layer. Forge seeds the event vocabulary and supplies a large
 validation corpus; it does not define the final schema, does not contribute
 runtime labels by itself, and its community archetype names are not imported.
+
+The initial implementation accepts either a local directory or zip and records
+`--release`/`--commit` (or `FORGE_RELEASE`/`FORGE_COMMIT`) in each JSONL row.
+With neither supplied, provenance remains explicitly unset; the script never
+downloads Forge. Faces, Oracle text, duplicate files, and resolvable
+`SubAbility$` chains are retained for later cross-checking against Scryfall.
+The cost colours in `card.facts` are evidence from Forge's `ManaCost`, not
+Commander color identity; the latter remains a Scryfall fact.
 
 **Tier 1 — structured Scryfall fields.** Free and exact. `keywords`, `produced_mana`, `type_line`, `power`/`toughness`, `mana_cost`. Covers most of `produces(mana)`, all keyword-derived `enables`, and type-based gates. You already persist `keywords` from Stage 3.5e.
 
@@ -135,9 +145,9 @@ Implement in `src/ontology/patterns.py`. Deterministic, unit-tested against pinn
 
 **Tier 3 — offline LLM batch annotator for the residual.** Run once over the ~30k unique oracle texts with structured output constrained to the schema. Freeze to `data/ontology/labels_v1.jsonl` with model name, prompt hash, and date. **Never at runtime.** This is the same split the project already committed to: model proposes, symbol decides. Cost is tens of dollars, not months.
 
-- [ ] `scripts/mine_forge.py` — parse the pinned Forge `cardsfolder` release
-- [ ] `data/ontology/forge_mapping.yaml` — versioned Forge-to-schema mapping
-- [ ] `src/ontology/schema.py` — dataclasses + enums
+- [x] `scripts/mine_forge.py` — parse a local Forge `cardsfolder` directory or zip
+- [x] `data/ontology/forge_mapping.yaml` — versioned Forge-to-schema mapping
+- [x] `src/ontology/schema.py` — dataclasses + enums
 - [ ] `src/ontology/patterns.py` — tier 2
 - [ ] `src/ontology/annotate.py` — orchestrates tiers, writes frozen artifact
 - [ ] `python src/ontology/annotate.py --rebuild` wired into `build_dataset.py`

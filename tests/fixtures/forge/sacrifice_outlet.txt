@@ -1,0 +1,6 @@
+Name: Forge Test Outlet
+ManaCost: {1}{B}
+Types: Creature — Test
+Oracle: Sacrifice a creature: draw a card.
+A:AB$ Draw | Cost$ Sac<1/Creature> | NumCards$ 1
+T:Mode$ Drawn

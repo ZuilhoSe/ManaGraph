@@ -1,0 +1,157 @@
+mapping_version: "1.0.0"
+schema_version: "1.0.0"
+source: forge_cardsfolder
+
+# These rules are a translation scaffold, not a replacement for Oracle text.
+# ``action`` names are deliberately small and are implemented by mine_forge.py.
+# DeckHas / DeckNeeds / DeckHints stay in Final as raw Forge tags, but they are
+# validation_only: they never enter schema_v1.yaml as predicates.
+mappings:
+  - id: effect.mana
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*Mana(?:\s*\||$)'
+    action: mana
+    notes: Produced$ is retained as evidence; Any is not expanded into colors.
+  - id: effect.token
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*Token(?:\s*\||$)'
+    action: token
+    notes: The token script is evidence; only the explicit treasure bootstrap is normalized.
+  - id: effect.draw
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*Draw(?:\s*\||$)'
+    action: draw
+  - id: effect.change_zone
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*ChangeZone(?:\s*\||$)'
+    action: change_zone
+  - id: effect.sacrifice
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*Sacrifice(?:\s*\||$)'
+    action: sacrifice
+  - id: effect.destroy
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*Destroy(?:\s*\||$)'
+    action: destroy
+    notes: ValidTgts/ValidCards select answers(threat_class); Defined$ Self emits death.
+  - id: effect.destroy_all
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*DestroyAll(?:\s*\||$)'
+    action: destroy_all
+  - id: effect.counter
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*Counter(?:\s*\||$)'
+    action: counter_spell
+  - id: effect.gain_life
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*GainLife(?:\s*\||$)'
+    action: gain_life
+  - id: effect.lose_life
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*LoseLife(?:\s*\||$)'
+    action: lose_life
+  - id: effect.untap
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*Untap(?:\s*\||$)'
+    action: untap
+    notes: Untap of another permanent enables(untapper); Defined$ Self only emits(untap).
+  - id: effect.put_counter
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*PutCounter(?:\s*\||$)'
+    action: put_counter
+  - id: effect.deal_damage
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*DealDamage(?:\s*\||$)'
+    action: deal_damage
+  - id: cost.sacrifice_creature
+    input: costs
+    match: 'Cost\$\s*Sac<\s*1\s*/\s*Creature\s*>'
+    action: sacrifice_cost
+  - id: cost.sacrifice_artifact
+    input: costs
+    match: 'Cost\$\s*Sac<\s*1\s*/\s*Artifact\s*>'
+    action: sacrifice_cost_artifact
+  - id: cost.sacrifice_self
+    input: costs
+    match: 'Cost\$\s*Sac<\s*1\s*/\s*CARDNAME\s*>'
+    action: ignore_self_sacrifice
+    notes: Self-sacrifice is a cost, not a general sacrifice outlet.
+  - id: cost.discard_card
+    input: costs
+    match: 'Cost\$\s*Discard<\s*1\s*/\s*Card\s*>'
+    action: discard_cost
+  - id: cost.exile_graveyard
+    input: costs
+    match: 'Cost\$\s*ExileFromGrave<'
+    action: exile_graveyard_cost
+  - id: trigger.changes_zone_battlefield
+    input: triggers
+    match: 'T:\s*Mode\$\s*ChangesZone.*Destination\$\s*Battlefield'
+    action: reward_etb
+  - id: trigger.changes_zone_death
+    input: triggers
+    match: 'T:\s*Mode\$\s*ChangesZone.*Origin\$\s*Battlefield.*Destination\$\s*Graveyard'
+    action: reward_death
+  - id: trigger.sacrificed
+    input: triggers
+    match: 'T:\s*Mode\$\s*Sacrificed'
+    action: reward_sacrifice
+  - id: trigger.attacks
+    input: triggers
+    match: 'T:\s*Mode\$\s*Attacks'
+    action: reward_attack
+  - id: trigger.combat_damage
+    input: triggers
+    match: 'T:\s*Mode\$\s*DamageDone.*CombatDamage\$\s*True'
+    action: reward_combat_damage
+  - id: trigger.spell_cast
+    input: triggers
+    match: 'T:\s*Mode\$\s*SpellCast'
+    action: reward_cast_spell
+  - id: trigger.landfall
+    input: triggers
+    match: 'T:\s*Mode\$\s*LandPlayed'
+    action: reward_landfall
+  - id: trigger.drawn
+    input: triggers
+    match: 'T:\s*Mode\$\s*Drawn'
+    action: reward_draw
+  - id: trigger.discarded
+    input: triggers
+    match: 'T:\s*Mode\$\s*Discarded'
+    action: reward_discard
+  - id: trigger.counter_added
+    input: triggers
+    match: 'T:\s*Mode\$\s*CounterAdded'
+    action: reward_counter_placed
+  - id: trigger.life_gained
+    input: triggers
+    match: 'T:\s*Mode\$\s*LifeGained'
+    action: reward_lifegain
+  - id: trigger.taps_for_mana
+    input: triggers
+    match: 'T:\s*Mode\$\s*TapsForMana'
+    action: reward_mana_produced
+  - id: trigger.end_step
+    input: triggers
+    match: 'T:\s*Mode\$\s*Phase.*End of Turn'
+    action: reward_end_step
+  - id: trigger.untaps
+    input: triggers
+    match: 'T:\s*Mode\$\s*Untaps'
+    action: reward_untap
+  - id: validation.deck_has
+    input: deck_has
+    match: '.+'
+    action: validate_deck_has
+    validation_only: true
+  - id: validation.deck_needs
+    input: deck_needs
+    match: '.+'
+    action: validate_deck_needs
+    validation_only: true
+  - id: validation.deck_hints
+    input: deck_hints
+    match: '.+'
+    action: validate_deck_hints
+    validation_only: true

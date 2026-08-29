@@ -1,0 +1,143 @@
+schema_version: "1.0.0"
+labels_version: "ontology-labels-v1"
+
+# Scryfall/Oracle remains the factual authority. Forge is an offline bootstrap
+# and validation corpus only; it is never a runtime dependency.
+provenance:
+  authority: scryfall_oracle
+  forge:
+    repository: "https://github.com/Card-Forge/forge"
+    release: null
+    commit: null
+    runtime_dependency: false
+    redistribution: prohibited
+
+objects:
+  - name: mana
+    parameters: [color]
+  - name: treasure
+    parameters: []
+  - name: token
+    parameters: [subtype, power, toughness]
+  - name: creature
+    parameters: []
+  - name: p1p1_counter
+    parameters: []
+  - name: card_in_hand
+    parameters: []
+  - name: life
+    parameters: []
+  - name: creature_in_graveyard
+    parameters: []
+  - name: card_in_graveyard
+    parameters: []
+  - name: artifact_permanent
+    parameters: []
+  - name: enchantment_permanent
+    parameters: []
+  - name: land_in_play
+    parameters: []
+  - name: card_in_exile
+    parameters: []
+
+events:
+  - name: etb
+    parameters: []
+  - name: death
+    parameters: []
+  - name: sacrifice
+    parameters: []
+  - name: cast_spell
+    parameters: [type]
+  - name: attack
+    parameters: []
+  - name: deal_combat_damage
+    parameters: []
+  - name: landfall
+    parameters: []
+  - name: draw
+    parameters: []
+  - name: discard
+    parameters: []
+  - name: lifegain
+    parameters: []
+  - name: untap
+    parameters: []
+  - name: end_step
+    parameters: []
+  - name: counter_placed
+    parameters: []
+  - name: mana_produced
+    parameters: []
+  - name: token_created
+    parameters: []
+  - name: bounce
+    parameters: []
+
+capabilities:
+  - sac_outlet
+  - cost_reduction
+  - haste_grant
+  - untapper
+  - convoke_like
+  - keyword_grant
+  - protection
+
+threat_classes:
+  - creature
+  - artifact
+  - enchantment
+  - board
+  - stack
+  - graveyard
+
+selectors:
+  - creature
+  - land
+  - any
+
+target_classes:
+  - commander
+  - board
+
+predicates:
+  - name: produces
+    arguments: [object, rate, cost]
+    consumer: diagnose_deck_json
+    description: Supplies a countable object or resource.
+  - name: consumes
+    arguments: [object]
+    consumer: diagnose_deck_json
+    description: Requires an object as a cost or fuel.
+  - name: emits
+    arguments: [event]
+    consumer: solver._score_parts
+    description: Causes an event that another card can reward.
+  - name: rewards
+    arguments: [event]
+    consumer: solver._score_parts
+    description: Subscribes to an event caused by another card.
+  - name: enables
+    arguments: [capability]
+    consumer: diagnose_deck_json
+    description: Removes a structural barrier without asserting quality.
+  - name: answers
+    arguments: [threat_class]
+    consumer: rules_validator
+    description: Interacts with a threat class.
+  - name: tutors
+    arguments: [selector]
+    consumer: diagnose_deck_json
+    description: Searches the library for a mechanical selector.
+  - name: recurs
+    arguments: [zone_from, zone_to]
+    consumer: solver._score_parts
+    description: Moves cards between zones as recursion.
+  - name: protects
+    arguments: [target_class]
+    consumer: rules_validator
+    description: Protects a target class.
+  - name: requires
+    arguments: [precondition]
+    consumer: diagnose_deck_json
+    description: Records a board or zone state needed to function.

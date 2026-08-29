@@ -9,7 +9,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(SCRIPT_DIR)
 DATA_DIR = os.path.join(BASE_DIR, "data")
 DB_NAME = os.path.join(DATA_DIR, "managraph.db")
-COLLECTION_SCHEMA_VERSION = "3"
+COLLECTION_SCHEMA_VERSION = "4"
 
 os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -60,7 +60,8 @@ def ensure_schema(conn: sqlite3.Connection):
             type_line TEXT,
             legalities TEXT,
             price_usd REAL,
-            price_eur REAL
+            price_eur REAL,
+            scryfall_json TEXT NOT NULL DEFAULT '{}'
         )
         """
     )
@@ -207,6 +208,47 @@ def ensure_schema(conn: sqlite3.Connection):
             FOREIGN KEY (dataset_id) REFERENCES datasets(dataset_id)
         );
 
+        CREATE TABLE IF NOT EXISTS ontology_cards (
+            card_id TEXT PRIMARY KEY,
+            scryfall_name TEXT NOT NULL,
+            forge_record_key TEXT,
+            forge_name TEXT,
+            forge_match_status TEXT NOT NULL DEFAULT 'unmatched',
+            forge_json TEXT,
+            canonical_facts_json TEXT NOT NULL DEFAULT '{}',
+            resolved_facts_json TEXT NOT NULL DEFAULT '{}',
+            model_facts_json TEXT NOT NULL DEFAULT '{}',
+            forge_facts_json TEXT NOT NULL DEFAULT '{}',
+            forge_candidates_json TEXT NOT NULL DEFAULT '[]',
+            forge_warnings_json TEXT NOT NULL DEFAULT '[]',
+            enriched_at TEXT NOT NULL,
+            FOREIGN KEY (card_id) REFERENCES cards(id)
+        );
+
+        CREATE TABLE IF NOT EXISTS forge_records (
+            forge_record_key TEXT PRIMARY KEY,
+            forge_name TEXT NOT NULL,
+            matched_card_id TEXT,
+            match_status TEXT NOT NULL,
+            record_json TEXT NOT NULL,
+            facts_json TEXT NOT NULL DEFAULT '{}',
+            candidates_json TEXT NOT NULL DEFAULT '[]',
+            warnings_json TEXT NOT NULL DEFAULT '[]',
+            enriched_at TEXT NOT NULL,
+            FOREIGN KEY (matched_card_id) REFERENCES cards(id)
+        );
+
+        CREATE TABLE IF NOT EXISTS ontology_reviews (
+            card_id TEXT PRIMARY KEY,
+            status TEXT NOT NULL DEFAULT 'unreviewed',
+            selected_source TEXT NOT NULL DEFAULT 'resolved',
+            field_checks_json TEXT NOT NULL DEFAULT '{}',
+            labels_json TEXT NOT NULL DEFAULT '[]',
+            notes TEXT NOT NULL DEFAULT '',
+            reviewed_at TEXT,
+            FOREIGN KEY (card_id) REFERENCES cards(id)
+        );
+
         CREATE INDEX IF NOT EXISTS idx_datasets_source
             ON datasets(source_id, fetched_at);
         CREATE INDEX IF NOT EXISTS idx_external_decks_source
@@ -219,12 +261,30 @@ def ensure_schema(conn: sqlite3.Connection):
             ON cooccurrence(card_id_a, card_id_b);
         CREATE INDEX IF NOT EXISTS idx_provenance_entity
             ON provenance(entity_type, entity_key, collected_at);
+        CREATE INDEX IF NOT EXISTS idx_ontology_cards_match
+            ON ontology_cards(forge_match_status, scryfall_name);
+        CREATE INDEX IF NOT EXISTS idx_forge_records_match
+            ON forge_records(match_status, forge_name);
+        CREATE INDEX IF NOT EXISTS idx_ontology_reviews_status
+            ON ontology_reviews(status, reviewed_at);
         """
     )
     # The collector was added after the original catalog.  Keep upgrades
     # additive for databases created by an earlier checkout or by a partial
     # migration; never rebuild/drop a table that existing callers may use.
     migrations = {
+        "cards": {
+            "scryfall_json": "TEXT NOT NULL DEFAULT '{}'",
+        },
+        "ontology_cards": {
+            "canonical_facts_json": "TEXT NOT NULL DEFAULT '{}'",
+            "resolved_facts_json": "TEXT NOT NULL DEFAULT '{}'",
+            "model_facts_json": "TEXT NOT NULL DEFAULT '{}'",
+        },
+        "ontology_reviews": {
+            "selected_source": "TEXT NOT NULL DEFAULT 'resolved'",
+            "field_checks_json": "TEXT NOT NULL DEFAULT '{}'",
+        },
         "sources": {
             "terms_url": "TEXT",
             "robots_url": "TEXT",
