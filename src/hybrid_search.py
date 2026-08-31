@@ -36,6 +36,16 @@ CHROMA_DIR = os.path.join(DATA_DIR, "chroma_db")
 _client_lock = threading.Lock()
 _searcher_lock = threading.Lock()
 _query_lock = threading.Lock()
+# Guards self.conn/self.cursor specifically -- RAGSearcher is a process-wide
+# singleton (see shared()) and search_cards() used to touch that shared
+# connection from whichever thread the Architect's parallel tool calls landed
+# on, with nothing serializing them: concurrent search_cards calls racing on
+# the same cursor raised "another row available" (a sqlite3 Cursor isn't
+# safe to drive from multiple threads at once, even with
+# check_same_thread=False). Separate from _query_lock, which only guards the
+# Chroma call, so embedding search from one request can still run while
+# another's SQLite lexical search holds this lock.
+_conn_lock = threading.Lock()
 _chroma_client = None
 _shared_searcher = None
 
@@ -161,15 +171,16 @@ class RAGSearcher:
 
         lexical_hits: list[dict] = []
         if hybrid:
-            ensure_schema(self.conn)
-            lexical_hits = lexical_search_sqlite(
-                self.conn,
-                query,
-                allowed_colors,
-                limit=max(limit * 15, 500),
-                cmc_min=cmc_min,
-                cmc_max=cmc_max,
-            )
+            with _conn_lock:
+                ensure_schema(self.conn)
+                lexical_hits = lexical_search_sqlite(
+                    self.conn,
+                    query,
+                    allowed_colors,
+                    limit=max(limit * 15, 500),
+                    cmc_min=cmc_min,
+                    cmc_max=cmc_max,
+                )
             print(
                 f"Hybrid: {len(embedding_hits)} embedding + {len(lexical_hits)} lexical "
                 f"(pre-merge)"
