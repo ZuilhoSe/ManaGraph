@@ -1,6 +1,7 @@
 import json
 import os
 import sqlite3
+import threading
 from datetime import datetime, timezone
 
 from inventory import _split_face_query_name, get_card as get_inventory_card
@@ -9,9 +10,15 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(SCRIPT_DIR)
 DATA_DIR = os.path.join(BASE_DIR, "data")
 DB_NAME = os.path.join(DATA_DIR, "managraph.db")
-COLLECTION_SCHEMA_VERSION = "4"
+COLLECTION_SCHEMA_VERSION = "5"
+_SCHEMA_LOCK = threading.Lock()
 
 os.makedirs(DATA_DIR, exist_ok=True)
+
+
+def _table_columns(conn: sqlite3.Connection, table: str) -> set[str]:
+    rows = conn.execute(f"PRAGMA table_info({table})").fetchall()
+    return {row[1] for row in rows}
 
 
 def parse_price(value):
@@ -48,6 +55,13 @@ def mana_cost_from_scryfall(card: dict) -> str:
 
 
 def ensure_schema(conn: sqlite3.Connection):
+    # Architect/tool threads can hit the same connection; SQLite forbids a
+    # new statement while another cursor on that connection still has rows.
+    with _SCHEMA_LOCK:
+        _ensure_schema_unlocked(conn)
+
+
+def _ensure_schema_unlocked(conn: sqlite3.Connection):
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS cards (
@@ -65,7 +79,7 @@ def ensure_schema(conn: sqlite3.Connection):
         )
         """
     )
-    columns = {row[1] for row in conn.execute("PRAGMA table_info(cards)")}
+    columns = _table_columns(conn, "cards")
     if "price_usd" not in columns:
         conn.execute("ALTER TABLE cards ADD COLUMN price_usd REAL")
     if "price_eur" not in columns:
@@ -249,6 +263,14 @@ def ensure_schema(conn: sqlite3.Connection):
             FOREIGN KEY (card_id) REFERENCES cards(id)
         );
 
+        CREATE TABLE IF NOT EXISTS ontology_predicates (
+            card_id TEXT,
+            card_name TEXT,
+            predicate TEXT,
+            arg_key TEXT,
+            arg_value TEXT
+        );
+
         CREATE INDEX IF NOT EXISTS idx_datasets_source
             ON datasets(source_id, fetched_at);
         CREATE INDEX IF NOT EXISTS idx_external_decks_source
@@ -267,6 +289,12 @@ def ensure_schema(conn: sqlite3.Connection):
             ON forge_records(match_status, forge_name);
         CREATE INDEX IF NOT EXISTS idx_ontology_reviews_status
             ON ontology_reviews(status, reviewed_at);
+        CREATE INDEX IF NOT EXISTS idx_ontology_predicates_predicate
+            ON ontology_predicates(predicate);
+        CREATE INDEX IF NOT EXISTS idx_ontology_predicates_predicate_value
+            ON ontology_predicates(predicate, arg_value);
+        CREATE INDEX IF NOT EXISTS idx_ontology_predicates_card
+            ON ontology_predicates(card_id);
         """
     )
     # The collector was added after the original catalog.  Keep upgrades
@@ -330,7 +358,7 @@ def ensure_schema(conn: sqlite3.Connection):
         },
     }
     for table, columns_to_add in migrations.items():
-        existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+        existing = _table_columns(conn, table)
         for column, definition in columns_to_add.items():
             if column not in existing:
                 conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
@@ -340,10 +368,15 @@ def ensure_schema(conn: sqlite3.Connection):
             ON recommendations(card_id, inclusion_percent, synergy)
         """
     )
-    conn.execute(
-        "INSERT OR REPLACE INTO catalog_meta (key, value) VALUES (?, ?)",
-        ("collection_schema_version", COLLECTION_SCHEMA_VERSION),
-    )
+    current = conn.execute(
+        "SELECT value FROM catalog_meta WHERE key = ?",
+        ("collection_schema_version",),
+    ).fetchone()
+    if not current or current[0] != COLLECTION_SCHEMA_VERSION:
+        conn.execute(
+            "INSERT OR REPLACE INTO catalog_meta (key, value) VALUES (?, ?)",
+            ("collection_schema_version", COLLECTION_SCHEMA_VERSION),
+        )
     conn.commit()
 
 

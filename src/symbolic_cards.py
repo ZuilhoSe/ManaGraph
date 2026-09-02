@@ -113,7 +113,10 @@ def classify_card(
                 "additional combat phase",
                 "additional combat",
                 "after this main phase, there is an additional combat phase",
+                "after this phase, there is an additional combat",
                 "untap all creatures",
+                "untap all attacking",
+                "another combat phase",
             )
         ),
         is_evasion=any(
@@ -170,16 +173,116 @@ def requirement_families(query: str) -> list[str]:
 
     q = " ".join((query or "").lower().split())
     families: list[tuple[str, tuple[str, ...]]] = [
-        ("counter", ("counterspell", "counterspells", "counter target", "permission")),
-        ("removal", ("removal", "destroy", "exile", "bounce", "board wipe")),
-        ("draw", ("draw", "card advantage", "card draw")),
-        ("ramp", ("ramp", "mana rock", "acceleration", "add mana")),
-        ("protection", ("protect", "protection", "hexproof", "indestructible", "shroud")),
-        ("extra_combat", ("extra combat", "additional combat", "multiple combat")),
+        ("counter", ("counterspell", "counterspells", "counter target", "permission", "contramagica", "contramágica")),
+        ("removal", (
+            "removal", "destroy", "exile", "bounce", "board wipe", "limpeza de mesa",
+            "devolver para a mao", "devolver para a mão", "devolucao", "devolução",
+        )),
+        ("draw", ("draw", "card advantage", "card draw", "comprar carta", "compra de cartas")),
+        ("ramp", ("ramp", "mana rock", "acceleration", "add mana", "aceleracao de mana", "aceleração de mana")),
+        ("protection", ("protect", "protection", "hexproof", "indestructible", "shroud", "protecao", "proteção")),
+        ("extra_combat", (
+            "extra combat", "additional combat", "multiple combat", "combat turns",
+            "extra combats", "combate extra", "combates extras", "combate adicional",
+            "combates adicionais", "fase de combate extra",
+        )),
         ("evasion", ("evasion", "trample", "double strike", "can't be blocked")),
         ("tutor", ("tutor", "search your library")),
-        ("token_engine", ("token", "go wide")),
-        ("graveyard", ("graveyard", "reanimate", "recursion", "mill")),
-        ("sacrifice", ("sacrifice", "aristocrats", "dies")),
+        ("token_engine", ("token", "go wide", "fichas")),
+        ("graveyard", ("graveyard", "reanimate", "recursion", "mill", "reanimar", "cemiterio", "cemitério")),
+        ("sacrifice", (
+            "sacrifice", "aristocrats", "dies", "sac outlet", "sacrifice outlet",
+            "sacrificio", "sacrifício", "aristocratas",
+        )),
+        ("haste", ("haste", "grant haste", "gains haste", "gain haste", "celeridade")),
+        ("convoke", ("convoke", "delve", "improvise", "convocar", "improvisar")),
+        ("cost_reduction", (
+            "cost reduction", "affinity", "this spell costs", "spells you cast cost",
+            "reducao de custo", "redução de custo", "afinidade",
+        )),
+        ("delirium", ("delirium", "delirio", "delírio")),
+        ("threshold", ("threshold", "limiar")),
+        ("hellbent", ("hellbent", "obstinado")),
+        ("metalcraft", ("metalcraft", "metalurgia")),
+        # Bounce is also a removal trigger; this family only fires on bounce wording.
+        ("bounce", (
+            "bounce", "devolver para a mao", "devolver para a mão", "devolucao", "devolução",
+        )),
     ]
     return [name for name, triggers in families if any(t in q for t in triggers)]
+
+
+# Oracle fragments that retrieve a capability. Add a phrase when a new
+# rules template appears; do not add card names.
+FAMILY_SEARCH_QUERIES: dict[str, tuple[str, ...]] = {
+    "extra_combat": (
+        "additional combat phase",
+        "untap all attacking creatures",
+    ),
+    "protection": (
+        "target creature gains hexproof",
+        "target creature gains indestructible",
+        "protection from",
+    ),
+    "draw": (
+        "draw a card",
+        "draw two cards",
+    ),
+    "ramp": (
+        "search your library for a basic land",
+        "add one mana",
+    ),
+    "counter": (
+        "counter target spell",
+    ),
+    "removal": (
+        "destroy target creature",
+        "exile target creature",
+    ),
+    "tutor": (
+        "search your library for a",
+    ),
+    "token_engine": (
+        "create a token",
+        "creature token",
+    ),
+    "graveyard": (
+        "return target card from your graveyard",
+    ),
+    "sacrifice": (
+        "sacrifice a creature",
+        "whenever a creature you control dies",
+    ),
+    "evasion": (
+        "can't be blocked",
+        "gains flying",
+    ),
+    "haste": (
+        "gains haste",
+        "gain haste",
+    ),
+    "convoke": (
+        "convoke",
+        "delve",
+    ),
+    "cost_reduction": (
+        "this spell costs",
+        "spells you cast cost",
+    ),
+    "delirium": (
+        "delirium",
+    ),
+    "threshold": (
+        "threshold",
+    ),
+    "hellbent": (
+        "hellbent",
+    ),
+    "metalcraft": (
+        "metalcraft",
+    ),
+    "bounce": (
+        "return target",
+        "return it to its owner's hand",
+    ),
+}

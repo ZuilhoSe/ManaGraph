@@ -31,7 +31,70 @@ from geometry import cosine, load_card_views, multi_view_cosine
 from inventory import get_card as get_inventory_card
 from mana import cmc_bucket, diagnose, produces_mana, shape_bonus, strategy_from_name
 from roles import ROLE_QUOTAS, role_counts, role_need_bonus, token_classes
-from symbolic_cards import classify_card, requirement_families
+from ontology.search import (
+    compile_search_intent,
+    predicates_for_names,
+    search_ontology_clauses,
+)
+
+ONTOLOGY_PAIR_WEIGHT = 0.25
+
+
+def _ontology_score_enabled(deck: DeckState) -> bool:
+    flag = os.environ.get("MANAGRAPH_ONTOLOGY_SCORE", "1").strip().lower()
+    if flag in {"0", "false", "off", "no"}:
+        return False
+    return bool(getattr(deck, "ontology_score", True))
+
+
+def _predicate_sets_from_rows(rows: list[tuple[str, str, str, str]]) -> dict[str, dict[str, set[str]]]:
+    by_name: dict[str, dict[str, set[str]]] = {}
+    for card_name, predicate, arg_key, arg_value in rows:
+        key = card_name.lower()
+        bucket = by_name.setdefault(
+            key,
+            {"emits": set(), "rewards": set(), "produces": set(), "consumes": set()},
+        )
+        if predicate == "emits" and arg_key == "event" and arg_value:
+            bucket["emits"].add(arg_value)
+        elif predicate == "rewards" and arg_key == "event" and arg_value:
+            bucket["rewards"].add(arg_value)
+        elif predicate == "produces" and arg_key == "object" and arg_value:
+            bucket["produces"].add(arg_value)
+        elif predicate == "consumes" and arg_key == "object" and arg_value:
+            bucket["consumes"].add(arg_value)
+    return by_name
+
+
+def _union_pred_sets(
+    by_name: dict[str, dict[str, set[str]]],
+    skip: str | None = None,
+) -> dict[str, set[str]]:
+    union = {"emits": set(), "rewards": set(), "produces": set(), "consumes": set()}
+    skip_key = (skip or "").lower()
+    for name, sets in by_name.items():
+        if skip_key and name == skip_key:
+            continue
+        for key in union:
+            union[key] |= sets.get(key) or set()
+    return union
+
+
+def _ontology_pair_score(
+    card_sets: dict[str, set[str]],
+    deck_sets: dict[str, set[str]],
+) -> float:
+    matched = (
+        len(card_sets.get("emits", set()) & deck_sets.get("rewards", set()))
+        + len(card_sets.get("rewards", set()) & deck_sets.get("emits", set()))
+        + len(card_sets.get("produces", set()) & deck_sets.get("consumes", set()))
+        + len(card_sets.get("consumes", set()) & deck_sets.get("produces", set()))
+    )
+    return ONTOLOGY_PAIR_WEIGHT * matched
+from symbolic_cards import (
+    classify_card,
+    requirement_families,
+)
 from rules_validator import (
     ILLEGAL_COMMANDER_STATUS,
     allows_any_number,
@@ -190,6 +253,31 @@ class DeckSolver:
         self._views: dict[str, dict] = {}
         self._view_store: dict | None | bool = False  # False = not loaded yet
 
+    def _ontology_sets_for(self, name: str | None) -> dict[str, set[str]]:
+        key = (name or "").lower()
+        empty = {
+            "emits": set(),
+            "rewards": set(),
+            "produces": set(),
+            "consumes": set(),
+        }
+        if not key:
+            return empty
+        cache = (self._ctx or {}).setdefault("ontology_by_name", {})
+        if key in cache:
+            return cache[key]
+        try:
+            conn = sqlite3.connect(self.db_path)
+            try:
+                rows = predicates_for_names(conn, [name or ""])
+            finally:
+                conn.close()
+            loaded = _predicate_sets_from_rows(rows).get(key, empty)
+        except sqlite3.Error:
+            loaded = empty
+        cache[key] = loaded
+        return loaded
+
     def _info(self, name: str | None) -> dict | None:
         if not name:
             return None
@@ -272,7 +360,28 @@ class DeckSolver:
             "curve": curve,
             "budget": budget,
             "mana": mana,
+            "ontology_by_name": {},
+            "ontology_deck": {
+                "emits": set(),
+                "rewards": set(),
+                "produces": set(),
+                "consumes": set(),
+            },
         }
+        names = [card.get("name") for card in deck_cards if card.get("name")]
+        if cmd and cmd.get("name"):
+            names.append(cmd["name"])
+        try:
+            conn = sqlite3.connect(self.db_path)
+            try:
+                rows = predicates_for_names(conn, names)
+            finally:
+                conn.close()
+            by_name = _predicate_sets_from_rows(rows)
+            self._ctx["ontology_by_name"] = by_name
+            self._ctx["ontology_deck"] = _union_pred_sets(by_name)
+        except sqlite3.Error:
+            pass
 
     def _matches_preferred_land(self, info: dict, deck: DeckState) -> bool:
         tl = info.get("type_line") or ""
@@ -293,6 +402,86 @@ class DeckSolver:
             if "land" in (info.get("type_line") or "").lower():
                 n += int(qty)
         return n
+
+    def _land_band(self, deck: DeckState) -> tuple[int, int]:
+        """Low/high land targets from the active mana strategy.
+
+        Hypergeometric quota is used when diagnose() has a real curve. An empty
+        spell base yields recommended_land_count=0; full builds still fall back
+        to ROLE_QUOTAS so fill reserves Plains/Mountains from the first slot.
+        """
+        static_low, static_high = int(ROLE_QUOTAS["land"][0]), int(ROLE_QUOTAS["land"][1])
+        alert = ((self._ctx or {}).get("mana") or {}).get("land_alert") or {}
+        quota = alert.get("quota")
+        if isinstance(quota, (list, tuple)) and len(quota) >= 2:
+            try:
+                low, high = int(quota[0]), int(quota[1])
+            except (TypeError, ValueError):
+                return static_low, static_high
+            if low > 0:
+                return max(low, static_low), max(high, static_high)
+        return static_low, static_high
+
+    def _lands_needed(self, deck: DeckState) -> int:
+        low, _high = self._land_band(deck)
+        return max(0, low - self._land_count(deck))
+
+    def _worst_nonland(self, deck: DeckState, query: str = "") -> str | None:
+        """Cheapest-to-lose nonland for mana-base repair. Role protection does not apply:
+        a 99 that is 23 lands short must cut spells even if they sit in interaction quotas.
+        """
+        if self._ctx is None:
+            self._rebuild_context(deck, query)
+        worst_name = None
+        worst_score = None
+        for card in self._ctx["deck_cards"]:
+            if "land" in (card.get("type_line") or "").lower():
+                continue
+            name = card.get("name") or ""
+            if not name:
+                continue
+            fill_score = self.score_candidate(deck, name, query)
+            cut_score = -fill_score
+            if worst_score is None or cut_score > worst_score:
+                worst_score = cut_score
+                worst_name = name
+        return worst_name
+
+    def _rebalance_lands(self, deck: DeckState, query: str = "") -> list[dict]:
+        """Hit the diagnosed land floor: pad empty slots, then swap spells for basics."""
+        if not deck.commander:
+            return []
+        swapped: list[dict] = []
+        self._rebuild_context(deck, query)
+        while self._lands_needed(deck) > 0 and deck.remaining_slots() > 0:
+            basic = self._best_basic(deck)
+            if not basic:
+                break
+            ok, _reason = self.can_add(deck, basic)
+            if not ok:
+                break
+            self._commit_add(deck, basic, 1)
+            swapped.append({"in": basic, "out": None, "reason": "land_floor_fill"})
+            self._rebuild_context(deck, query)
+        while self._lands_needed(deck) > 0 and deck.slot_count() >= MAIN_DECK_SIZE:
+            victim = self._worst_nonland(deck, query)
+            if not victim:
+                break
+            deck.remove_card(victim, 1)
+            deck.add_to_pool(victim, 1)
+            self._rebuild_context(deck, query)
+            basic = self._best_basic(deck)
+            ok, _reason = self.can_add(deck, basic) if basic else (False, "no basic")
+            if not basic or not ok:
+                deck.add_card(victim, 1)
+                self._rebuild_context(deck, query)
+                break
+            self._commit_add(deck, basic, 1)
+            swapped.append({"in": basic, "out": victim, "reason": "land_floor_swap"})
+            self._rebuild_context(deck, query)
+        if swapped:
+            print(f"[Solver] land floor: {len(swapped)} add/swap(s) -> {self._land_count(deck)} lands")
+        return swapped
 
     def _theme_count(self, deck: DeckState, fragment: str | None = None) -> int:
         frags = [fragment] if fragment else list(deck.theme_types or [])
@@ -399,6 +588,87 @@ class DeckSolver:
             print(f"[Solver] archetype glue: pool+={added} (archetype={deck.archetype})")
         return added
 
+    def _seed_requirement_staples(self, deck: DeckState, query: str) -> int:
+        """Pool cards from compiled ontology clauses, then Oracle LIKE harness.
+
+        No named staples: a new extra-combat card is found via enables:extra_combat
+        or the same rules text as Karlach / Aggravated Assault.
+        """
+        if deck.intent != "build" or not query:
+            return 0
+        if not os.path.exists(self.db_path):
+            return 0
+        intent = compile_search_intent(query)
+        if not intent.clauses and not intent.oracle_phrases:
+            return 0
+        identity = list(deck.identity or [])
+        added_ontology = 0
+        added_oracle = 0
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        try:
+            ensure_schema(conn)
+            if intent.clauses:
+                try:
+                    hits = search_ontology_clauses(
+                        conn,
+                        intent.clauses,
+                        allowed_colors=identity or None,
+                        k=ARCHETYPE_GLUE_CAP,
+                    )
+                except sqlite3.OperationalError:
+                    hits = []
+                per = 0
+                for hit in hits:
+                    if per >= ARCHETYPE_GLUE_PER_PHRASE:
+                        break
+                    name = hit.get("name") or ""
+                    if self._pool_if_new(deck, name):
+                        added_ontology += 1
+                        per += 1
+            seen_phrases: set[str] = set()
+            for phrase in intent.oracle_phrases:
+                token = (phrase or "").strip()
+                compact = token.lower()
+                if len(token) < 8 or compact in seen_phrases:
+                    continue
+                seen_phrases.add(compact)
+                rows = conn.execute(
+                    """
+                    SELECT * FROM cards
+                    WHERE oracle_text LIKE ? COLLATE NOCASE
+                      AND type_line NOT LIKE '%Land%' COLLATE NOCASE
+                      AND name NOT LIKE 'A-%'
+                      AND type_line NOT LIKE '%Attraction%'
+                      AND type_line NOT LIKE '%Sticker%'
+                    ORDER BY cmc, name
+                    LIMIT ?
+                    """,
+                    (f"%{token}%", ARCHETYPE_GLUE_PER_PHRASE * 2),
+                ).fetchall()
+                per = 0
+                for row in rows:
+                    if per >= ARCHETYPE_GLUE_PER_PHRASE:
+                        break
+                    card = _row_to_card(row)
+                    if not identity_ok(card.get("color_identity"), identity):
+                        continue
+                    if not is_commander_legal(card.get("legalities")):
+                        continue
+                    name = card.get("name") or ""
+                    if self._pool_if_new(deck, name):
+                        added_oracle += 1
+                        per += 1
+        finally:
+            conn.close()
+        added = added_ontology + added_oracle
+        if added:
+            print(
+                f"[Solver] requirement seed: ontology+={added_ontology} "
+                f"oracle+={added_oracle} families={intent.families}"
+            )
+        return added
+
     def _seed_catalog_filters(self, deck: DeckState) -> dict:
         """Expand preferred_land_types / theme_types from the catalog into the pool.
 
@@ -503,6 +773,7 @@ class DeckSolver:
                 deck.identity = list(cmd["color_identity"])
 
         self._seed_catalog_filters(deck)
+        self._seed_requirement_staples(deck, query)
         candidates = self._gather_names(deck, query, extra_candidates, retrieve)
         print(f"[Solver] fill: {len(candidates)} candidates, {deck.remaining_slots()} slots")
         added = []
@@ -528,15 +799,18 @@ class DeckSolver:
                     dead.add(name.lower())
                     skipped.append({"name": name, "reason": skip})
                     continue
+                is_land = "land" in (info.get("type_line") or "").lower()
+                need = self._lands_needed(deck)
+                if not is_land and need > 0 and deck.remaining_slots() <= need:
+                    skipped.append({"name": name, "reason": "land slots reserved"})
+                    continue
                 ranked.append((self.score_candidate(deck, name, query), name))
             ranked.sort(reverse=True)
             if not ranked:
                 # Never pad the 99 with basics once lands are at quota — that is
-                # how filter-only builds used to dump 40+ Swamps.
-                if (
-                    self._land_count(deck) >= int(ROLE_QUOTAS["land"][0])
-                    and not complete_fallback
-                ):
+                # how filter-only builds used to dump 40+ Swamps. Still pad when
+                # the greedy pool is all spells and the land floor is unmet.
+                if self._lands_needed(deck) <= 0 and not complete_fallback:
                     break
                 basic = self._best_basic(deck, allow_overquota=complete_fallback)
                 if not basic or basic.lower() in dead:
@@ -819,6 +1093,7 @@ class DeckSolver:
 
         if deck.commander and deck.intent == "build":
             self._seed_catalog_filters(deck)
+            self._seed_requirement_staples(deck, query)
 
         land_status = {}
         if deck.commander:
@@ -894,6 +1169,17 @@ class DeckSolver:
                 max_swaps = max(max_swaps, min(40, int(land_status.get("delta") or 0) + 4))
             print(f"[Solver] Cutting / swapping from candidate_pool (max_swaps={max_swaps})...")
             cut_report = self.cut(deck, query=query, max_swaps=max_swaps)
+
+        if deck.commander and (fill_report or cut_report or fill_to_99 or deck.intent in ("build", "cut")):
+            land_fix = self._rebalance_lands(deck, query)
+            color_fix = self._rebalance_color_basics(deck, query)
+            if land_fix or color_fix:
+                if fill_report is None:
+                    fill_report = {"ok": True, "added": [], "skipped": [], "slot_count": deck.slot_count(), "remaining_slots": deck.remaining_slots(), "pool_count": deck.pool_count()}
+                if land_fix:
+                    fill_report.setdefault("land_rebalance", land_fix)
+                if color_fix:
+                    fill_report.setdefault("color_basic_rebalance", color_fix)
 
         if deck.commander and (fill_report or cut_report):
             # Re-read land count after fill/cut actually changed the deck, not before —
@@ -1055,7 +1341,7 @@ class DeckSolver:
                 if not self._matches_preferred_land(info, deck):
                     return "non-preferred land (land_types_strict)"
         if "land" in tl.lower():
-            land_high = int(ROLE_QUOTAS["land"][1])
+            _low, land_high = self._land_band(deck)
             allow_complete_basic = deck.require_complete and is_basic_land(tl)
             if self._land_count(deck) >= land_high and not allow_complete_basic:
                 return "land quota full"
@@ -1170,28 +1456,40 @@ class DeckSolver:
             info.get("keywords"),
         )
         requested = set(requirement_families(query))
-        symbolic_bonus = sum(
-            0.45
-            for family, enabled in (
-                ("counter", facts.is_counter),
-                ("removal", facts.is_removal),
-                ("draw", facts.is_draw),
-                ("ramp", facts.is_ramp),
-                ("protection", facts.is_protection),
-                ("extra_combat", facts.is_extra_combat),
-                ("evasion", facts.is_evasion),
-                ("tutor", facts.is_tutor),
-                ("token_engine", facts.is_token_engine),
-                ("graveyard", facts.is_graveyard),
-                ("sacrifice", facts.is_sacrifice),
-            )
-            if family in requested and enabled
-        )
+        symbolic_bonus = 0.0
+        for family, enabled in (
+            ("counter", facts.is_counter),
+            ("removal", facts.is_removal),
+            ("draw", facts.is_draw),
+            ("ramp", facts.is_ramp),
+            ("protection", facts.is_protection),
+            ("extra_combat", facts.is_extra_combat),
+            ("evasion", facts.is_evasion),
+            ("tutor", facts.is_tutor),
+            ("token_engine", facts.is_token_engine),
+            ("graveyard", facts.is_graveyard),
+            ("sacrifice", facts.is_sacrifice),
+        ):
+            if family in requested and enabled:
+                symbolic_bonus += 1.6 if family == "extra_combat" else 0.45
         # When under land quota, lands must beat glue or 5c builds starve on mana.
-        if is_land and self._land_count(deck) < int(ROLE_QUOTAS["land"][0]):
+        if is_land and self._lands_needed(deck) > 0:
             land_urgent = 3.0
             if deck.preferred_land_types and self._matches_preferred_land(info, deck):
                 land_urgent += 0.5
+
+        ontology_pair = 0.0
+        if _ontology_score_enabled(deck):
+            card_sets = self._ontology_sets_for(info.get("name") or name)
+            deck_sets = ctx.get("ontology_deck") or _union_pred_sets(
+                ctx.get("ontology_by_name") or {}
+            )
+            if skip_self:
+                deck_sets = _union_pred_sets(
+                    ctx.get("ontology_by_name") or {},
+                    skip=info.get("name") or name,
+                )
+            ontology_pair = _ontology_pair_score(card_sets, deck_sets)
 
         unit = card_unit_price(info, deck.currency) or 0.0
         value = synergy / (unit + 0.5) if deck.budget_cap is not None else 0.0
@@ -1207,10 +1505,13 @@ class DeckSolver:
             + theme_bonus
             + land_urgent
             + symbolic_bonus
+            + ontology_pair
         )
         profile = ctx.get("profile") or profile_for(ctx.get("archetype"))
         cap = profile.max_creatures
-        if cap is not None and is_creature_card(info.get("type_line") or ""):
+        requested_combat = "extra_combat" in set(requirement_families(query))
+        skip_creature_cap = requested_combat and facts.is_extra_combat
+        if cap is not None and is_creature_card(info.get("type_line") or "") and not skip_creature_cap:
             bodies = sum(
                 int(c.get("quantity") or 1)
                 for c in ctx["deck_cards"]
@@ -1258,6 +1559,7 @@ class DeckSolver:
             "value": value,
             "symbolic_facts": facts.to_dict(),
             "symbolic_bonus": symbolic_bonus,
+            "ontology_pair": ontology_pair,
             "total": total,
             "info": info,
         }
@@ -1317,6 +1619,7 @@ class DeckSolver:
                 "value": 0.0,
                 "symbolic_facts": {},
                 "symbolic_bonus": 0.0,
+                "ontology_pair": 0.0,
                 "total": -999.0,
                 "error": parts["error"],
             }
@@ -1368,6 +1671,7 @@ class DeckSolver:
             "value": round(parts["value"], 4),
             "symbolic_facts": parts.get("symbolic_facts") or {},
             "symbolic_bonus": round(parts.get("symbolic_bonus") or 0.0, 4),
+            "ontology_pair": round(parts.get("ontology_pair") or 0.0, 4),
             "total": round(parts["total"], 4),
         }
 
@@ -1438,6 +1742,7 @@ class DeckSolver:
         quotas = self._ctx.get("quotas") or quotas_for(self._ctx.get("archetype"))
         profile = self._ctx.get("profile") or profile_for("generic")
         land_count = counts.get("land", 0)
+        land_low, _land_high = self._land_band(deck)
         worst_name = None
         worst_score = None
         for card in deck_cards:
@@ -1445,7 +1750,7 @@ class DeckSolver:
             if protected_names and name.lower() in protected_names:
                 continue
             roles = self._card_roles(card)
-            if "land" in roles and land_count <= quotas["land"][0]:
+            if "land" in roles and land_count <= land_low:
                 continue
             protected = False
             for role in roles:
@@ -1482,13 +1787,87 @@ class DeckSolver:
                 best_name = name
         return best_name
 
+    def _identity_basic_counts(self, deck: DeckState) -> dict[str, int]:
+        counts = {color: 0 for color in (deck.identity or []) if color in IDENTITY_BASICS}
+        for name, qty in deck.card_list().items():
+            for color, basic in IDENTITY_BASICS.items():
+                if color in counts and name.lower() == basic.lower():
+                    counts[color] += int(qty)
+        return counts
+
+    def _needed_basic_color(self, deck: DeckState) -> str | None:
+        """Identity color that most needs another dedicated basic.
+
+        Rainbow/any lands (Tower, Orchard) already count toward diagnose() floors,
+        so they must not suppress Plains in a Boros pad — fetch/W pips still need
+        actual Plains. Split remaining basics by pip share, at least one each.
+        """
+        colors = [c for c in (deck.identity or []) if c in IDENTITY_BASICS]
+        if not colors:
+            return None
+        basics = self._identity_basic_counts(deck)
+        mana = (self._ctx or {}).get("mana") or {}
+        pips = mana.get("pips") or {}
+        pip_total = sum(float(pips.get(c) or 0) for c in colors)
+        floors = mana.get("min_sources") or {}
+        total_basics = sum(basics.values())
+        best = None
+        best_need = None
+        for color in colors:
+            have = basics.get(color, 0)
+            share = (float(pips.get(color) or 0) / pip_total) if pip_total > 0 else 1.0 / len(colors)
+            floor = float(floors.get(color) or 0)
+            target = max(1, int(round(max(floor * 0.5, (total_basics + 1) * share))))
+            need = target - have
+            # Prefer the emptiest color when targets tie (0 Plains vs 21 Mountains).
+            rank = (need, -have, share)
+            if best_need is None or rank > best_need:
+                best_need = rank
+                best = color
+        return best
+
+    def _rebalance_color_basics(self, deck: DeckState, query: str = "") -> list[dict]:
+        """Turn surplus Mountains into Plains (etc.) once the land count is already OK."""
+        swapped: list[dict] = []
+        colors = [c for c in (deck.identity or []) if c in IDENTITY_BASICS]
+        if len(colors) < 2:
+            return swapped
+        self._rebuild_context(deck, query)
+        for _ in range(40):
+            basics = self._identity_basic_counts(deck)
+            if not basics or sum(basics.values()) < 2:
+                break
+            short = self._needed_basic_color(deck)
+            if not short:
+                break
+            have_short = basics.get(short, 0)
+            rich = max(colors, key=lambda c: basics.get(c, 0))
+            if rich == short or basics.get(rich, 0) <= max(1, have_short + 1):
+                break
+            add_name = IDENTITY_BASICS[short]
+            cut_name = IDENTITY_BASICS[rich]
+            if not self._info(add_name):
+                break
+            deck.remove_card(cut_name, 1)
+            ok, _reason = self.can_add(deck, add_name)
+            if not ok:
+                deck.add_card(cut_name, 1)
+                break
+            self._commit_add(deck, add_name, 1)
+            swapped.append({"out": cut_name, "in": add_name, "reason": "color_basic_split"})
+            self._rebuild_context(deck, query)
+        if swapped:
+            print(f"[Solver] color basics: {len(swapped)} swap(s) -> {self._identity_basic_counts(deck)}")
+        return swapped
+
     def _best_basic(self, deck: DeckState, allow_overquota: bool = False) -> str | None:
         # Never suggest basics (or preferred lands-as-basics) once land quota is met.
-        if self._land_count(deck) >= int(ROLE_QUOTAS["land"][1]) and not allow_overquota:
+        _low, land_high = self._land_band(deck)
+        if self._land_count(deck) >= land_high and not allow_overquota:
             return None
         # Prefer preferred-type lands still in the pool when land slots are short.
         if deck.preferred_land_types and (
-            self._land_count(deck) < int(ROLE_QUOTAS["land"][1]) or not allow_overquota
+            self._land_count(deck) < land_high or not allow_overquota
         ):
             for name in list(deck.candidate_pool):
                 info = self._info(name) or {}
@@ -1500,11 +1879,20 @@ class DeckSolver:
                 if ok:
                     return info.get("name") or name
 
-        colors = deck.identity or []
-        names = [IDENTITY_BASICS[c] for c in colors if c in IDENTITY_BASICS]
+        color = self._needed_basic_color(deck)
+        names = []
+        if color:
+            names.append(IDENTITY_BASICS[color])
+        names.extend(
+            IDENTITY_BASICS[c] for c in (deck.identity or []) if c in IDENTITY_BASICS
+        )
         if not names:
             names = ["Wastes"]
+        seen = set()
         for name in names:
+            if name in seen:
+                continue
+            seen.add(name)
             info = self._info(name)
             if info:
                 return info["name"]
@@ -1553,34 +1941,84 @@ class DeckSolver:
         cmd = self._info(deck.commander) if deck.commander else None
         arch = self._plan(deck, query)
         profile = profile_for(arch)
-        queries = [q for q in [query, (cmd or {}).get("oracle_text")] if q]
+        intent = compile_search_intent(query)
+        phrases: list[str] = []
+        seen_q: set[str] = set()
+
+        def push_query(text: str) -> None:
+            compact = " ".join((text or "").split())
+            if not compact:
+                return
+            key = compact.lower()
+            if key in seen_q:
+                return
+            seen_q.add(key)
+            phrases.append(compact)
+
+        push_query(query)
+        q_norm = " ".join((query or "").lower().split())
+        for phrase in intent.oracle_phrases:
+            if " ".join(phrase.lower().split()) == q_norm:
+                continue
+            push_query(phrase)
         if profile.retrieve_tribe and cmd:
             tribal_types = self_referential_types(cmd)
             if tribal_types:
-                queries.append(" ".join(sorted(tribal_types)) + " creature")
+                push_query(" ".join(sorted(tribal_types)) + " creature")
         if cmd:
             for theme in detect_known_themes(cmd):
-                queries.extend(THEME_QUERIES[theme])
-        queries.extend(search_queries_for(arch))
+                for theme_q in THEME_QUERIES[theme]:
+                    push_query(theme_q)
+        for arch_q in search_queries_for(arch):
+            push_query(arch_q)
+        lex_only: list[str] = []
+        commander_oracle = ((cmd or {}).get("oracle_text") or "").strip()
+        if commander_oracle:
+            lex_only.append(commander_oracle)
         colors = list(deck.identity or (cmd or {}).get("color_identity") or [])
         found = []
-        # Cap sized for the worst case: 2 base + 1 tribal + theme queries
-        # + archetype search queries. Left slack to 16 for headroom.
-        for q in queries[:16]:
+        n_sources = max(len(phrases) + len(lex_only), 1)
+        batch_fn = getattr(searcher, "search_cards_batch", None)
+        hit_groups: list[tuple[str, list]] = []
+        if callable(batch_fn):
             try:
-                hits = searcher.search_cards(
-                    query=q,
+                hits = batch_fn(
+                    queries=phrases,
                     allowed_colors=colors,
                     owned_only=deck.owned_only,
                     card_pool=self._pool_norm(deck),
-                    limit=40,
+                    limit=40 * n_sources,
                     max_card_price=deck.max_card_price,
                     currency=deck.currency,
                     n_results=160,
+                    lexical_only_queries=lex_only or None,
                 )
+                hit_groups.append((query or (phrases[0] if phrases else ""), hits))
             except Exception as exc:
-                print(f"[Solver] search failed for '{q}': {exc}")
-                continue
+                print(f"[Solver] search failed: {exc}")
+                return []
+        else:
+            for q in phrases:
+                try:
+                    hit_groups.append(
+                        (
+                            q,
+                            searcher.search_cards(
+                                query=q,
+                                allowed_colors=colors,
+                                owned_only=deck.owned_only,
+                                card_pool=self._pool_norm(deck),
+                                limit=40,
+                                max_card_price=deck.max_card_price,
+                                currency=deck.currency,
+                                n_results=160,
+                            ),
+                        )
+                    )
+                except Exception as exc:
+                    print(f"[Solver] search failed for '{q}': {exc}")
+                    continue
+        for q, hits in hit_groups:
             for hit in hits:
                 info = self._info(hit["name"])
                 if info is not None and hit.get("distance") is not None:

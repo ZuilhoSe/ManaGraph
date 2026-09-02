@@ -1,100 +1,78 @@
 1 Lightning, Army of One
+16 Mountain
+8 Plains
 1 Abandoned Air Temple
 1 Aggravated Assault
-1 Ajani, Outland Chaperone
+1 Akki Battle Squad
 1 Alpine Moon
 1 Ancient Ziggurat
-1 Arc Lightning
-1 Arcane Signet
-1 Archangel Elspeth
 1 Armistice
-1 Asgardian Inspiration
 1 Ash Barrens
 1 Aurelia, the Warleader
-1 Avarice Amulet
-1 Battlefield Forge
-1 Blind Fury
-1 Boros Charm
-1 Boros Garrison
-1 Boros Signet
+1 Benevolent Blessing
+1 Bilbo's Ring
+1 Bloodthirster
+1 Breath of Fury
 1 Brightstone Ritual
-1 Chain Lightning
-1 Chandra, Flamecaller
-1 Chandra, Torch of Defiance
-1 Cleaver Riot
-1 Clifftop Retreat
+1 Brilliant Wings
 1 Combat Celebrant
 1 Command Tower
-1 Demand Answers
-1 Duelist's Heritage
-1 Elspeth, Sun's Champion
-1 Elspeth, Sun's Nemesis
-1 Esper Sentinel
-1 Essence Reliquary
-1 Excavator
+1 Desert Were-Worm
+1 Drumbellower
+1 Eater of Virtue
+1 Enter the Avatar State
 1 Exotic Orchard
-1 Experimental Synthesizer
-1 Fire Nation Attacks
+1 Faith's Shield
+1 Fear of Missing Out
 1 Fire Nation Palace
 1 Fists of Flame
-1 Flawless Maneuver
 1 Forbidden Orchard
-1 Fountainport
-1 Gallant Strike
-1 Galvanic Relay
-1 Ghost Town
-1 Giver of Runes
-1 Guildless Commons
-1 Happily Ever After
-1 Honor's Reward
+1 Fury of the Horde
+1 Genji Glove
+1 Godo, Bandit Warlord
+1 Great Train Heist
+1 Grim Reaper's Sprint
+1 Hellkite Charger
+1 Hexplate Wallbreaker
+1 Jangling Automaton
 1 Karlach, Fury of Avernus
-1 Lashknife Barrier
-1 Lightning Greaves
-1 Lightning Storm
-1 Lightning Strike
-1 Lightning, Security Sergeant
-1 Lyra Dawnbringer
-1 Mana Geyser
-1 Mother of Runes
-1 Mox Jasper
-1 Mystifying Maze
+1 Lightning Blast
+1 Lightning Runner
+1 Lotus Field
+1 Manhole Cover
+1 Moraug, Fury of Akoum
 1 Nahiri, the Lithomancer
-1 Northampton Farm
-1 Not of This World
-1 Oracle's Vault
-1 Path to Exile
+1 Nine Lives
+1 Orbs of Warding
+1 Overpowering Attack
 1 Pillar of the Paruns
 1 Planar Nexus
-1 Pursue the Past
+1 Port Razer
 1 Rainbow Vale
-1 Rally Maneuver
-1 Rent Is Due
-1 Rograkh, Son of Rohgahh
-1 Sacred Foundry
-1 Sage's Reverie
-1 Sanctum of Eternity
-1 Silence
-1 Slash the Ranks
-1 Sol Ring
-1 Spark Trooper
-1 Spectator Seating
-1 Staff of Nin
-1 Sunbaked Canyon
-1 Swiftblade Vindicator
-1 Swiftfoot Boots
-1 Swords to Plowshares
-1 Talisman of Conviction
-1 Tamiyo's Journal
-1 Team Tactics
-1 Teferi's Protection
+1 Raiyuu, Storm's Edge
+1 Rally the Troops
+1 Raph & Leo, Sibling Rivals
+1 Raphael, Tag Team Tough
+1 Relentless Assault
+1 Response // Resurgence
+1 Reveille Squad
+1 Rite of Flame
+1 Savage Beating
+1 Scourge of the Throne
+1 Seize the Day
+1 Soulbright Flamekin
+1 Spectacular Tactics
+1 Spectrum Sentinel
+1 Swinging Ship
+1 Take the Bait
+1 Teyo, the Shieldmage
 1 Thaumatic Compass // Spires of Orazca
 1 The One Ring
-1 Trove of Temptation
-1 True Conviction
-1 Twinblade Blessing
-1 Ultima Weapon
-1 Uncontrolled Infestation
 1 Undiscovered Paradise
-1 Vance's Blasting Cannons // Spitfire Bastion
+1 Urn of Godfire
 1 Vault 21: House Gambit
-1 Veteran Soldier
+1 Waves of Aggression
+1 World at War
+1 Zariel, Archduke of Avernus
+1 Zhao, the Moon Slayer
+1 Éomer, Marshal of Rohan

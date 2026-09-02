@@ -15,6 +15,7 @@ from ontology.schema import load_schema  # noqa: E402
 
 
 FIXTURES = ROOT / "tests" / "fixtures" / "forge"
+MAPPING = ROOT / "data" / "ontology" / "forge_mapping.yaml"
 
 
 def _predicates(row):
@@ -23,6 +24,22 @@ def _predicates(row):
         for item in row["candidates"]
         if item["predicate"]
     }
+
+
+def _mapped(text, filename="fixture.txt"):
+    return apply_mapping(
+        parse_forge_text(text, filename),
+        _load_mapping(MAPPING),
+        load_schema(),
+    )
+
+
+def _arg_values(row, predicate, key):
+    return [
+        item["arguments"].get(key)
+        for item in row["candidates"]
+        if item["predicate"] == predicate
+    ]
 
 
 class ForgeMiningTests(unittest.TestCase):
@@ -149,7 +166,7 @@ class ForgeMiningTests(unittest.TestCase):
         )
         mapped = apply_mapping(
             row,
-            _load_mapping(ROOT / "data" / "ontology" / "forge_mapping.yaml"),
+            _load_mapping(MAPPING),
             load_schema(),
         )
         answers = {
@@ -205,6 +222,346 @@ class ForgeMiningTests(unittest.TestCase):
         self.assertEqual(row["card"]["name"], "Claim")
         self.assertEqual([face["name"] for face in row["card"]["faces"]], ["Claim", "Fame"])
         self.assertEqual(row["card"]["faces"][0]["metadata"].get("AlternateMode"), "Split")
+
+    def test_mapping_add_phase_extra_combat(self):
+        row = parse_forge_text(
+            "\n".join(
+                [
+                    "Name: Extra Combat Fixture",
+                    "A:SP$ AddPhase | ExtraPhase$ Combat",
+                ]
+            ),
+            "extra_combat.txt",
+        )
+        mapped = apply_mapping(
+            row,
+            _load_mapping(MAPPING),
+            load_schema(),
+        )
+        self.assertTrue(
+            any(
+                item["predicate"] == "enables"
+                and item["arguments"].get("capability") == "extra_combat"
+                for item in mapped["candidates"]
+            )
+        )
+        self.assertTrue(
+            any(
+                item["predicate"] == "emits"
+                and item["arguments"].get("event") == "attack"
+                for item in mapped["candidates"]
+            )
+        )
+
+    def test_pump_hexproof_protects_but_self_keyword_does_not(self):
+        granted = _mapped(
+            "\n".join(
+                [
+                    "Name: Protection Grant Fixture",
+                    "A:AB$ Pump | Cost$ 1 | ValidTgts$ Creature | KW$ Hexproof",
+                ]
+            )
+        )
+        self.assertIn("commander", _arg_values(granted, "protects", "target_class"))
+        self.assertIn("protection", _arg_values(granted, "enables", "capability"))
+
+        self_kw = _mapped("Name: Self Hexproof Fixture\nK:Hexproof\n")
+        self.assertNotIn("protects", _predicates(self_kw))
+        self.assertNotIn("protection", _arg_values(self_kw, "enables", "capability"))
+
+        equipped = _mapped(
+            "\n".join(
+                [
+                    "Name: Equipment Protection Fixture",
+                    "S:Mode$ Continuous | Affected$ Creature.EquippedBy | AddKeyword$ Hexproof",
+                ]
+            )
+        )
+        self.assertIn("commander", _arg_values(equipped, "protects", "target_class"))
+
+    def test_add_keyword_haste_grants_but_self_haste_does_not(self):
+        granted = _mapped(
+            "\n".join(
+                [
+                    "Name: Haste Grant Fixture",
+                    "S:Mode$ Continuous | Affected$ Creature.YouCtrl | AddKeyword$ Haste",
+                ]
+            )
+        )
+        self.assertIn("haste_grant", _arg_values(granted, "enables", "capability"))
+
+        self_kw = _mapped("Name: Self Haste Fixture\nK:Haste\n")
+        self.assertNotIn("haste_grant", _arg_values(self_kw, "enables", "capability"))
+
+    def test_keyword_convoke_enables_convoke_like(self):
+        mapped = _mapped("Name: Convoke Fixture\nK:Convoke\n")
+        self.assertIn("convoke_like", _arg_values(mapped, "enables", "capability"))
+
+        svar = _mapped("Name: Convoke SVar Fixture\nSVar:Convoke:Count$YouCtrl\n")
+        self.assertNotIn("convoke_like", _arg_values(svar, "enables", "capability"))
+
+    def test_reduce_cost_enables_cost_reduction(self):
+        mapped = _mapped(
+            "\n".join(
+                [
+                    "Name: Cost Reduction Fixture",
+                    "S:Mode$ ReduceCost | Type$ Instant",
+                ]
+            )
+        )
+        self.assertIn("cost_reduction", _arg_values(mapped, "enables", "capability"))
+
+    def test_deal_damage_answers_creature_not_player(self):
+        creature = _mapped(
+            "\n".join(
+                [
+                    "Name: Damage Creature Fixture",
+                    "A:SP$ DealDamage | ValidTgts$ Creature | NumDmg$ 3",
+                ]
+            )
+        )
+        self.assertIn("creature", _arg_values(creature, "answers", "threat_class"))
+
+        player = _mapped(
+            "\n".join(
+                [
+                    "Name: Damage Player Fixture",
+                    "A:SP$ DealDamage | ValidTgts$ Player | NumDmg$ 3",
+                ]
+            )
+        )
+        self.assertNotIn("answers", _predicates(player))
+
+    def test_library_search_change_type_card_tutors_any(self):
+        mapped = _mapped(
+            "\n".join(
+                [
+                    "Name: Tutor Any Fixture",
+                    "A:SP$ ChangeZone | Origin$ Library | Destination$ Hand | ChangeType$ Card",
+                ]
+            )
+        )
+        self.assertIn("any", _arg_values(mapped, "tutors", "selector"))
+
+        reorder = _mapped(
+            "\n".join(
+                [
+                    "Name: Library Reorder Fixture",
+                    "A:SP$ ChangeZone | Origin$ Library | Destination$ Library | ChangeType$ Card",
+                ]
+            )
+        )
+        self.assertNotIn("tutors", _predicates(reorder))
+
+    def test_spell_cast_valid_card_does_not_leak_forge_dsl(self):
+        mapped = _mapped(
+            "\n".join(
+                [
+                    "Name: Spell Reward Fixture",
+                    "T:Mode$ SpellCast | ValidCard$ Instant.Blue",
+                ]
+            )
+        )
+        rewards = [
+            item["arguments"]
+            for item in mapped["candidates"]
+            if item["predicate"] == "rewards"
+        ]
+        self.assertTrue(rewards)
+        self.assertTrue(all(item.get("event") == "cast_spell" for item in rewards))
+        types = [item.get("type") for item in rewards]
+        self.assertNotIn("Instant.Blue", types)
+        self.assertTrue(all(value in {None, "any", "creature", "instant", "sorcery"} for value in types))
+        self.assertIn("instant", types)
+
+        mixed = _mapped(
+            "\n".join(
+                [
+                    "Name: Mixed Spell Reward Fixture",
+                    "T:Mode$ SpellCast | ValidCard$ Instant,Sorcery",
+                ]
+            )
+        )
+        mixed_rewards = [
+            item["arguments"]
+            for item in mixed["candidates"]
+            if item["predicate"] == "rewards"
+        ]
+        self.assertTrue(all(item.get("event") == "cast_spell" for item in mixed_rewards))
+        self.assertTrue(all("type" not in item for item in mixed_rewards))
+
+    def test_condition_threshold_requires_precondition(self):
+        mapped = _mapped(
+            "\n".join(
+                [
+                    "Name: Threshold Fixture",
+                    "A:AB$ Pump | Cost$ T | NumAtt$ +3 | Condition$ Threshold",
+                ]
+            )
+        )
+        self.assertIn("threshold", _arg_values(mapped, "requires", "precondition"))
+
+    def test_svar_subability_db_draw_maps_like_ability_line(self):
+        svar = _mapped(
+            "\n".join(
+                [
+                    "Name: SVar Draw Fixture",
+                    "A:AB$ Token | Cost$ T | TokenScript$ c_1_1_goblin | SubAbility$ DBDraw",
+                    "SVar:DBDraw:DB$ Draw | NumCards$ 1",
+                ]
+            )
+        )
+        self.assertIn("card_in_hand", _arg_values(svar, "produces", "object"))
+        self.assertIn("draw", _arg_values(svar, "emits", "event"))
+        self.assertIn("token_created", _arg_values(svar, "emits", "event"))
+
+        chained = _mapped(
+            "\n".join(
+                [
+                    "Name: SubAbility Draw Fixture",
+                    "A:AB$ Token | Cost$ T | TokenScript$ c_1_1_goblin | SubAbility$ DBDraw",
+                    "A:DB$ Draw | NumCards$ 1",
+                ]
+            )
+        )
+        self.assertIn("card_in_hand", _arg_values(chained, "produces", "object"))
+        self.assertIn("draw", _arg_values(chained, "emits", "event"))
+
+    def test_mill_produces_card_in_graveyard(self):
+        mapped = _mapped(
+            "\n".join(
+                [
+                    "Name: Mill Fixture",
+                    "A:SP$ Mill | NumCards$ 3 | Defined$ You",
+                ]
+            )
+        )
+        self.assertIn("card_in_graveyard", _arg_values(mapped, "produces", "object"))
+
+    def test_fight_answers_creature(self):
+        mapped = _mapped(
+            "\n".join(
+                [
+                    "Name: Fight Fixture",
+                    "A:SP$ Fight | ValidTgts$ Creature | Defined$ Self",
+                ]
+            )
+        )
+        self.assertIn("creature", _arg_values(mapped, "answers", "threat_class"))
+
+    def test_damage_all_answers_board(self):
+        mapped = _mapped(
+            "\n".join(
+                [
+                    "Name: DamageAll Fixture",
+                    "A:SP$ DamageAll | ValidCards$ Creature | NumDmg$ 2",
+                ]
+            )
+        )
+        self.assertIn("board", _arg_values(mapped, "answers", "threat_class"))
+        self.assertIn("creature", _arg_values(mapped, "answers", "threat_class"))
+
+    def test_play_land_and_adjust_land_plays_produce_land_in_play(self):
+        play = _mapped(
+            "\n".join(
+                [
+                    "Name: Play Land Fixture",
+                    "A:SP$ Play | Valid$ Land | ExtraLand$ True",
+                ]
+            )
+        )
+        self.assertIn("land_in_play", _arg_values(play, "produces", "object"))
+        self.assertIn("landfall", _arg_values(play, "emits", "event"))
+
+        extra = _mapped(
+            "\n".join(
+                [
+                    "Name: Extra Land Fixture",
+                    "S:Mode$ Continuous | Affected$ You | AdjustLandPlays$ 1",
+                ]
+            )
+        )
+        self.assertIn("land_in_play", _arg_values(extra, "produces", "object"))
+        self.assertIn("landfall", _arg_values(extra, "emits", "event"))
+
+    def test_change_zone_all_bounce(self):
+        mapped = _mapped(
+            "\n".join(
+                [
+                    "Name: ChangeZoneAll Bounce Fixture",
+                    "A:SP$ ChangeZoneAll | Origin$ Battlefield | Destination$ Hand | ChangeType$ Creature",
+                ]
+            )
+        )
+        self.assertIn("bounce", _arg_values(mapped, "emits", "event"))
+        self.assertIn("creature", _arg_values(mapped, "answers", "threat_class"))
+
+    def test_mana_combo_color_is_not_an_argument(self):
+        mapped = _mapped(
+            "\n".join(
+                [
+                    "Name: Combo Mana Fixture",
+                    "A:AB$ Mana | Cost$ T | Produced$ Combo R G",
+                ]
+            )
+        )
+        colors = _arg_values(mapped, "produces", "color")
+        self.assertNotIn("Combo R G", colors)
+        self.assertTrue(
+            any(
+                item["predicate"] == "produces"
+                and item["arguments"].get("object") == "mana"
+                for item in mapped["candidates"]
+            )
+        )
+        self.assertTrue(
+            any(
+                "Combo R G" in str(item.get("evidence"))
+                for item in mapped["candidates"]
+                if item["predicate"] == "produces"
+            )
+        )
+
+    def test_add_turn_is_not_extra_combat(self):
+        mapped = _mapped(
+            "\n".join(
+                [
+                    "Name: Extra Turn Fixture",
+                    "A:SP$ AddTurn | NumTurns$ 1 | Defined$ You",
+                ]
+            )
+        )
+        self.assertNotIn("extra_combat", _arg_values(mapped, "enables", "capability"))
+        self.assertNotIn("enables", _predicates(mapped))
+
+    def test_token_script_stays_in_evidence_not_arguments(self):
+        mapped = _mapped(
+            "\n".join(
+                [
+                    "Name: Token Script Fixture",
+                    "A:AB$ Token | Cost$ T | TokenScript$ c_a_treasure_sac",
+                ]
+            )
+        )
+        self.assertIn("treasure", _arg_values(mapped, "produces", "object"))
+        scripts = [
+            item["arguments"].get("token_script")
+            for item in mapped["candidates"]
+            if item["predicate"] == "produces"
+        ]
+        self.assertTrue(all(value is None for value in scripts))
+
+    def test_battlefield_to_hand_emits_bounce(self):
+        mapped = _mapped(
+            "\n".join(
+                [
+                    "Name: Bounce Fixture",
+                    "A:SP$ ChangeZone | Origin$ Battlefield | Destination$ Hand | ValidTgts$ Creature",
+                ]
+            )
+        )
+        self.assertIn("bounce", _arg_values(mapped, "emits", "event"))
+        self.assertIn("creature", _arg_values(mapped, "answers", "threat_class"))
 
 
 if __name__ == "__main__":

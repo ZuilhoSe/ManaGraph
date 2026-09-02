@@ -343,15 +343,31 @@ def _parse_face(lines: list[str], face_index: int, is_alternate: bool) -> dict[s
     return face
 
 
+def _svar_name(effect: Mapping[str, Any]) -> str:
+    """SVar values are ``Name:DB$ Effect``; return the declared name."""
+    if effect.get("prefix") != "SVar":
+        return ""
+    value = str(effect.get("value") or "")
+    if ":" not in value:
+        return ""
+    return value.split(":", 1)[0].strip()
+
+
 def _follow_subabilities(face: dict[str, Any]) -> None:
     """Mark the transitive SubAbility closure while preserving raw DSL lines."""
     effects = face["effects"]
     by_reference: dict[str, list[dict[str, Any]]] = {}
     for effect in effects:
-        if effect["prefix"] != "A":
-            continue
-        reference = _normalise_reference(effect["ability"])
-        if reference:
+        keys: list[str] = []
+        if effect["prefix"] == "A":
+            ability = _normalise_reference(effect["ability"])
+            if ability:
+                keys.append(ability)
+        elif effect["prefix"] == "SVar":
+            name = _normalise_reference(_svar_name(effect))
+            if name:
+                keys.append(name)
+        for reference in keys:
             by_reference.setdefault(reference, []).append(effect)
 
     chains: list[dict[str, Any]] = []
@@ -522,16 +538,15 @@ def _load_mapping(path: Path) -> list[dict[str, Any]]:
     return result
 
 
-def _threat_classes(record: Mapping[str, Any]) -> list[str]:
+def _threat_classes(
+    record: Mapping[str, Any], extra_keys: tuple[str, ...] = ()
+) -> list[str]:
     """Read ValidTgts / ValidCards / Defined into existing threat_class values."""
     params = record.get("params") if isinstance(record, Mapping) else {}
     if not isinstance(params, Mapping):
         params = {}
-    raw = " ".join(
-        _as_list(params.get("ValidTgts"))
-        + _as_list(params.get("ValidCards"))
-        + _as_list(params.get("Defined"))
-    ).lower()
+    keys = ("ValidTgts", "ValidCards", "Defined") + extra_keys
+    raw = " ".join(part for key in keys for part in _as_list(params.get(key))).lower()
     classes: list[str] = []
     if "creature" in raw:
         classes.append("creature")
@@ -548,6 +563,178 @@ def _defined_self(record: Mapping[str, Any]) -> bool:
         return False
     defined = " ".join(_as_list(params.get("Defined"))).lower()
     return "self" in defined or "cardname" in defined
+
+
+_PROTECTION_VOLTRON_MARKERS = (
+    "equippedcard",
+    "equippedby",
+    "enchantedcard",
+    "enchantedby",
+    "card.iscommander",
+)
+_CAST_SPELL_TYPES = frozenset({"creature", "instant", "sorcery"})
+_REQUIRE_PRECONDITIONS = ("threshold", "hellbent", "metalcraft", "delirium")
+
+
+def _record_kind(record: Mapping[str, Any] | str) -> str:
+    if isinstance(record, Mapping):
+        return str(record.get("kind") or "")
+    return ""
+
+
+def _protection_target_class(record: Mapping[str, Any], raw: str) -> str:
+    """Voltron-ish grants target commander; mass grants target board."""
+    params = record.get("params") if isinstance(record, Mapping) else {}
+    if not isinstance(params, Mapping):
+        params = {}
+    blob = " ".join(
+        [raw]
+        + _as_list(params.get("Defined"))
+        + _as_list(params.get("ValidTgts"))
+        + _as_list(params.get("Affected"))
+    ).lower()
+    if any(marker in blob for marker in _PROTECTION_VOLTRON_MARKERS):
+        return "commander"
+    valid_tgts = " ".join(_as_list(params.get("ValidTgts"))).lower()
+    if "creature" in valid_tgts:
+        return "commander"
+    return "board"
+
+
+_TUTOR_SELECTORS = frozenset(
+    {"creature", "land", "artifact", "enchantment", "instant", "sorcery"}
+)
+_MANA_COLOR_OK = frozenset({"W", "U", "B", "R", "G", "C"})
+_EFFECT_DSL_RE = re.compile(r"(?:AB|SP|DB)\$", re.IGNORECASE)
+_SAC_INNER_RE = re.compile(r"Sac<\s*([^>]+)\s*>", re.IGNORECASE)
+_TAPX_INNER_RE = re.compile(r"tapXType<\s*[^/>]*/\s*([^>]+)\s*>", re.IGNORECASE)
+
+
+def _tutor_selector(change_type: str) -> str | None:
+    """Map ChangeType to a schema selector, or None if this is not a search."""
+    token = re.split(r"[.,+/]", (change_type or "").strip().lower(), maxsplit=1)[0].strip()
+    if token in _TUTOR_SELECTORS:
+        return token
+    if token in {"", "card", "any"}:
+        return "any"
+    return None
+
+
+def _has_word(blob: str, word: str) -> bool:
+    return bool(re.search(rf"(?<!non)\b{re.escape(word)}\b", blob or "", re.IGNORECASE))
+
+
+def _mana_color_arg(produced: str) -> str | None:
+    """Keep produces.color inside WUBRGC/any. Combo/Chosen stay in evidence."""
+    text = (produced or "").strip()
+    if not text:
+        return None
+    if text.lower() == "any":
+        return "any"
+    if len(text) == 1 and text.upper() in _MANA_COLOR_OK:
+        return text.upper()
+    return None
+
+
+def _numeric_rate(value: Any, default: int | None = 1) -> int | None:
+    """Index rate only when Forge stored a literal integer."""
+    if value is None or value == "":
+        return default
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _line_evidence(line_record: Mapping[str, Any] | str, **extra: Any) -> dict[str, Any]:
+    payload = dict(line_record) if isinstance(line_record, Mapping) else {"raw": str(line_record)}
+    payload.update(extra)
+    return payload
+
+
+def _type_blob(record: Mapping[str, Any], *keys: str) -> str:
+    params = record.get("params") if isinstance(record, Mapping) else {}
+    if not isinstance(params, Mapping):
+        params = {}
+    parts: list[str] = []
+    for key in keys:
+        parts.extend(_as_list(params.get(key)))
+    return " ".join(parts).lower()
+
+
+def _defined_you(record: Mapping[str, Any]) -> bool:
+    defined = _type_blob(record, "Defined")
+    if not defined:
+        return True
+    if "opponent" in defined or "youdontctrl" in defined:
+        return False
+    return "you" in defined or "self" in defined or "cardname" in defined
+
+
+def _sac_mask(raw: str) -> str:
+    match = _SAC_INNER_RE.search(raw or "")
+    if not match:
+        return ""
+    inner = match.group(1)
+    return inner.split("/", 1)[1].strip() if "/" in inner else inner.strip()
+
+
+def _mentions_land(blob: str) -> bool:
+    return bool(re.search(r"(?<!non)land", blob or "", re.IGNORECASE))
+
+
+def _mentions_spell(blob: str) -> bool:
+    return bool(re.search(r"\b(?:spell|instant|sorcery|nonland)\b", blob or "", re.IGNORECASE))
+
+
+def _effect_match_text(record: Mapping[str, Any] | str) -> str:
+    """Haystack for effect regexes.
+
+    A: lines store ``AB$ Token | …`` in ``value``. SVar lines store
+    ``Name:DB$ Token | …``; strip the name so the same AB$/SP$/DB$ anchors match.
+    """
+    if isinstance(record, str):
+        return record
+    value = str(record.get("value") or "")
+    match = _EFFECT_DSL_RE.search(value)
+    if match and match.start() > 0:
+        return value[match.start():]
+    return value
+
+
+def _cast_spell_arguments(valid_card: str) -> dict[str, Any]:
+    """Keep rewards(cast_spell) types inside {any, creature, instant, sorcery}."""
+    arguments: dict[str, Any] = {"event": "cast_spell"}
+    tokens = [
+        token.strip().lower()
+        for token in re.split(r"[,.+&/]", valid_card or "")
+        if token.strip()
+    ]
+    found: list[str] = []
+    for token in tokens:
+        if token in _CAST_SPELL_TYPES and token not in found:
+            found.append(token)
+    if len(found) == 1:
+        arguments["type"] = found[0]
+    elif len(found) == 0:
+        arguments["type"] = "any"
+    return arguments
+
+
+def _requires_preconditions(params: Mapping[str, Any], raw: str) -> list[str]:
+    """Read explicit Forge condition flags; do not promote DeckNeeds."""
+    keys = {str(key).lower() for key in params}
+    condition = " ".join(_as_list(params.get("Condition"))).lower()
+    raw_lower = raw.lower()
+    found: list[str] = []
+    for name in _REQUIRE_PRECONDITIONS:
+        if (
+            name in keys
+            or re.search(rf"\b{name}\b", condition)
+            or re.search(rf"(?:condition\$\s*{name}\b|{name}\$)", raw_lower)
+        ):
+            found.append(name)
+    return found
 
 
 def _candidate(
@@ -568,6 +755,91 @@ def _candidate(
     }
 
 
+def _zone_move_candidates(
+    rule: Mapping[str, Any],
+    line_record: Mapping[str, Any],
+    evidence: Mapping[str, Any],
+    *,
+    origin: str,
+    destination: str,
+    change_type: str,
+    threat_extra: tuple[str, ...] = (),
+) -> list[dict[str, Any]]:
+    """Shared ChangeZone / ChangeZoneAll branches."""
+    type_blob = " ".join(
+        [
+            change_type,
+            _type_blob(line_record, "ValidTgts", "ValidCards", "Valid", "ChangeType"),
+        ]
+    )
+    threats = _threat_classes(line_record, extra_keys=threat_extra)
+    candidates: list[dict[str, Any]] = []
+    if destination == "battlefield":
+        candidates.append(_candidate("emits", {"event": "etb"}, rule, evidence))
+        if _mentions_land(type_blob):
+            candidates.append(
+                _candidate("produces", {"object": "land_in_play"}, rule, evidence)
+            )
+            candidates.append(_candidate("emits", {"event": "landfall"}, rule, evidence))
+        if _has_word(type_blob, "enchantment"):
+            candidates.append(
+                _candidate(
+                    "produces", {"object": "enchantment_permanent"}, rule, evidence
+                )
+            )
+    if origin == "graveyard" and destination == "battlefield":
+        candidates.append(
+            _candidate(
+                "recurs",
+                {"zone_from": "graveyard", "zone_to": "battlefield"},
+                rule,
+                evidence,
+            )
+        )
+    if origin == "graveyard" and destination == "hand":
+        candidates.append(
+            _candidate(
+                "recurs", {"zone_from": "graveyard", "zone_to": "hand"}, rule, evidence
+            )
+        )
+    if origin == "library" and destination in {"hand", "battlefield"}:
+        selector = _tutor_selector(change_type)
+        if selector:
+            candidates.append(
+                _candidate("tutors", {"selector": selector}, rule, evidence)
+            )
+    if origin == "graveyard" and destination == "exile":
+        candidates.append(
+            _candidate("answers", {"threat_class": "graveyard"}, rule, evidence)
+        )
+    if origin in {"library", "hand"} and destination == "exile":
+        candidates.append(
+            _candidate("produces", {"object": "card_in_exile"}, rule, evidence)
+        )
+    if origin in {"library", "hand"} and destination == "graveyard":
+        candidates.append(
+            _candidate("produces", {"object": "card_in_graveyard"}, rule, evidence)
+        )
+        if _has_word(type_blob, "creature"):
+            candidates.append(
+                _candidate(
+                    "produces", {"object": "creature_in_graveyard"}, rule, evidence
+                )
+            )
+    if origin == "battlefield" and destination == "hand":
+        candidates.append(_candidate("emits", {"event": "bounce"}, rule, evidence))
+        candidates.extend(
+            _candidate("answers", {"threat_class": threat}, rule, evidence)
+            for threat in threats
+        )
+    if origin == "battlefield" and destination == "exile":
+        candidates.extend(
+            _candidate("answers", {"threat_class": threat}, rule, evidence)
+            for threat in threats
+        )
+    return candidates
+
+
 def _action_candidates(
     action: str,
     rule: Mapping[str, Any],
@@ -581,71 +853,71 @@ def _action_candidates(
         raw = str(record.get("raw", ""))
         params = dict(record.get("params", {}))
         line_record = record
-    evidence = line_record
     get = lambda key, default="": _as_list(params.get(key, default))[0]
+    evidence = _line_evidence(line_record)
     if action == "mana":
         produced = get("Produced", "any")
+        color = _mana_color_arg(produced)
+        rate = _numeric_rate(get("Amount", get("NumMana", "1")))
+        arguments: dict[str, Any] = {"object": "mana"}
+        if color:
+            arguments["color"] = color
+        if rate is not None:
+            arguments["rate"] = rate
+        cost = get("Cost") or None
+        if cost:
+            arguments["cost"] = cost
+        if color is None and produced:
+            evidence = _line_evidence(line_record, produced_raw=produced)
         return [
-            _candidate(
-                "produces",
-                {
-                    "object": "mana",
-                    "color": produced if produced.lower() != "any" else "any",
-                    "rate": _number(get("Amount", get("NumMana", "1"))),
-                    "cost": get("Cost") or None,
-                },
-                rule,
-                evidence,
-            )
+            _candidate("produces", arguments, rule, evidence),
+            _candidate("emits", {"event": "mana_produced"}, rule, evidence),
         ]
     if action == "token":
         script = get("TokenScript")
         token_type = get("TokenType", get("Types"))
         object_name = "treasure" if "treasure" in script.lower() else "token"
-        arguments: dict[str, Any] = {"object": object_name}
-        if script:
-            arguments["token_script"] = script
+        arguments = {"object": object_name}
         if token_type:
             arguments["subtype"] = token_type
+        if script:
+            evidence = _line_evidence(line_record, token_script=script)
         candidates = [
             _candidate("produces", arguments, rule, evidence),
             _candidate("emits", {"event": "etb"}, rule, evidence),
             _candidate("emits", {"event": "token_created"}, rule, evidence),
         ]
+        token_blob = f"{script} {token_type}".lower()
+        if "role_" in token_blob or "enchantment" in token_blob:
+            candidates.append(
+                _candidate(
+                    "produces", {"object": "enchantment_permanent"}, rule, evidence
+                )
+            )
         return candidates
     if action == "draw":
+        rate = _numeric_rate(get("NumCards", "1"))
+        arguments = {"object": "card_in_hand"}
+        if rate is not None:
+            arguments["rate"] = rate
         return [
-            _candidate(
-                "produces",
-                {"object": "card_in_hand", "rate": _number(get("NumCards", "1"))},
-                rule,
-                evidence,
-            )
+            _candidate("produces", arguments, rule, evidence),
+            _candidate("emits", {"event": "draw"}, rule, evidence),
         ]
-    if action == "change_zone":
+    if action in {"change_zone", "change_zone_all"}:
         origin = get("Origin").lower()
         destination = get("Destination").lower()
-        change_type = get("ChangeType").lower()
-        candidates: list[dict[str, Any]] = []
-        if destination == "battlefield":
-            candidates.append(_candidate("emits", {"event": "etb"}, rule, evidence))
-        if origin == "graveyard" and destination == "battlefield":
-            candidates.append(
-                _candidate("recurs", {"zone_from": "graveyard", "zone_to": "battlefield"}, rule, evidence)
-            )
-        if origin == "graveyard" and destination == "hand":
-            candidates.append(
-                _candidate("recurs", {"zone_from": "graveyard", "zone_to": "hand"}, rule, evidence)
-            )
-        if origin == "library" and change_type in {"creature", "land"}:
-            candidates.append(
-                _candidate("tutors", {"selector": change_type}, rule, evidence)
-            )
-        if origin == "graveyard" and destination == "exile":
-            candidates.append(
-                _candidate("answers", {"threat_class": "graveyard"}, rule, evidence)
-            )
-        return candidates
+        change_type = get("ChangeType", get("ValidCards", get("Valid"))).lower()
+        extra = ("ChangeType", "Valid") if action == "change_zone_all" else ()
+        return _zone_move_candidates(
+            rule,
+            line_record,
+            evidence,
+            origin=origin,
+            destination=destination,
+            change_type=change_type,
+            threat_extra=extra,
+        )
     if action == "sacrifice":
         return [
             _candidate("emits", {"event": "sacrifice"}, rule, evidence),
@@ -689,13 +961,12 @@ def _action_candidates(
     if action == "counter_spell":
         return [_candidate("answers", {"threat_class": "stack"}, rule, evidence)]
     if action == "gain_life":
+        rate = _numeric_rate(get("LifeAmount", get("Life", "1")))
+        arguments = {"object": "life"}
+        if rate is not None:
+            arguments["rate"] = rate
         return [
-            _candidate(
-                "produces",
-                {"object": "life", "rate": _number(get("LifeAmount", get("Life", "1")))},
-                rule,
-                evidence,
-            ),
+            _candidate("produces", arguments, rule, evidence),
             _candidate("emits", {"event": "lifegain"}, rule, evidence),
         ]
     if action == "lose_life":
@@ -716,30 +987,256 @@ def _action_candidates(
             )
         return candidates
     if action == "deal_damage":
-        return [
+        candidates = [
             _candidate("answers", {"threat_class": threat}, rule, evidence)
             for threat in _threat_classes(line_record)
         ]
+        combat = get("CombatDamage").lower() == "true" or re.search(
+            r"CombatDamage\$\s*True", raw, re.IGNORECASE
+        )
+        if combat:
+            candidates.append(
+                _candidate("emits", {"event": "deal_combat_damage"}, rule, evidence)
+            )
+        return candidates
+    if action == "extra_combat":
+        return [
+            _candidate("enables", {"capability": "extra_combat"}, rule, evidence),
+            _candidate("emits", {"event": "attack"}, rule, evidence),
+            _candidate("emits", {"event": "deal_combat_damage"}, rule, evidence),
+        ]
+    if action == "grant_protection":
+        target = _protection_target_class(line_record, raw)
+        return [
+            _candidate("protects", {"target_class": target}, rule, evidence),
+            _candidate("enables", {"capability": "protection"}, rule, evidence),
+        ]
+    if action == "grant_haste":
+        return [_candidate("enables", {"capability": "haste_grant"}, rule, evidence)]
+    if action == "grant_keyword":
+        return [_candidate("enables", {"capability": "keyword_grant"}, rule, evidence)]
+    if action == "convoke_like":
+        if _record_kind(line_record) != "keyword":
+            return []
+        return [_candidate("enables", {"capability": "convoke_like"}, rule, evidence)]
+    if action == "cost_reduction":
+        if _record_kind(line_record) not in {"static", "ability", "keyword"}:
+            return []
+        return [_candidate("enables", {"capability": "cost_reduction"}, rule, evidence)]
+    if action == "requires_condition":
+        if _record_kind(line_record) == "svar":
+            return []
+        return [
+            _candidate("requires", {"precondition": name}, rule, evidence)
+            for name in _requires_preconditions(params, raw)
+        ]
+    if action == "mill":
+        candidates = [
+            _candidate("produces", {"object": "card_in_graveyard"}, rule, evidence)
+        ]
+        mill_blob = _type_blob(
+            line_record, "ValidTgts", "ValidCards", "ChangeType", "Type", "Valid"
+        )
+        if _has_word(mill_blob, "creature"):
+            candidates.append(
+                _candidate(
+                    "produces", {"object": "creature_in_graveyard"}, rule, evidence
+                )
+            )
+        return candidates
+    if action == "damage_all":
+        candidates = [
+            _candidate("answers", {"threat_class": "board"}, rule, evidence)
+        ]
+        for threat in _threat_classes(line_record):
+            if threat != "board":
+                candidates.append(
+                    _candidate("answers", {"threat_class": threat}, rule, evidence)
+                )
+        return candidates
+    if action == "fight":
+        return [_candidate("answers", {"threat_class": "creature"}, rule, evidence)]
+    if action == "extra_land":
+        return [
+            _candidate("produces", {"object": "land_in_play"}, rule, evidence),
+            _candidate("emits", {"event": "landfall"}, rule, evidence),
+        ]
+    if action == "play_card":
+        blob = " ".join(
+            [
+                get("Valid"),
+                get("ValidSA"),
+                get("Defined"),
+                get("ValidTgts"),
+                raw,
+            ]
+        ).lower()
+        candidates = []
+        if _mentions_land(blob):
+            candidates.append(
+                _candidate("produces", {"object": "land_in_play"}, rule, evidence)
+            )
+            candidates.append(_candidate("emits", {"event": "landfall"}, rule, evidence))
+        if _mentions_spell(blob):
+            candidates.append(
+                _candidate("emits", {"event": "cast_spell"}, rule, evidence)
+            )
+        return candidates
+    if action == "dig":
+        dest = get("DestinationZone", get("Destination")).lower()
+        change = get("ChangeValid", get("ChangeType", get("Valid"))).lower()
+        found_dest = get("FoundDestination", get("RevealedDestination")).lower()
+        if not dest and found_dest:
+            dest = found_dest
+        if not dest:
+            dest = "hand"
+        candidates = []
+        if dest == "hand":
+            candidates.append(
+                _candidate("produces", {"object": "card_in_hand"}, rule, evidence)
+            )
+            selector = _tutor_selector(change)
+            if selector:
+                candidates.append(
+                    _candidate("tutors", {"selector": selector}, rule, evidence)
+                )
+        elif dest == "battlefield":
+            candidates.extend(
+                _zone_move_candidates(
+                    rule,
+                    line_record,
+                    evidence,
+                    origin="library",
+                    destination="battlefield",
+                    change_type=change,
+                )
+            )
+        elif dest == "exile":
+            candidates.append(
+                _candidate("produces", {"object": "card_in_exile"}, rule, evidence)
+            )
+        elif dest == "graveyard":
+            candidates.append(
+                _candidate("produces", {"object": "card_in_graveyard"}, rule, evidence)
+            )
+            if _has_word(change, "creature"):
+                candidates.append(
+                    _candidate(
+                        "produces", {"object": "creature_in_graveyard"}, rule, evidence
+                    )
+                )
+        return candidates
+    if action == "set_life":
+        if _defined_you(line_record) and not get("ValidTgts"):
+            return [_candidate("produces", {"object": "life"}, rule, evidence)]
+        return []
+    if action == "discard_effect":
+        if _defined_you(line_record) and not get("ValidTgts"):
+            return [
+                _candidate("consumes", {"object": "card_in_hand"}, rule, evidence),
+                _candidate("emits", {"event": "discard"}, rule, evidence),
+            ]
+        return []
+    if action == "surveil":
+        return [
+            _candidate("produces", {"object": "card_in_graveyard"}, rule, evidence)
+        ]
+    if action == "investigate":
+        return [
+            _candidate("produces", {"object": "token"}, rule, evidence),
+            _candidate("emits", {"event": "etb"}, rule, evidence),
+            _candidate("emits", {"event": "token_created"}, rule, evidence),
+        ]
+    if action == "copy_permanent":
+        return [
+            _candidate("produces", {"object": "token"}, rule, evidence),
+            _candidate("emits", {"event": "etb"}, rule, evidence),
+            _candidate("emits", {"event": "token_created"}, rule, evidence),
+        ]
+    if action == "proliferate":
+        return [_candidate("emits", {"event": "counter_placed"}, rule, evidence)]
+    if action == "sacrifice_cost_permanent":
+        return [
+            _candidate("enables", {"capability": "sac_outlet"}, rule, evidence),
+            _candidate("emits", {"event": "sacrifice"}, rule, evidence),
+        ]
+    if action == "sacrifice_cost_generic":
+        mask = _sac_mask(raw).lower()
+        if "cardname" in mask:
+            return []
+        if "artifact" in mask:
+            return [
+                _candidate("consumes", {"object": "artifact_permanent"}, rule, evidence),
+                _candidate("enables", {"capability": "sac_outlet"}, rule, evidence),
+                _candidate("emits", {"event": "sacrifice"}, rule, evidence),
+            ]
+        if "treasure" in mask:
+            return [
+                _candidate("consumes", {"object": "treasure"}, rule, evidence),
+                _candidate("enables", {"capability": "sac_outlet"}, rule, evidence),
+                _candidate("emits", {"event": "sacrifice"}, rule, evidence),
+            ]
+        if "permanent" in mask:
+            return [
+                _candidate("enables", {"capability": "sac_outlet"}, rule, evidence),
+                _candidate("emits", {"event": "sacrifice"}, rule, evidence),
+            ]
+        return [
+            _candidate("consumes", {"object": "creature"}, rule, evidence),
+            _candidate("enables", {"capability": "sac_outlet"}, rule, evidence),
+            _candidate("emits", {"event": "sacrifice"}, rule, evidence),
+        ]
+    if action == "pay_life_cost":
+        return [_candidate("consumes", {"object": "life"}, rule, evidence)]
+    if action == "tap_xtype_cost":
+        match = _TAPX_INNER_RE.search(raw)
+        mask = (match.group(1) if match else "").lower()
+        candidates = [
+            _candidate("enables", {"capability": "convoke_like"}, rule, evidence)
+        ]
+        if "creature" in mask:
+            candidates.append(
+                _candidate("consumes", {"object": "creature"}, rule, evidence)
+            )
+        if "artifact" in mask:
+            candidates.append(
+                _candidate("consumes", {"object": "artifact_permanent"}, rule, evidence)
+            )
+        return candidates
+    if action == "sub_p1p1_cost":
+        return [_candidate("consumes", {"object": "p1p1_counter"}, rule, evidence)]
+    if action == "return_creature_cost":
+        return [
+            _candidate("consumes", {"object": "creature"}, rule, evidence),
+            _candidate("emits", {"event": "bounce"}, rule, evidence),
+        ]
+    if action in {"ignore_add_turn", "ignore_charm"}:
+        return []
+    if action in {"reward_spell_cast", "reward_cast_spell"}:
+        return [
+            _candidate("rewards", _cast_spell_arguments(get("ValidCard")), rule, evidence)
+        ]
     reward_events = {
-        "reward_etb": ("etb", {}),
-        "reward_death": ("death", {}),
-        "reward_sacrifice": ("sacrifice", {}),
-        "reward_attack": ("attack", {}),
-        "reward_combat_damage": ("deal_combat_damage", {}),
-        "reward_spell_cast": ("cast_spell", {"type": get("ValidCard", "any")}),
-        "reward_cast_spell": ("cast_spell", {"type": get("ValidCard", "any")}),
-        "reward_landfall": ("landfall", {}),
-        "reward_draw": ("draw", {}),
-        "reward_discard": ("discard", {}),
-        "reward_counter_placed": ("counter_placed", {}),
-        "reward_lifegain": ("lifegain", {}),
-        "reward_mana_produced": ("mana_produced", {}),
-        "reward_end_step": ("end_step", {}),
-        "reward_untap": ("untap", {}),
+        "reward_etb": "etb",
+        "reward_death": "death",
+        "reward_sacrifice": "sacrifice",
+        "reward_attack": "attack",
+        "reward_combat_damage": "deal_combat_damage",
+        "reward_landfall": "landfall",
+        "reward_draw": "draw",
+        "reward_discard": "discard",
+        "reward_counter_placed": "counter_placed",
+        "reward_lifegain": "lifegain",
+        "reward_mana_produced": "mana_produced",
+        "reward_end_step": "end_step",
+        "reward_untap": "untap",
+        "reward_token_created": "token_created",
+        "reward_bounce": "bounce",
     }
     if action in reward_events:
-        event, extra = reward_events[action]
-        return [_candidate("rewards", {"event": event, **extra}, rule, evidence)]
+        return [
+            _candidate("rewards", {"event": reward_events[action]}, rule, evidence)
+        ]
     if action in {"validate_deck_has", "validate_deck_needs", "validate_deck_hints"}:
         direction = (
             "deck_has"
@@ -780,9 +1277,8 @@ def apply_mapping(
             if isinstance(record, str):
                 raw = record
             elif rule["input"] == "effects":
-                # Effect mapping patterns intentionally start at AB$/SP$/DB$,
-                # not at the physical ``A:`` line prefix.
-                raw = record.get("value", record.get("raw", ""))
+                # A: values start at AB$/SP$/DB$. SVar values are Name:DB$ Effect.
+                raw = _effect_match_text(record)
             else:
                 raw = record.get("raw", "")
             if re.search(rule["match"], str(raw), re.IGNORECASE):

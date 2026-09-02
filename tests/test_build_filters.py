@@ -83,6 +83,10 @@ def _seed_filter_db(path: str):
         ["W"], oracle="{T}: Add {W}.",
     )
     _insert_card(
+        conn, "mountain", "Mountain", "Basic Land — Mountain",
+        ["R"], oracle="{T}: Add {R}.",
+    )
+    _insert_card(
         conn, "forest", "Forest", "Basic Land — Forest",
         ["G"], oracle="{T}: Add {G}.",
     )
@@ -360,6 +364,105 @@ class SolverFilterSeedTests(unittest.TestCase):
             "oracle_text": "{T}: Add one mana of any color in your commander's color identity.",
         }
         self.assertIsNone(solver._skip_reason(tower, deck))
+
+    def test_fill_reserves_land_slots_against_spell_pool(self):
+        conn = sqlite3.connect(self.db)
+        for i in range(90):
+            _insert_card(
+                conn, f"sp{i}", f"Test Spell {i}", "Instant", ["W"],
+                oracle="Draw a card.", cmc=2,
+            )
+        conn.commit()
+        conn.close()
+        deck = DeckState(
+            commander="Test Commander",
+            identity=["W"],
+            intent="build",
+            require_complete=True,
+        )
+        for i in range(90):
+            deck.add_to_pool(f"Test Spell {i}", 1)
+        solver = DeckSolver(db_path=self.db)
+        solver.fill(deck, query="voltron protect the commander", retrieve=False)
+        land_n = 0
+        for name, qty in deck.card_list().items():
+            tl = (get_oracle_card(name, self.db) or {}).get("type_line") or ""
+            if "land" in tl.lower():
+                land_n += qty
+        from roles import ROLE_QUOTAS
+        self.assertGreaterEqual(land_n, ROLE_QUOTAS["land"][0])
+        self.assertEqual(deck.slot_count(), 99)
+
+    def test_solve_swaps_spells_for_basics_when_99_is_land_short(self):
+        conn = sqlite3.connect(self.db)
+        for i in range(97):
+            _insert_card(
+                conn, f"sb{i}", f"Test Spell B {i}", "Instant", ["W"],
+                oracle="Draw a card.", cmc=2,
+            )
+        conn.commit()
+        conn.close()
+        deck = DeckState(
+            commander="Test Commander",
+            identity=["W"],
+            intent="build",
+            require_complete=True,
+        )
+        deck.add_card("Command Tower", 1)
+        deck.add_card("Plains", 1)
+        for i in range(97):
+            deck.add_card(f"Test Spell B {i}", 1)
+        self.assertEqual(deck.slot_count(), 99)
+        solver = DeckSolver(db_path=self.db)
+        solver._rebalance_lands(deck, query="voltron protect the commander")
+        land_n = 0
+        for name, qty in deck.card_list().items():
+            tl = (get_oracle_card(name, self.db) or {}).get("type_line") or ""
+            if "land" in tl.lower():
+                land_n += qty
+        from roles import ROLE_QUOTAS
+        self.assertGreaterEqual(land_n, ROLE_QUOTAS["land"][0])
+        self.assertEqual(deck.slot_count(), 99)
+
+    def test_best_basic_does_not_dump_only_mountains_in_boros(self):
+        deck = DeckState(
+            commander="Test Commander",
+            identity=["R", "W"],
+            intent="build",
+        )
+        for _ in range(10):
+            deck.add_card("Mountain", 1)
+        solver = DeckSolver(db_path=self.db)
+        solver._rebuild_context(deck, "")
+        self.assertEqual(solver._best_basic(deck, allow_overquota=True), "Plains")
+        color_fix = solver._rebalance_color_basics(deck)
+        self.assertTrue(color_fix)
+        self.assertGreaterEqual(deck.cards.get("Plains", 0), 1)
+        self.assertGreaterEqual(deck.cards.get("Mountain", 0), 1)
+        self.assertEqual(deck.cards.get("Mountain", 0) + deck.cards.get("Plains", 0), 10)
+
+    def test_extra_combat_query_seeds_karlach_into_pool(self):
+        conn = sqlite3.connect(self.db)
+        _insert_card(
+            conn, "karlach", "Karlach, Fury of Avernus",
+            "Legendary Creature — Tiefling Barbarian", ["R"],
+            oracle="After this phase, there is an additional combat phase.",
+            cmc=4,
+        )
+        conn.commit()
+        conn.close()
+        deck = DeckState(
+            commander="Test Commander",
+            identity=["R", "W"],
+            intent="build",
+        )
+        solver = DeckSolver(db_path=self.db)
+        added = solver._seed_requirement_staples(
+            deck,
+            "Boros voltron extra combat turns",
+        )
+        self.assertGreaterEqual(added, 1)
+        self.assertIn("Karlach, Fury of Avernus", deck.candidate_pool)
 
     def test_deckstate_round_trip_filters(self):
         deck = DeckState(

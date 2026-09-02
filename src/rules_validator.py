@@ -322,9 +322,17 @@ class CommanderValidator:
             ]
         )
 
+        from ontology.diagnose import interaction_snapshot
+
+        # answers/protects have no Commander legality semantics. Query the
+        # index so the declared consumer reads it; do not turn counts into errors.
+        names = [*deck.card_list().keys(), cmd_info["name"]]
+        ontology_interaction = interaction_snapshot(names, self.db_path)
+
         return {
             "valid": valid,
             "complete": slot_count == MAIN_DECK_SIZE and not commander_errors,
+            "ontology_interaction": ontology_interaction,
             "commander": cmd_info["name"],
             "commander_identity": sorted(cmd_identity),
             "slot_count": slot_count,

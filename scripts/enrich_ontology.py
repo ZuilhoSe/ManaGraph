@@ -22,7 +22,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from catalog import DB_NAME, ensure_schema  # noqa: E402
 from data_collection import normalize_card_name  # noqa: E402
-from mine_forge import _face_facts  # noqa: E402
+from mine_forge import _face_facts, _load_mapping, apply_mapping  # noqa: E402
 from ontology.model_config import (  # noqa: E402
     build_model_facts,
     canonical_facts_from_scryfall,
@@ -31,8 +31,12 @@ from ontology.model_config import (  # noqa: E402
     parse_mana_cost,
     parse_type_line,
 )
+from ontology.schema import load_schema  # noqa: E402
+from ontology.search import rebuild_predicate_index  # noqa: E402
 
 DEFAULT_MODEL_CONFIG_PATH = PROJECT_ROOT / "data" / "ontology" / "model_config_v1.json"
+DEFAULT_MAPPING_PATH = PROJECT_ROOT / "data" / "ontology" / "forge_mapping.yaml"
+
 
 def _now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -527,6 +531,11 @@ def enrich(
             "INSERT OR REPLACE INTO catalog_meta (key, value) VALUES (?, ?)",
             ("ontology_model_config", str(config_path or DEFAULT_MODEL_CONFIG_PATH)),
         )
+        predicate_rows = rebuild_predicate_index(conn)
+        conn.execute(
+            "INSERT OR REPLACE INTO catalog_meta (key, value) VALUES (?, ?)",
+            ("ontology_predicate_rows", str(predicate_rows)),
+        )
         conn.commit()
     except Exception:
         conn.rollback()
@@ -724,6 +733,11 @@ def rebuild_ontology_model(
             "INSERT OR REPLACE INTO catalog_meta (key, value) VALUES (?, ?)",
             ("ontology_model_rebuilt_at", _now()),
         )
+        predicate_rows = rebuild_predicate_index(conn)
+        conn.execute(
+            "INSERT OR REPLACE INTO catalog_meta (key, value) VALUES (?, ?)",
+            ("ontology_predicate_rows", str(predicate_rows)),
+        )
         conn.commit()
     except Exception:
         conn.rollback()
@@ -734,6 +748,114 @@ def rebuild_ontology_model(
         "cards_rebuilt": count,
         "newly_matched": rematch_result.get("newly_matched", 0),
         "config": model_config,
+        "db_path": db_path,
+    }
+
+
+def refresh_forge_candidates(
+    db_path: str = DB_NAME,
+    *,
+    mapping_path: str | Path | None = None,
+    rebuild_model: bool = True,
+) -> dict[str, Any]:
+    """Re-apply forge_mapping.yaml to stored records without remine."""
+    mapping_file = Path(mapping_path) if mapping_path else DEFAULT_MAPPING_PATH
+    mapping = _load_mapping(mapping_file)
+    schema = load_schema()
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    now = _now()
+    updated = 0
+    try:
+        ensure_schema(conn)
+        records = conn.execute(
+            """
+            SELECT forge_record_key, matched_card_id, record_json
+              FROM forge_records
+            """
+        ).fetchall()
+        if not records:
+            raise ValueError(
+                "forge_records is empty; mine a cardsfolder and run enrich before "
+                "--reapply-mapping"
+            )
+        for row in records:
+            data = _json(row["record_json"], {})
+            if not isinstance(data, dict) or not isinstance(data.get("card"), dict):
+                continue
+            _ensure_facts(data)
+            apply_mapping(data, mapping, schema)
+            conn.execute(
+                """
+                UPDATE forge_records
+                   SET record_json=?, facts_json=?, candidates_json=?,
+                       warnings_json=?, enriched_at=?
+                 WHERE forge_record_key=?
+                """,
+                (
+                    json.dumps(data, ensure_ascii=False, sort_keys=True),
+                    json.dumps(data["card"].get("facts") or {}, ensure_ascii=False, sort_keys=True),
+                    json.dumps(data.get("candidates") or [], ensure_ascii=False, sort_keys=True),
+                    json.dumps(data.get("warnings") or [], ensure_ascii=False, sort_keys=True),
+                    now,
+                    row["forge_record_key"],
+                ),
+            )
+            matched_id = row["matched_card_id"]
+            if matched_id:
+                conn.execute(
+                    """
+                    UPDATE ontology_cards
+                       SET forge_json=?, forge_facts_json=?, forge_candidates_json=?,
+                           forge_warnings_json=?, enriched_at=?
+                     WHERE card_id=?
+                    """,
+                    (
+                        json.dumps(data, ensure_ascii=False, sort_keys=True),
+                        json.dumps(
+                            data["card"].get("facts") or {},
+                            ensure_ascii=False,
+                            sort_keys=True,
+                        ),
+                        json.dumps(data.get("candidates") or [], ensure_ascii=False, sort_keys=True),
+                        json.dumps(data.get("warnings") or [], ensure_ascii=False, sort_keys=True),
+                        now,
+                        matched_id,
+                    ),
+                )
+            updated += 1
+        conn.execute(
+            "INSERT OR REPLACE INTO catalog_meta (key, value) VALUES (?, ?)",
+            ("ontology_mapping_reapplied_at", now),
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+    model_result: dict[str, Any] = {}
+    if rebuild_model:
+        model_result = rebuild_ontology_model(db_path, rematch=False)
+    else:
+        conn = sqlite3.connect(db_path)
+        try:
+            ensure_schema(conn)
+            predicate_rows = rebuild_predicate_index(conn)
+            conn.execute(
+                "INSERT OR REPLACE INTO catalog_meta (key, value) VALUES (?, ?)",
+                ("ontology_predicate_rows", str(predicate_rows)),
+            )
+            conn.commit()
+            model_result = {"predicate_rows": predicate_rows}
+        finally:
+            conn.close()
+
+    return {
+        "records_updated": updated,
+        "mapping_path": str(mapping_file),
+        "cards_rebuilt": model_result.get("cards_rebuilt", 0),
         "db_path": db_path,
     }
 
@@ -750,15 +872,31 @@ def _parser() -> argparse.ArgumentParser:
         "--output",
         default=str(PROJECT_ROOT / "data" / "ontology" / "forge_scryfall_v1.jsonl"),
     )
+    parser.add_argument(
+        "--mapping",
+        default=str(DEFAULT_MAPPING_PATH),
+        help="forge_mapping.yaml used by --reapply-mapping",
+    )
+    parser.add_argument(
+        "--reapply-mapping",
+        action="store_true",
+        help="Re-run Forge mapping on stored records without remine/jsonl",
+    )
     return parser
 
 
 if __name__ == "__main__":
     args = _parser().parse_args()
-    result = enrich(
-        args.forge_jsonl,
-        db_path=args.db,
-        output_path=args.output,
-        config_path=args.config_path,
-    )
+    if args.reapply_mapping:
+        result = refresh_forge_candidates(
+            args.db,
+            mapping_path=args.mapping,
+        )
+    else:
+        result = enrich(
+            args.forge_jsonl,
+            db_path=args.db,
+            output_path=args.output,
+            config_path=args.config_path,
+        )
     print(json.dumps(result, indent=2))

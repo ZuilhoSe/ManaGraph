@@ -444,7 +444,8 @@ def hit_sort_key(hit: dict) -> tuple:
     """Stable ranking: distance, then role / engines / short oracle, then name."""
     source = hit.get("source")
     # Missing source = pure lexical list before merge; treat as lexical.
-    source_rank = 0 if source in (None, "lexical", "hybrid") else 1
+    # Ontology hits are mechanic matches and should compete with lexical.
+    source_rank = 0 if source in (None, "lexical", "hybrid", "ontology") else 1
     role = hit.get("_role_rank")
     if role is None:
         role = role_rank(
@@ -661,7 +662,7 @@ def merge_hit_maps(
             **hit,
             "_emb_distance": float(hit.get("distance") if hit.get("distance") is not None else 1.0),
             "_lex_distance": None,
-            "source": "embedding",
+            "source": hit.get("source") or "embedding",
         }
 
     for hit in lexical_hits:
@@ -699,7 +700,7 @@ def merge_hit_maps(
                 "_emb_distance": None,
                 "_lex_distance": lex_d,
                 "distance": lex_d,
-                "source": "lexical",
+                "source": hit.get("source") or "lexical",
             }
 
     merged = list(by_key.values())
@@ -728,6 +729,55 @@ def sql_identity_clause(allowed_colors: list[str] | None) -> tuple[str, list]:
     return "(" + " AND ".join(clauses) + ")", params
 
 
+def _collect_ordered_lexical_phrases(
+    query: str,
+    extra_phrases: list[str] | None = None,
+) -> list[str]:
+    """User query first, then its family expansions, then extra harness phrases.
+
+    One ordered LIKE loop — extras do not run as separate full-table searches.
+    """
+    q_norm = " ".join((query or "").lower().split())
+    ordered: list[str] = []
+    seen: set[str] = set()
+
+    def add(phrase: str) -> None:
+        p = " ".join((phrase or "").lower().split())
+        if not p or p in seen:
+            return
+        seen.add(p)
+        ordered.append(p)
+
+    if q_norm:
+        add(q_norm)
+    for phrase in lexical_phrases(query):
+        add(phrase)
+    for extra in extra_phrases or []:
+        extra_n = " ".join((extra or "").lower().split())
+        if extra_n:
+            add(extra_n)
+        for phrase in lexical_phrases(extra):
+            add(phrase)
+    return ordered
+
+
+def _score_query_for_oracle(
+    oracle_text: str,
+    query: str,
+    extra_phrases: list[str] | None,
+) -> str:
+    """Prefer the user query when it appears; otherwise a matching extra phrase."""
+    ot = (oracle_text or "").lower()
+    q_norm = " ".join((query or "").lower().split())
+    if q_norm and q_norm in ot:
+        return query
+    for extra in extra_phrases or []:
+        extra_n = " ".join((extra or "").lower().split())
+        if extra_n and extra_n in ot:
+            return extra
+    return query
+
+
 def lexical_search_sqlite(
     conn: sqlite3.Connection,
     query: str,
@@ -736,15 +786,18 @@ def lexical_search_sqlite(
     limit: int = 120,
     cmc_min: float | None = None,
     cmc_max: float | None = None,
+    extra_phrases: list[str] | None = None,
 ) -> list[dict]:
     """Substring oracle search with identity / CMC filters. No embeddings.
 
-    Runs the user query as its own LIKE first, then family expansions, so a
-    broad OR ... LIMIT N cannot drop Phyrexian Arena behind alphabetical noise.
+    Runs the user query as its own LIKE first, then family expansions, then
+    extra harness phrases in the same scan so a broad OR ... LIMIT N cannot
+    drop Phyrexian Arena behind alphabetical noise.
     """
-    phrases = lexical_phrases(query)
-    if not phrases:
+    ordered_phrases = _collect_ordered_lexical_phrases(query, extra_phrases)
+    if not ordered_phrases:
         return []
+    phrases = list(ordered_phrases)
 
     identity_sql, identity_params = sql_identity_clause(allowed_colors)
     cmc_sql = ""
@@ -763,24 +816,24 @@ def lexical_search_sqlite(
         f"{identity_sql} AND type_line NOT LIKE '%Basic Land%' {cmc_sql}"
     )
 
-    # Query string first (most important), then other phrases.
     q_norm = " ".join((query or "").lower().split())
-    ordered_phrases: list[str] = []
-    if q_norm:
-        ordered_phrases.append(q_norm)
-    for phrase in phrases:
-        if phrase not in ordered_phrases:
-            ordered_phrases.append(phrase)
-
+    extra_norms = {
+        " ".join((extra or "").lower().split())
+        for extra in (extra_phrases or [])
+        if extra
+    }
     allowed = set(allowed_colors or [])
     by_name: dict[str, dict] = {}
-    q_l = (query or "").lower()
 
     for phrase in ordered_phrases:
         # Never LIMIT the user query or core family templates — a random LIMIT
         # was dropping Village Rites / Negate / Mesa Enchantress behind noise.
         params = [f"%{phrase}%"] + identity_params + cmc_params
-        if phrase == q_norm or phrase in _UNLIMITED_CORE_PHRASES:
+        if (
+            phrase == q_norm
+            or phrase in extra_norms
+            or phrase in _UNLIMITED_CORE_PHRASES
+        ):
             rows = conn.execute(base_sql, params).fetchall()
         else:
             rows = conn.execute(base_sql + " LIMIT 500", params).fetchall()
@@ -796,14 +849,19 @@ def lexical_search_sqlite(
                 colors = set()
             if not colors.issubset(allowed):
                 continue
-            matched = _best_matched_phrase(oracle_text or "", phrases, query)
-            dist = lexical_distance(query, oracle_text or "", matched)
+            score_query = _score_query_for_oracle(
+                oracle_text or "", query, extra_phrases
+            )
+            matched = _best_matched_phrase(oracle_text or "", phrases, score_query)
+            dist = lexical_distance(score_query, oracle_text or "", matched)
             tl = (type_line or "").lower()
             ot_l = (oracle_text or "").lower()
             # Strip reminder text so "draw two cards instead" does not look like
             # a primary Village Rites-style spell (Agency Coroner).
             ot_compact = re.sub(r"\([^)]*\)", "", ot_l)
             ot_compact = re.sub(r"\s+", " ", ot_compact).strip()
+            q_l = (score_query or "").lower()
+            score_norm = " ".join(q_l.split())
 
             boost = 0.0
             if any(t in q_l for t in _FAMILY_TRIGGERS["draw"]):
@@ -831,14 +889,14 @@ def lexical_search_sqlite(
             if matched in _UNLIMITED_CORE_PHRASES and len(ot_compact) < 180:
                 dist -= 0.01
                 boost += 0.01
-            if q_norm and matched == q_norm:
+            if score_norm and matched == score_norm:
                 dist -= 0.01
                 boost += 0.01
             # Core family templates (Negate's "noncreature", Mesa Enchantress, …)
             # must tie with literal query matches, or Cancel-clones bury them.
-            exactish = bool(q_norm and q_norm in ot_l) or (
+            exactish = bool(score_norm and score_norm in ot_l) or (
                 matched in _UNLIMITED_CORE_PHRASES
-                and _is_primary_match(query, oracle_text or "", matched)
+                and _is_primary_match(score_query, oracle_text or "", matched)
             )
             by_name[key] = {
                 "name": name,
@@ -851,8 +909,8 @@ def lexical_search_sqlite(
                 "oracle_text": oracle_text,
                 "legalities": legalities,
                 "_exact_query": exactish,
-                "_query": query,
-                "_role_rank": role_rank(query, type_line, oracle_text),
+                "_query": score_query,
+                "_role_rank": role_rank(score_query, type_line, oracle_text),
                 "_boost": boost,
             }
 

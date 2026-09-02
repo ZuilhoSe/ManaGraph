@@ -36,6 +36,22 @@ class SymbolicCardTests(unittest.TestCase):
         )
         self.assertEqual(families, ["draw", "protection", "extra_combat"])
 
+    def test_extra_combat_turns_phrase_is_detected(self):
+        families = requirement_families(
+            "voltron with extra combat turns and damage to multiple opponents"
+        )
+        self.assertIn("extra_combat", families)
+
+    def test_karlach_oracle_is_extra_combat(self):
+        facts = classify_card(
+            "Karlach, Fury of Avernus",
+            "Legendary Creature — Tiefling Barbarian",
+            "Whenever you attack, if it's the first combat phase of the turn, "
+            "untap all attacking creatures. They gain first strike until end of turn. "
+            "After this phase, there is an additional combat phase.",
+        )
+        self.assertTrue(facts.is_extra_combat)
+
 
 if __name__ == "__main__":
     unittest.main()

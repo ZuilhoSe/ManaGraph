@@ -82,6 +82,7 @@ capabilities:
   - convoke_like
   - keyword_grant
   - protection
+  - extra_combat
 
 threat_classes:
   - creature
@@ -94,6 +95,10 @@ threat_classes:
 selectors:
   - creature
   - land
+  - artifact
+  - enchantment
+  - instant
+  - sorcery
   - any
 
 target_classes:

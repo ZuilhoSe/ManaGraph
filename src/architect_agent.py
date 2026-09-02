@@ -7,6 +7,7 @@ from tools import (
     list_filter_matches,
     list_inventory_cards,
     search_cards,
+    search_predicates,
 )
 
 
@@ -15,6 +16,7 @@ class ManagerAgent:
         self.llm = LLMFactory.get_llm()
         self.tools = [
             search_cards,
+            search_predicates,
             list_inventory_cards,
             diagnose_deck_json,
             get_card_info,
@@ -25,8 +27,15 @@ class ManagerAgent:
         self.system_prompt = """
         You are the planning manager of a Magic: The Gathering Commander system.
         Use search_cards to find synergies. Tools return JSON.
-        search_cards is hybrid: embedding over type+oracle (not the card name) plus
-        lexical oracle match, so \"draw a card\" finds Phyrexian Arena, not Card Draw.
+        search_cards compiles natural language into ontology predicates
+        (produces, consumes, emits, rewards, enables, answers, tutors, recurs, protects).
+        Prefer mechanic language or explicit predicate:value over hoping oracle wording matches.
+        The Forge predicate index is the mechanic search; Oracle lexical/embedding is a harness,
+        so \"draw a card\" still finds Phyrexian Arena.
+        Example: \"extra combat\" compiles to enables:extra_combat and finds Karlach even if
+        oracle never says \"additional combat phase\".
+        After seeing compiled in the search_cards JSON, you may call search_predicates
+        with those clauses (or pass them directly).
 
         COMMANDER HANDLING: if "Current deck JSON" already has a non-empty commander, output
         that exact same commander -- copy it verbatim. Only put a different name in
@@ -106,8 +115,10 @@ class ManagerAgent:
           the same way you would otherwise.
 
         SEARCH STRATEGY:
-        - Use Oracle-text phrasing: "deals damage to each creature", "destroy all creatures", not "global damage".
-        - If a search is empty, retry with synonyms.
+        - Prefer mechanic language ("extra combat", "sac outlet") or explicit
+          `enables:extra_combat` over hoping oracle wording matches.
+        - Oracle harness still runs, so "draw a card" / "destroy all creatures" still work.
+        - If a search is empty, retry with synonyms or search_predicates on the compiled clauses.
         - Honor identity, owned_only, max_card_price, and budget_cap from the current deck JSON.
         - When improving, search relative to cards already in the deck, not a blank commander primer.
 

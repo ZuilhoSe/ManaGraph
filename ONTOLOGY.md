@@ -119,8 +119,11 @@ consumers, no acceptance tests, no gold-set labels (reviews were 0), no
 Rebuild snapshot: 38,651 cards; 33,760 Forge-matched / 4,891 unmatched; 879
 DFC/splits newly joined. Claim // Fame and Valki now carry faces + oracle in
 Final. `art_series` / `plane` / `scheme` / `token` / `emblem` stay unmatched
-on purpose. New mapping predicates require a remine of `cardsfolder` plus
-enrich; rebuild only rematches the already-mined artifact.
+on purpose. Mapping changes can be reapplied with
+`python scripts/enrich_ontology.py --reapply-mapping` (no remine). Hybrid
+search also queries `ontology_predicates`; explicit forms include
+`enables:extra_combat`, `enables:sac_outlet`, `rewards:etb`, `produces:mana`,
+`answers:stack`.
 
 ### Phase A — Contract and schema (≈1 week)
 
@@ -163,10 +166,13 @@ Implement in `src/ontology/patterns.py`. Deterministic, unit-tested against pinn
 **Tier 3 — offline LLM batch annotator for the residual.** Run once over the ~30k unique oracle texts with structured output constrained to the schema. Freeze to `data/ontology/labels_v1.jsonl` with model name, prompt hash, and date. **Never at runtime.** This is the same split the project already committed to: model proposes, symbol decides. Cost is tens of dollars, not months.
 
 - [x] `scripts/mine_forge.py` — parse a local Forge `cardsfolder` directory or zip
-- [x] `data/ontology/forge_mapping.yaml` — versioned Forge-to-schema mapping (P0–P2 predicates; remine required after new entries)
+- [x] `data/ontology/forge_mapping.yaml` — versioned Forge-to-schema mapping (P0–P2 predicates; `--reapply-mapping` after YAML changes)
 - [x] `src/ontology/schema.py` — dataclasses + enums
 - [x] `scripts/enrich_ontology.py` — join Scryfall↔Forge; layers `canonical_facts`, `forge`, `resolved_facts`, `model_facts`
-- [x] catalog schema v4 — additive `ontology_cards`, `forge_records`, `ontology_reviews`
+- [x] catalog schema v5 — additive `ontology_cards`, `forge_records`, `ontology_reviews`, `ontology_predicates`
+- [x] `src/ontology/search.py` — flatten candidates and hybrid search (`enables:extra_combat`)
+
+Natural language is compiled by `compile_search_intent` into ontology predicates (`produces`, `consumes`, `emits`, `rewards`, `enables`, `answers`, `tutors`, `recurs`, `protects`); `ontology_predicates` is the mechanic index. Oracle lexical + embedding search is a harness for phrasing Forge missed, not the primary retrieval language.
 - [x] Final model P0–P2 in `build_model_facts` — faces + merged oracle, face/`//`/`AlternateMode` join, expanded mapping, loyalty/defense/all_parts; `deck_*` stay `validation_only`; SVar stripped from Final effects
 - [x] validator UI (`data/ontology_validator.html`, `/ontology-validator`) — explore/filter; Scryfall / Forge / Final tabs; human review + gold-set export (model-config tab removed)
 - [ ] P3 — `edhrec_rank` / rarity / set as separate features; `resolved` as default source
@@ -500,7 +506,7 @@ Do not expect the mining step to close Phase B. It leaves:
 ## Deliverables
 
 - [x] `scripts/mine_forge.py` — parse `cardsfolder`, emit raw structured rows
-- [x] `data/ontology/forge_mapping.yaml` — the table above, versioned separately from the schema (P0–P2 in; remine after new entries)
+- [x] `data/ontology/forge_mapping.yaml` — the table above, versioned separately from the schema (P0–P2 in; `--reapply-mapping` after YAML changes)
 - [x] `scripts/enrich_ontology.py` — Scryfall↔Forge join + Final `model_facts` (P0–P2)
 - [ ] `data/ontology/gold_hand50.jsonl` — held out, in git, never regenerated (review UI exists; reviews were 0)
 - [ ] `data/ontology/gold_forge.jsonl` — derived, **not** in git, not redistributed

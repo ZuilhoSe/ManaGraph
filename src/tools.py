@@ -3,6 +3,7 @@ import json
 from langchain.tools import tool
 from hybrid_search import RAGSearcher
 from inventory import get_cards, list_inventory, FREE_POOL
+from ontology.search import compile_search_intent, compiled_payload
 from rules_validator import CommanderValidator
 from deck_state import DeckState, _normalize_key
 
@@ -38,36 +39,21 @@ def _json(data) -> str:
     return json.dumps(data, ensure_ascii=False, default=str)
 
 
-@tool
-def search_cards(
+def _run_compiled_search(
     query: str,
     colors: list,
-    owned_only: bool | None = None,
-    limit: int = 5,
-    max_card_price: float | None = None,
-    currency: str = "usd",
-    cmc_min: float | None = None,
-    cmc_max: float | None = None,
-    role: str = "",
-):
-    """
-    Hybrid search over Magic cards: embedding (type+oracle, no card name) plus
-    lexical oracle substring match, then SQLite filters. Returns JSON.
-
-    Args:
-        query: Effect description or oracle phrasing (e.g. "draw a card").
-        colors: Allowed color identity, e.g. ["R", "U"].
-        owned_only: True to search only owned cards, False for the full catalog.
-            Leave unset to use the deck's own owned_only setting.
-        limit: Maximum number of cards to return.
-        max_card_price: Optional per-card price cap in `currency`. Owned copies are still returned.
-        currency: usd or eur.
-        cmc_min: Optional inclusive mana-value floor.
-        cmc_max: Optional inclusive mana-value ceiling.
-        role: Optional role class: land, ramp, draw, interaction, threat, token_producer, token_payoff.
-    """
+    owned_only: bool | None,
+    limit: int,
+    max_card_price: float | None,
+    currency: str,
+    cmc_min: float | None,
+    cmc_max: float | None,
+    role: str,
+) -> str:
     if owned_only is None:
         owned_only = _deck_owned_only.get()
+    intent = compile_search_intent(query)
+    compiled = compiled_payload(intent)
     results = _get_searcher().search_cards(
         query=query,
         allowed_colors=colors,
@@ -81,8 +67,108 @@ def search_cards(
         role=role or None,
     )
     if not results:
-        return _json({"ok": True, "cards": [], "message": "No cards found with those criteria."})
-    return _json({"ok": True, "cards": results})
+        return _json(
+            {
+                "ok": True,
+                "compiled": compiled,
+                "cards": [],
+                "message": "No cards found with those criteria.",
+            }
+        )
+    return _json({"ok": True, "compiled": compiled, "cards": results})
+
+
+@tool
+def search_cards(
+    query: str,
+    colors: list,
+    owned_only: bool | None = None,
+    limit: int = 5,
+    max_card_price: float | None = None,
+    currency: str = "usd",
+    cmc_min: float | None = None,
+    cmc_max: float | None = None,
+    role: str = "",
+):
+    """
+    Compile natural language into ontology predicates, then search. The Forge
+    predicate index is the mechanic search; Oracle lexical + embedding is a
+    harness for phrasing the index missed. Returns JSON with `compiled` then `cards`.
+
+    Pass mechanic language ("extra combat", "sac outlet") or explicit predicates
+    (`enables:extra_combat rewards:etb`). Oracle phrasing ("draw a card") still
+    works via the harness.
+
+    Args:
+        query: Mechanic NL or explicit `predicate:value` clauses.
+        colors: Allowed color identity, e.g. ["R", "U"].
+        owned_only: True to search only owned cards, False for the full catalog.
+            Leave unset to use the deck's own owned_only setting.
+        limit: Maximum number of cards to return.
+        max_card_price: Optional per-card price cap in `currency`. Owned copies are still returned.
+        currency: usd or eur.
+        cmc_min: Optional inclusive mana-value floor.
+        cmc_max: Optional inclusive mana-value ceiling.
+        role: Optional role class: land, ramp, draw, interaction, threat, token_producer, token_payoff.
+    """
+    return _run_compiled_search(
+        query,
+        colors,
+        owned_only,
+        limit,
+        max_card_price,
+        currency,
+        cmc_min,
+        cmc_max,
+        role,
+    )
+
+
+@tool
+def search_predicates(
+    predicates: list[str],
+    colors: list,
+    owned_only: bool | None = None,
+    limit: int = 5,
+    max_card_price: float | None = None,
+    currency: str = "usd",
+    cmc_min: float | None = None,
+    cmc_max: float | None = None,
+    role: str = "",
+):
+    """
+    Search from explicit ontology predicates (ontology index + Oracle harness).
+
+    Call this after search_cards shows `compiled`, or directly when you already
+    know the clauses. Each item is `predicate:value` or `predicate:key:value`,
+    e.g. ["enables:extra_combat", "rewards:etb"].
+
+    Args:
+        predicates: Explicit clauses such as ["enables:extra_combat"].
+        colors: Allowed color identity, e.g. ["R", "U"].
+        owned_only: True to search only owned cards, False for the full catalog.
+            Leave unset to use the deck's own owned_only setting.
+        limit: Maximum number of cards to return.
+        max_card_price: Optional per-card price cap in `currency`. Owned copies are still returned.
+        currency: usd or eur.
+        cmc_min: Optional inclusive mana-value floor.
+        cmc_max: Optional inclusive mana-value ceiling.
+        role: Optional role class: land, ramp, draw, interaction, threat, token_producer, token_payoff.
+    """
+    joined = " ".join(str(item).strip() for item in (predicates or []) if str(item).strip())
+    if not joined:
+        return _json({"ok": False, "error": "predicates must be a non-empty list.", "compiled": []})
+    return _run_compiled_search(
+        joined,
+        colors,
+        owned_only,
+        limit,
+        max_card_price,
+        currency,
+        cmc_min,
+        cmc_max,
+        role,
+    )
 
 
 @tool
@@ -180,8 +266,10 @@ def move_inventory_card(card_name: str, source: str, destination: str, quantity:
 @tool
 def diagnose_deck_json(deck_json: str) -> str:
     """
-    Symbolic deck diagnosis: curve, avg CMC, lands, pips vs sources, role gaps, named deficits.
-    Returns JSON. Does not use an LLM. Trust this over any count you might invent.
+    Symbolic deck diagnosis: curve, avg CMC, lands, pips vs sources, role gaps,
+    named deficits, and typed ontology mismatches (treasures vs sac outlets,
+    tokens vs token payoffs, extra combat count). Returns JSON. Does not use
+    an LLM. Trust this over any count you might invent.
     """
     from mana import diagnose_deck, strategy_from_name
 

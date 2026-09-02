@@ -186,6 +186,8 @@ def diagnose(
         report["budget_used"] = budget_used
         if budget_used is not None:
             report["budget_slack"] = round(float(budget_cap) - float(budget_used), 2)
+    report.setdefault("ontology_counts", {})
+    report.setdefault("ontology_deficits", [])
     return report
 
 
@@ -211,7 +213,7 @@ def diagnose_deck(deck, db_path: str = DB_NAME, strategy: ManaTargetStrategy | N
     budget_used = None
     if deck.budget_cap is not None:
         budget_used = enrich_deck(deck, db_path)["budget_used"]
-    return diagnose(
+    report = diagnose(
         cards,
         commander=commander,
         identity=deck.identity or (commander or {}).get("color_identity"),
@@ -222,3 +224,10 @@ def diagnose_deck(deck, db_path: str = DB_NAME, strategy: ManaTargetStrategy | N
         archetype=getattr(deck, "archetype", None),
         strategy=strategy,
     )
+    from ontology.diagnose import attach_ontology_deficits
+
+    names = [*card_list.keys()]
+    if deck.commander:
+        names.append(deck.commander)
+    attach_ontology_deficits(report, names, db_path, card_list)
+    return report

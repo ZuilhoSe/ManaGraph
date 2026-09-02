@@ -109,7 +109,7 @@ Research stages (do not skip 3.5 for TDA): **1 DeckState → 2 fill/cut → 3 ge
   - `vectorize_cards.py`: Batch indexing into ChromaDB.
   - `data_collection.py`: Offline-first source adapters, normalization,
     provenance, and normalized external deck/recommendation persistence.
-  - `hybrid_search.py`: Hybrid retrieve — MiniLM over type+oracle documents (card **name is metadata only**) plus SQLite lexical oracle match, then identity / price / role filters.
+  - `hybrid_search.py`: Hybrid retrieve — MiniLM over type+oracle documents (card **name is metadata only**) plus SQLite lexical oracle match and Forge ontology predicates (`enables:extra_combat`), then identity / price / role filters.
   - `retrieval_text.py`: Shared document format, junk filters, lexical phrase expansion, merge ranking.
   - `contracts.py`: Versioned, strict contracts between the LLM manager and deterministic core.
   - `manager_core.py`: Atomic, revision-checked plan application; catalog facts are never trusted from model output.

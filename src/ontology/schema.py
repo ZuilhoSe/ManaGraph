@@ -79,6 +79,7 @@ class Capability(str, Enum):
     CONVOKE_LIKE = "convoke_like"
     KEYWORD_GRANT = "keyword_grant"
     PROTECTION = "protection"
+    EXTRA_COMBAT = "extra_combat"
 
 
 class ThreatClass(str, Enum):
@@ -93,6 +94,10 @@ class ThreatClass(str, Enum):
 class Selector(str, Enum):
     CREATURE = "creature"
     LAND = "land"
+    ARTIFACT = "artifact"
+    ENCHANTMENT = "enchantment"
+    INSTANT = "instant"
+    SORCERY = "sorcery"
     ANY = "any"
 
 

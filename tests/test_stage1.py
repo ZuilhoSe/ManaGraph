@@ -3,6 +3,7 @@ import os
 import sqlite3
 import sys
 import tempfile
+import threading
 import unittest
 
 SRC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src")
@@ -280,6 +281,24 @@ class Stage1Tests(unittest.TestCase):
         info = self.validator.get_card_info("Fire")
         self.assertIsNotNone(info)
         self.assertEqual(info["name"], "Fire // Ice")
+
+    def test_ensure_schema_concurrent_on_shared_connection(self):
+        conn = sqlite3.connect(self.db, check_same_thread=False)
+        errors = []
+
+        def worker():
+            try:
+                ensure_schema(conn)
+            except Exception as exc:
+                errors.append(exc)
+
+        threads = [threading.Thread(target=worker) for _ in range(8)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+        conn.close()
+        self.assertEqual(errors, [])
 
     def test_gate_rejects_without_llm(self):
         rejected = deterministic_gate({"valid": False, "color_errors": ["Counterspell"]})

@@ -1,4 +1,4 @@
-mapping_version: "1.0.0"
+mapping_version: "1.2.0"
 schema_version: "1.0.0"
 source: forge_cardsfolder
 
@@ -59,18 +59,164 @@ mappings:
     input: effects
     match: '(^|\|)\s*(?:AB|SP|DB)\$\s*PutCounter(?:\s*\||$)'
     action: put_counter
+  - id: effect.add_combat
+    input: effects
+    match: '(?:AB|SP|DB)\$\s*AddPhase\b.*ExtraPhase\$\s*Combat'
+    action: extra_combat
+    notes: Forge extra combat is AddPhase ExtraPhase$ Combat (Karlach, Relentless Assault).
   - id: effect.deal_damage
     input: effects
-    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*DealDamage(?:\s*\||$)'
+    match: '(?:AB|SP|DB)\$\s*DealDamage'
     action: deal_damage
+    notes: answers only when ValidTgts/ValidCards name creature/artifact/enchantment; no default.
+  - id: effect.grant_protection
+    input: effects
+    match: '(?:AddKeyword|AddHiddenKeyword|KW)\$[^|]*(?:Hexproof|Shroud|Indestructible|Protection)'
+    action: grant_protection
+    notes: GRANT only; self K:Hexproof/Shroud/Indestructible is not indexed.
+  - id: effect.grant_haste
+    input: effects
+    match: '(?:AddKeyword|AddHiddenKeyword|KW)\$[^|]*\bHaste\b'
+    action: grant_haste
+    notes: GRANT only; self K:Haste is not haste_grant.
+  - id: effect.grant_keyword
+    input: effects
+    match: '(?:AddKeyword|AddHiddenKeyword|KW)\$[^|]*(?:Flying|Menace|Trample|Double Strike|Unblockable|Shadow|Horsemanship|Skulk)'
+    action: grant_keyword
+    notes: Evasion-ish grants only; Hexproof/Indestructible stay on grant_protection.
+  - id: keyword.convoke_like
+    input: effects
+    match: '^(?:Convoke|Delve|Improvise)\b'
+    action: convoke_like
+    notes: Self K:Convoke/Delve/Improvise; action requires kind=keyword.
+  - id: effect.cost_reduction
+    input: effects
+    match: '(?:Mode\$\s*ReduceCost|\bReduceCost\b|\bSetColorlessCost\b)'
+    action: cost_reduction
+    notes: Static/ability ReduceCost or SetColorlessCost; SVars are ignored.
+  - id: effect.requires
+    input: effects
+    match: '(?:Condition\$\s*(?:Threshold|Hellbent|Metalcraft|Delirium)\b|(?:Threshold|Hellbent|Metalcraft|Delirium)\$)'
+    action: requires_condition
+    notes: Conservative board-state flags only; DeckNeeds stays validation_only.
+  - id: effect.mill
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*Mill(?:\s*\||$)'
+    action: mill
+    notes: Self or targeted mill produces graveyard objects; library is not a schema object.
+  - id: effect.change_zone_all
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*ChangeZoneAll(?:\s*\||$)'
+    action: change_zone_all
+    notes: Same zone branches as ChangeZone; mass bounce/exile/reanimate.
+  - id: effect.damage_all
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*DamageAll(?:\s*\||$)'
+    action: damage_all
+    notes: Mass damage answers board, plus creature/artifact/enchantment from ValidCards.
+  - id: effect.fight
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*Fight(?:\s*\||$)'
+    action: fight
+    notes: Fight is creature removal, not combat damage.
+  - id: effect.play
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*Play(?:\s*\||$)'
+    action: play_card
+    notes: Land play produces land_in_play and emits landfall; spell play emits cast_spell.
+  - id: effect.adjust_land_plays
+    input: effects
+    match: 'AdjustLandPlays\$'
+    action: extra_land
+    notes: Forge extra land drop is S:Mode$ Continuous | AdjustLandPlays$ N (Azusa, Exploration).
+  - id: effect.dig
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*Dig(?:\s*\||$)'
+    action: dig
+    notes: Look-and-put. Hand is card_in_hand; library search with a type is tutors.
+  - id: effect.dig_until
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*DigUntil(?:\s*\||$)'
+    action: dig
+  - id: effect.seek
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*Seek(?:\s*\||$)'
+    action: dig
+    notes: Alchemy Seek is a typed library find; mapped like Dig.
+  - id: effect.set_life
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*SetLife(?:\s*\||$)'
+    action: set_life
+    notes: Defined$ You produces life. Opponent life-set is not consumes(life).
+  - id: effect.discard
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*Discard(?:\s*\||$)'
+    action: discard_effect
+    notes: Only Defined$ You consumes your hand; targeted player discard is not your fuel.
+  - id: effect.surveil
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*Surveil(?:\s*\||$)'
+    action: surveil
+    notes: Surveil may put cards into the graveyard.
+  - id: effect.investigate
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*Investigate(?:\s*\||$)'
+    action: investigate
+    notes: Investigate creates a Clue token (generic token, not treasure).
+  - id: effect.copy_permanent
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*CopyPermanent(?:\s*\||$)'
+    action: copy_permanent
+    notes: Token copy onto the battlefield. Clone-as-self is not this action.
+  - id: effect.put_counter_all
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*PutCounterAll(?:\s*\||$)'
+    action: put_counter
+  - id: effect.proliferate
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*Proliferate(?:\s*\||$)'
+    action: proliferate
+  - id: effect.sacrifice_all
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*SacrificeAll(?:\s*\||$)'
+    action: sacrifice
+  - id: effect.untap_all
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*UntapAll(?:\s*\||$)'
+    action: untap
+  - id: effect.add_turn
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*AddTurn(?:\s*\||$)'
+    action: ignore_add_turn
+    notes: Extra turn is not extra combat. Intentionally emits no predicate.
+  - id: effect.charm
+    input: effects
+    match: '(^|\|)\s*(?:AB|SP|DB)\$\s*Charm(?:\s*\||$)'
+    action: ignore_charm
+    notes: Modal wrapper. Branch DB$ lines / SVars carry the real effects.
+  - id: keyword.cascade_affinity
+    input: effects
+    match: '^(?:Cascade|Affinity)\b'
+    action: cost_reduction
+    notes: Self K:Cascade / K:Affinity as cost_reduction, same family as ReduceCost.
   - id: cost.sacrifice_creature
     input: costs
-    match: 'Cost\$\s*Sac<\s*1\s*/\s*Creature\s*>'
+    match: 'Cost\$\s*Sac<\s*(?:1|X)\s*/\s*Creature'
     action: sacrifice_cost
   - id: cost.sacrifice_artifact
     input: costs
-    match: 'Cost\$\s*Sac<\s*1\s*/\s*Artifact\s*>'
+    match: 'Cost\$\s*Sac<\s*(?:1|X)\s*/\s*Artifact'
     action: sacrifice_cost_artifact
+  - id: cost.sacrifice_permanent
+    input: costs
+    match: 'Cost\$\s*Sac<\s*(?:1|X)\s*/\s*Permanent'
+    action: sacrifice_cost_permanent
+    notes: Sac<1/Permanent> is an outlet; there is no permanent object to consume.
+  - id: cost.sacrifice_other
+    input: costs
+    match: 'Cost\$\s*Sac<\s*(?:1|X)\s*/\s*(?!CARDNAME)[^>]+>'
+    action: sacrifice_cost_generic
+    notes: Subtype outlets (Goblin, Treasure, …). CARDNAME stays ignored via ignore_self_sacrifice.
   - id: cost.sacrifice_self
     input: costs
     match: 'Cost\$\s*Sac<\s*1\s*/\s*CARDNAME\s*>'
@@ -84,6 +230,25 @@ mappings:
     input: costs
     match: 'Cost\$\s*ExileFromGrave<'
     action: exile_graveyard_cost
+  - id: cost.pay_life
+    input: costs
+    match: 'Cost\$\s*PayLife<'
+    action: pay_life_cost
+    notes: PayLife as an activation cost consumes life (Appendix A).
+  - id: cost.tap_xtype
+    input: costs
+    match: 'Cost\$\s*tapXType<'
+    action: tap_xtype_cost
+    notes: tapXType is convoke-like; consume creature/artifact when the mask names them.
+  - id: cost.sub_p1p1
+    input: costs
+    match: 'Cost\$\s*SubCounter<\s*[^>]*?(?:P1P1|\+1/\+1)'
+    action: sub_p1p1_cost
+  - id: cost.return_creature
+    input: costs
+    match: 'Cost\$\s*Return<\s*1\s*/\s*Creature'
+    action: return_creature_cost
+    notes: Bounce-as-cost consumes a creature and emits bounce.
   - id: trigger.changes_zone_battlefield
     input: triggers
     match: 'T:\s*Mode\$\s*ChangesZone.*Destination\$\s*Battlefield'
@@ -140,6 +305,21 @@ mappings:
     input: triggers
     match: 'T:\s*Mode\$\s*Untaps'
     action: reward_untap
+  - id: trigger.token_created
+    input: triggers
+    match: 'T:\s*Mode\$\s*TokenCreated'
+    action: reward_token_created
+    notes: Mode$ TokenCreated / TokenCreatedOnce. Three-ish cards in the mined corpus plus newer scripts.
+  - id: trigger.bounce
+    input: triggers
+    match: 'T:\s*Mode\$\s*ChangesZone.*Origin\$\s*Battlefield.*Destination\$\s*Hand'
+    action: reward_bounce
+    notes: No Mode$ Bounced; BF→Hand ChangesZone is the bounce subscription.
+  - id: trigger.requires
+    input: triggers
+    match: '(?:Condition\$\s*(?:Threshold|Hellbent|Metalcraft|Delirium)\b|(?:Threshold|Hellbent|Metalcraft|Delirium)\$)'
+    action: requires_condition
+    notes: Same conservative flags as effect.requires.
   - id: validation.deck_has
     input: deck_has
     match: '.+'
