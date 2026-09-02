@@ -21,7 +21,7 @@ import re
 import sqlite3
 from datetime import datetime, timezone
 
-from catalog import DB_NAME, get_oracle_card
+from catalog import DB_NAME, find_card_row
 from deck_state import DeckState
 from inventory import FREE_POOL, list_inventory
 from rules_validator import CommanderValidator, legal_commanders_in_pool
@@ -32,6 +32,19 @@ LOCATION_PREFIX = "deck_"
 def _slugify(name: str) -> str:
     slug = re.sub(r"[^a-z0-9]+", "_", name.strip().lower()).strip("_")
     return slug or "deck"
+
+
+def _canonical_card_name(conn: sqlite3.Connection, raw_name: str) -> str:
+    """Resolve raw_name to its canonical cards.name using the caller's own
+    connection. Must NOT open a second connection to DB_NAME: every caller
+    here already holds an open write transaction on `conn`, and
+    catalog.get_oracle_card() opening its own connection and running
+    ensure_schema()'s unconditional write+commit against the same file was
+    exactly the deadlock (sqlite3.OperationalError: database is locked) hit
+    saving a deck. find_card_row() has get_oracle_card's same name-matching
+    fallbacks; it just takes a connection instead of opening its own."""
+    row = find_card_row(conn, raw_name)
+    return row["name"] if row else raw_name.strip()
 
 
 def _ensure_schema(conn: sqlite3.Connection) -> None:
@@ -83,8 +96,7 @@ def _replace_location_cards(conn: sqlite3.Connection, location: str, cards: dict
         qty = int(qty)
         if qty <= 0:
             continue
-        info = get_oracle_card(raw_name)
-        canonical = info["name"] if info else raw_name.strip()
+        canonical = _canonical_card_name(conn, raw_name)
         if not canonical:
             continue
         existing_name = lower_index.get(canonical.lower())
@@ -115,8 +127,7 @@ def _ensure_card_present(conn: sqlite3.Connection, location: str, card_name: str
     """Additive, unlike _replace_location_cards: bumps this one card's
     allocation at `location` up to at least min_qty without touching anything
     else there. Returns whether it actually changed anything."""
-    info = get_oracle_card(card_name)
-    canonical = info["name"] if info else card_name.strip()
+    canonical = _canonical_card_name(conn, card_name)
     row = conn.execute(
         "SELECT card_name, allocations FROM inventory WHERE card_name = ? COLLATE NOCASE",
         (canonical,),

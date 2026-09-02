@@ -43,6 +43,16 @@ CHROMA_DIR = os.path.join(DATA_DIR, "chroma_db")
 _client_lock = threading.Lock()
 _searcher_lock = threading.Lock()
 _query_lock = threading.Lock()
+# Guards self.conn/self.cursor specifically -- RAGSearcher is a process-wide
+# singleton (see shared()) and search_cards() used to touch that shared
+# connection from whichever thread the Architect's parallel tool calls landed
+# on, with nothing serializing them: concurrent search_cards calls racing on
+# the same cursor raised "another row available" (a sqlite3 Cursor isn't
+# safe to drive from multiple threads at once, even with
+# check_same_thread=False). Separate from _query_lock, which only guards the
+# Chroma call, so embedding search from one request can still run while
+# another's SQLite lexical search holds this lock.
+_conn_lock = threading.Lock()
 _chroma_client = None
 _shared_searcher = None
 
@@ -394,66 +404,67 @@ class RAGSearcher:
                 embed_queries, allowed_colors, fetch
             )
 
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
-        try:
-            lexical_hits: list[dict] = []
-            ontology_hits: list[dict] = []
-            if need_lex:
-                n_lex = max(1, 1 + len(self._unique_texts(lex_extras)))
-                lex_limit = max(limit * 15, 500) * n_lex
-                lexical_hits = lexical_search_sqlite(
-                    conn,
-                    primary,
-                    allowed_colors,
-                    limit=lex_limit,
+        with _conn_lock:
+            conn = sqlite3.connect(DB_NAME)
+            cursor = conn.cursor()
+            try:
+                lexical_hits: list[dict] = []
+                ontology_hits: list[dict] = []
+                if need_lex:
+                    n_lex = max(1, 1 + len(self._unique_texts(lex_extras)))
+                    lex_limit = max(limit * 15, 500) * n_lex
+                    lexical_hits = lexical_search_sqlite(
+                        conn,
+                        primary,
+                        allowed_colors,
+                        limit=lex_limit,
+                        cmc_min=cmc_min,
+                        cmc_max=cmc_max,
+                        extra_phrases=self._unique_texts(lex_extras) or None,
+                    )
+                if need_ontology:
+                    try:
+                        ontology_hits = search_ontology_clauses(
+                            conn,
+                            clauses,
+                            allowed_colors,
+                            k=max(limit * 15, 200),
+                        )
+                    except sqlite3.OperationalError:
+                        ontology_hits = []
+                if hybrid:
+                    print(
+                        f"Hybrid: {len(embedding_hits)} embedding + {len(lexical_hits)} lexical "
+                        f"+ {len(ontology_hits)} ontology (pre-merge)"
+                    )
+
+                if hybrid:
+                    merged = merge_hit_maps(embedding_hits, lexical_hits)
+                    merged = merge_hit_maps(merged, ontology_hits)
+                else:
+                    merged = sorted(embedding_hits, key=lambda h: h["distance"])
+                q_compact = " ".join(str(primary).lower().split())
+                if hybrid and len(q_compact) <= 80:
+                    merged.sort(key=hit_sort_key)
+                    if "counter" in q_compact:
+                        merged = diversify_by_phrase(
+                            merged, max(limit * 4, 80), prefer_phrase=q_compact
+                        )
+
+                return self._materialize_hits(
+                    cursor,
+                    merged,
+                    card_pool=card_pool,
+                    limit=limit,
+                    max_card_price=max_card_price,
+                    currency=currency,
                     cmc_min=cmc_min,
                     cmc_max=cmc_max,
-                    extra_phrases=self._unique_texts(lex_extras) or None,
+                    role_key=role_key,
+                    owned_only=owned_only,
                 )
-            if need_ontology:
-                try:
-                    ontology_hits = search_ontology_clauses(
-                        conn,
-                        clauses,
-                        allowed_colors,
-                        k=max(limit * 15, 200),
-                    )
-                except sqlite3.OperationalError:
-                    ontology_hits = []
-            if hybrid:
-                print(
-                    f"Hybrid: {len(embedding_hits)} embedding + {len(lexical_hits)} lexical "
-                    f"+ {len(ontology_hits)} ontology (pre-merge)"
-                )
-
-            if hybrid:
-                merged = merge_hit_maps(embedding_hits, lexical_hits)
-                merged = merge_hit_maps(merged, ontology_hits)
-            else:
-                merged = sorted(embedding_hits, key=lambda h: h["distance"])
-            q_compact = " ".join(str(primary).lower().split())
-            if hybrid and len(q_compact) <= 80:
-                merged.sort(key=hit_sort_key)
-                if "counter" in q_compact:
-                    merged = diversify_by_phrase(
-                        merged, max(limit * 4, 80), prefer_phrase=q_compact
-                    )
-
-            return self._materialize_hits(
-                cursor,
-                merged,
-                card_pool=card_pool,
-                limit=limit,
-                max_card_price=max_card_price,
-                currency=currency,
-                cmc_min=cmc_min,
-                cmc_max=cmc_max,
-                role_key=role_key,
-                owned_only=owned_only,
-            )
-        finally:
-            conn.close()
+            finally:
+                conn.close()
 
     def search_cards(
         self,

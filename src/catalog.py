@@ -11,9 +11,20 @@ BASE_DIR = os.path.dirname(SCRIPT_DIR)
 DATA_DIR = os.path.join(BASE_DIR, "data")
 DB_NAME = os.path.join(DATA_DIR, "managraph.db")
 COLLECTION_SCHEMA_VERSION = "5"
-_SCHEMA_LOCK = threading.Lock()
 
 os.makedirs(DATA_DIR, exist_ok=True)
+
+# ensure_schema() used to run its CREATE TABLE/ALTER/INSERT+commit on *every*
+# call, from a fresh connection almost every time (get_oracle_card, every
+# search_cards call, ...). Harmless alone, but under real concurrency -- the
+# Architect firing several search_cards tool calls in parallel, or a deck
+# save whose caller already holds an open write transaction -- many
+# connections ended up writing to the same file at once: "database is
+# locked" / "another row available". The schema is only ever migrated once
+# per file per process, so verify it once per db file and skip the rest
+# (including the unconditional commit) after that.
+_schema_ensured: set[str] = set()
+_schema_ensured_lock = threading.Lock()
 
 
 def _table_columns(conn: sqlite3.Connection, table: str) -> set[str]:
@@ -55,13 +66,18 @@ def mana_cost_from_scryfall(card: dict) -> str:
 
 
 def ensure_schema(conn: sqlite3.Connection):
-    # Architect/tool threads can hit the same connection; SQLite forbids a
-    # new statement while another cursor on that connection still has rows.
-    with _SCHEMA_LOCK:
-        _ensure_schema_unlocked(conn)
+    db_file = conn.execute("PRAGMA database_list").fetchone()[2] or ""
+    with _schema_ensured_lock:
+        if db_file in _schema_ensured:
+            return
+        _migrate_schema(conn)
+        _schema_ensured.add(db_file)
 
 
-def _ensure_schema_unlocked(conn: sqlite3.Connection):
+def _migrate_schema(conn: sqlite3.Connection) -> None:
+    """CREATE/ALTER/INSERT+commit. Only runs once per db file per process,
+    with `_schema_ensured_lock` held (see ensure_schema).
+    """
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS cards (
@@ -428,27 +444,38 @@ def _row_to_card(row: sqlite3.Row) -> dict:
     }
 
 
+def find_card_row(conn: sqlite3.Connection, name: str) -> sqlite3.Row | None:
+    """Name-match cascade shared by get_oracle_card and any caller that needs
+    to resolve a card name using its *own* connection (see
+    service/handlers/decks.py's canonicalization: it must not open a second
+    connection to the same file while already holding an open write
+    transaction on this one). Exact match -> split-card face -> normalized
+    DFC/split name."""
+    row = conn.execute(
+        "SELECT * FROM cards WHERE name = ? COLLATE NOCASE",
+        (name,),
+    ).fetchone()
+    if row is None:
+        row = conn.execute(
+            "SELECT * FROM cards WHERE name LIKE ? COLLATE NOCASE",
+            (f"{name} //%",),
+        ).fetchone()
+    if row is None:
+        normalized = _split_face_query_name(name)
+        if normalized:
+            row = conn.execute(
+                "SELECT * FROM cards WHERE name = ? COLLATE NOCASE",
+                (normalized,),
+            ).fetchone()
+    return row
+
+
 def get_oracle_card(name: str, db_path: str = DB_NAME) -> dict | None:
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     try:
         ensure_schema(conn)
-        row = conn.execute(
-            "SELECT * FROM cards WHERE name = ? COLLATE NOCASE",
-            (name,),
-        ).fetchone()
-        if row is None:
-            row = conn.execute(
-                "SELECT * FROM cards WHERE name LIKE ? COLLATE NOCASE",
-                (f"{name} //%",),
-            ).fetchone()
-        if row is None:
-            normalized = _split_face_query_name(name)
-            if normalized:
-                row = conn.execute(
-                    "SELECT * FROM cards WHERE name = ? COLLATE NOCASE",
-                    (normalized,),
-                ).fetchone()
+        row = find_card_row(conn, name)
         if row is None:
             return None
         return _row_to_card(row)
