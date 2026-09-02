@@ -45,16 +45,18 @@ score ainda confundir semelhança textual com complementaridade mecânica.
 ### A. Contrato e schema
 
 1. Fixar uma release do [Forge](https://github.com/Card-Forge/forge) e registrar
-   a versão em `catalog_meta`.
+   a versão em `catalog_meta`. Ainda aberto: release/commit são opcionais no
+   minerador e não estão pinados no catálogo.
 2. Criar `data/ontology/schema_v1.yaml` com objetos, eventos e predicates,
    usando o vocabulário de eventos do Forge apenas como material de bootstrap.
-3. Criar `src/ontology/schema.py` com enums e dataclasses.
+   Feito.
+3. Criar `src/ontology/schema.py` com enums e dataclasses. Feito.
 4. Para cada predicate, registrar o consumidor:
    `solver._score_parts`, `rules_validator` ou `diagnose_deck_json`.
 5. Criar `tests/test_ontology_acceptance.py` com os testes inicialmente
    falhando.
 6. Tornar a versão do schema, labels, release Forge e snapshot parte da
-   proveniência.
+   proveniência. Parcial: schema versionado; release Forge ainda nula.
 
 Não anotar cartas antes de congelar esse contrato.
 
@@ -62,10 +64,12 @@ Não anotar cartas antes de congelar esse contrato.
 
 0. **Tier 0 — Forge:** executar `scripts/mine_forge.py` sobre a release fixada
    para produzir efeitos, custos, eventos e candidatos a predicates em um
-   artefato intermediário. O resultado é scaffolding e validação, não uma
-   taxonomia importada nem uma dependência de runtime.
+   artefato intermediário. Feito (release ainda não pinada). O resultado é
+   scaffolding e validação, não uma taxonomia importada nem uma dependência
+   de runtime.
 1. **Tier 1:** campos estruturados do Scryfall (`keywords`,
-   `produced_mana`, `type_line`, custo e tipos).
+   `produced_mana`, `type_line`, custo e tipos). Feito em
+   `canonical_facts`; falta ligar aos consumidores do solver.
 2. **Tier 2:** gramática determinística de templates Oracle em
    `src/ontology/patterns.py`.
 3. **Tier 3:** annotator offline opcional para o resíduo, produzindo
@@ -79,13 +83,17 @@ runtime nem alterar diretamente legalidade ou score.
 O contrato v1 está em `data/ontology/schema_v1.yaml`, com carregamento e
 validação em `src/ontology/schema.py`. O Tier 0 está em
 `scripts/mine_forge.py`: recebe somente uma `cardsfolder` local (diretório ou
-zip), emite JSONL intermediário e usa `data/ontology/forge_mapping.yaml` para
-candidatos mecânicos e validação `DeckHas`/`DeckNeeds`. A release/commit são
-configuráveis por argumento ou ambiente e permanecem nulos quando não
-fornecidos; não há download, execução ou dependência de Forge no runtime.
-Fixtures cobrem duplicação, faces alternativas, Oracle e cadeias
-`SubAbility$`. Cross-check com Scryfall, gold set, Tier 1/2 e consumo pelo
-grafo/solver continuam nas fases seguintes.
+zip), emite JSONL intermediário — fatos por face, efeitos/custos/triggers,
+`deck_has`/`deck_needs`/`deck_hints` e candidatos — e usa
+`data/ontology/forge_mapping.yaml` para candidatos mecânicos e validação
+`DeckHas`/`DeckNeeds`. A release/commit são configuráveis por argumento ou
+ambiente e permanecem nulos quando não fornecidos; não há download, execução
+ou dependência de Forge no runtime. Fixtures cobrem duplicação, faces
+alternativas, Oracle e cadeias `SubAbility$`.
+
+O cruzamento Scryfall↔Forge e o modelo Final (P0–P2) já estão no catálogo;
+ver Estado atual. Ainda abertos: consumidores por predicate, testes de
+aceitação, gold set rotulado, Tier 2/3 e consumo pelo grafo/solver.
 
 #### Camada semântica factual inicial
 
@@ -102,18 +110,21 @@ bruta:
 
 As cores encontradas no `ManaCost` são apenas cores indicadas pelo custo; elas
 não são a identidade de cor Commander. A identidade, Oracle canônico,
-legalidade e demais fatos oficiais continuam vindo do Scryfall. Assim, o
-minerador pode usar o conteúdo estrutural do Forge sem transformar uma
-inferência parcial em verdade do jogo. A próxima expansão é cobrir alvos,
-condições, magnitudes e efeitos DSL restantes, sempre mantendo a linha bruta
-como evidência.
+legalidade e demais fatos oficiais vêm do Scryfall (`scryfall_json` completo)
+e o enrich materializa isso em `canonical_facts`. O Final (P0–P2) junta
+faces, Oracle mesclado e o mapeamento expandido; `deck_*` fica só como
+`validation_only` e SVar é filtrado dos efeitos do Final. Ainda fora: P3
+(rank/rarity/set como features), `resolved` como fonte padrão, DamageDone
+não-combate e eventos extras de Phase. Predicates novos no mapping só
+entram após remine de `cardsfolder` + enrich; o rebuild apenas rematcha.
 
 ### C. Validação
 
 1. Criar um gold set estratificado de 300–500 cartas, começando por uma amostra
-   manual cega ao Forge.
+   manual cega ao Forge. A UI de revisão existe; as reviews ainda estão em 0.
 2. Criar `data/ontology/forge_mapping.yaml` para mapear o DSL do Forge aos
-   predicates mecânicos do schema.
+   predicates mecânicos do schema. Feito e expandido (P0–P2); predicates
+   novos no YAML exigem remine + enrich.
 3. Executar o mapeamento sobre `cardsfolder` e gerar
    `data/ontology/gold_forge.jsonl` apenas como corpus interno de comparação.
 4. Usar Forge para validar precisão da tradução e relações `DeckHas`/`DeckNeeds`;
@@ -183,9 +194,11 @@ objetos, eventos e predicates e para validar a tradução do pipeline.
 
 Forge não será a fonte final dos fatos, não será executado pelo solver e não
 terá sua taxonomia de arquétipos importada para o schema. O pipeline cruza
-Forge com Scryfall pelo nome e Oracle Text, registra divergências e mantém
-artefatos derivados de Forge como validação interna, respeitando a licença do
-projeto e sem redistribuir o corpus derivado.
+Forge com Scryfall pelo nome de face, pelo `//` do layout e por
+`AlternateMode` (não só o nome exato), usa o Oracle Text para detectar
+drift, registra divergências e mantém artefatos derivados de Forge como
+validação interna, respeitando a licença do projeto e sem redistribuir o
+corpus derivado.
 
 ### Moxfield — observação de decks
 
@@ -208,8 +221,8 @@ modelo de compatibilidade.
 
 ### Trabalho do Zuílho
 
-- congelar schema e consumidores;
-- implementar extração e grafo funcional;
+- congelar consumidores (schema e extração de dados já operam);
+- implementar o grafo funcional;
 - integrar predicates ao diagnóstico e solver;
 - manter autoridade de legalidade, orçamento e estado;
 - decidir quando a ontologia está pronta para TDA.
@@ -226,18 +239,61 @@ O trabalho de avaliação pode começar com fixtures e testes de contrato, mas n
 deve transformar o comportamento atual em alvo de otimização. O alvo é
 legalidade, coerência funcional, explicabilidade e descoberta.
 
+## Estado atual
+
+A espinha de dados do Stage 3.6 está no catálogo. O solver ainda não
+consome esses fatos: faltam consumidores nomeados, testes de aceitação,
+gold set rotulado e o grafo de supply/demand. TDA continua bloqueado.
+
+Pipeline operacional:
+
+- `scripts/mine_forge.py` emite fatos semânticos (mana, tipos, keywords,
+  P/T, faces), efeitos/custos/triggers/subabilities, `deck_has` /
+  `deck_needs` / `deck_hints` e candidatos via `forge_mapping.yaml`.
+- A ingestão Scryfall guarda o `scryfall_json` completo. O schema do
+  catálogo (v4) adiciona `ontology_cards`, `forge_records` e
+  `ontology_reviews` sem substituir `cards`.
+- `scripts/enrich_ontology.py` junta Scryfall e Forge em quatro camadas:
+  `canonical_facts`, `forge`, `resolved_facts`, `model_facts`.
+- `rebuild_ontology_model()` reconstruiu 38.651 cartas: 33.760 cruzadas,
+  4.891 sem match, 879 DFC/splits recém-pareadas. Claim // Fame e Valki
+  passam a ter faces + Oracle no Final. `art_series`, `plane`, `scheme`,
+  `token` e `emblem` continuam sem match de propósito.
+
+Modelo Final (P0–P2 em `build_model_facts` / config / mapping):
+
+- P0: `faces[]` + Oracle mesclado; `layout`; `id`/`oracle_id`; join Forge
+  por face / `//` / `AlternateMode`.
+- P1: mapping expandido (Destroy, DestroyAll, Counter, GainLife,
+  LoseLife, Untap, PutCounter, DealDamage, trigger Untaps);
+  `ability_kinds` / `effect_count` / `trigger_count` /
+  `forge_keywords_not_in_scryfall`; `types.card_types` / `supertypes` /
+  `subtypes`; símbolos de mana, pips coloridos e genéricos.
+- P2: `loyalty`, `defense`, `all_parts`; `deck_*` como
+  `validation_only`; SVar filtrado dos efeitos do Final.
+- P3 não feito: `edhrec_rank` / rarity / set como features; `resolved`
+  como fonte padrão.
+
+Validador em `/ontology-validator` (`data/ontology_validator.html`):
+explorar/filtrar o catálogo; abas Scryfall / Forge / Final; revisão
+humana e export do gold set. A aba de configuração do modelo foi
+removida a pedido; APIs de rebuild/config no backend podem existir, mas
+não há UI de catálogo para isso. Reviews do gold set ainda em 0.
+
 ## Próximas tarefas
 
 1. Fixar uma release do Forge e seu hash/identificador em `catalog_meta`.
-2. Criar `scripts/mine_forge.py` e testar o parser em fixtures pequenas.
-3. Criar o schema v1 e a matriz predicate → consumidor usando Forge apenas
-   como bootstrap.
-4. Escrever os dois testes de aceitação como testes falhando.
-5. Implementar Tier 1 e Tier 2 com fixtures de cartas reais.
-6. Gerar `gold_forge.jsonl` e a primeira tabela de cobertura por predicate.
-7. Implementar o grafo de supply/demand.
-8. Fazer o diagnóstico tipado alimentar o solver e o Architect.
-9. Rodar as ablações antes de iniciar TDA.
+2. Nomear o consumidor de cada predicate e escrever os dois testes de
+   aceitação como testes falhando.
+3. Rotular o gold set no validador (começar ~50 cartas às cegas ao Forge)
+   e medir precisão/recall por predicate.
+4. Reminar `cardsfolder` + enrich depois de predicates novos no mapping
+   (rebuild sozinho não reextrai DSL).
+5. Implementar Tier 2 (`src/ontology/patterns.py`) sobre o resíduo Oracle;
+   P3 só se o solver for consumir rank/rarity/set.
+6. Implementar o grafo de supply/demand.
+7. Fazer o diagnóstico tipado alimentar o solver e o Architect.
+8. Rodar as ablações antes de iniciar TDA.
 
 ## Critérios de parada
 

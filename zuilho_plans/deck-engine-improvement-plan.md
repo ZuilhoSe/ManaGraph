@@ -76,6 +76,12 @@ validacao da ontologia. Uma release fixada de `cardsfolder` pode fornecer
 efeitos, custos, eventos, `DeckHas` e `DeckNeeds` para gerar candidatos a
 objetos, predicates e relacoes antes da anotacao do catalogo.
 
+A mineracao (`scripts/mine_forge.py`), o cruzamento
+(`scripts/enrich_ontology.py`) e o modelo Final P0–P2 ja estao no catalogo.
+O join usa nome de face, `//` e `AlternateMode`, nao so o nome exato.
+`deck_*` permanece validacao interna. Ainda faltam release pinada em
+`catalog_meta`, gold set rotulado e o consumo pelo solver.
+
 Esses dados nao substituem Scryfall/Oracle e nao viram dependencia de runtime.
 O mapeamento deve ser validado contra um conjunto rotulado manualmente,
 registrar divergencias de Oracle e manter os artefatos derivados de Forge como
@@ -512,9 +518,11 @@ O rationale gerado pelo LLM nunca deve alterar score, estado ou legalidade.
 
 A ordem abaixo segue [`ontology-first-roadmap.md`](ontology-first-roadmap.md):
 
-1. Fixar uma release do Forge e implementar a mineração de `cardsfolder`.
-2. Congelar `schema_v1.yaml`, consumidores e testes de aceitação do Stage 3.6.
-3. Implementar extração Tier 1/Tier 2 e medir cobertura por predicate.
+1. Pin da release Forge em `catalog_meta` (mineração, enrich e Final P0–P2
+   já operam no catálogo; o validador está em `/ontology-validator`).
+2. Nomear consumidores e escrever os testes de aceitação do Stage 3.6.
+3. Rotular o gold set e implementar extração Tier 2; medir cobertura por
+   predicate. P3 (rank/rarity/set) só se o solver for consumir.
 4. Validar predicates antes de usá-los em score, corte ou constraint.
 5. Construir o grafo de supply/demand e integrar diagnóstico tipado ao solver.
 6. Rodar as ablações do harness do Lucas e confirmar mudança explicável em

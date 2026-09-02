@@ -106,6 +106,22 @@ subject to the existing hard constraints (99, identity, singleton, legality, P_m
 
 ## Build plan
 
+### Current state
+
+The data spine for Stage 3.6 is in the catalog. Forge mining, Scryfall ingest
+(`scryfall_json`), enrichment, and Final `model_facts` (P0–P2) are live. The
+validator at `/ontology-validator` can explore every card (Scryfall / Forge /
+Final tabs) and record human reviews. The model-config catalog tab was removed;
+backend rebuild/config APIs may still exist. The stage is **not** done: no named
+consumers, no acceptance tests, no gold-set labels (reviews were 0), no
+`patterns.py` / solver graph. TDA stays blocked.
+
+Rebuild snapshot: 38,651 cards; 33,760 Forge-matched / 4,891 unmatched; 879
+DFC/splits newly joined. Claim // Fame and Valki now carry faces + oracle in
+Final. `art_series` / `plane` / `scheme` / `token` / `emblem` stay unmatched
+on purpose. New mapping predicates require a remine of `cardsfolder` plus
+enrich; rebuild only rematches the already-mined artifact.
+
 ### Phase A — Contract and schema (≈1 week)
 
 - [ ] Pin a Forge release and record its tag/commit in `catalog_meta`.
@@ -129,15 +145,16 @@ separate layer. Forge seeds the event vocabulary and supplies a large
 validation corpus; it does not define the final schema, does not contribute
 runtime labels by itself, and its community archetype names are not imported.
 
-The initial implementation accepts either a local directory or zip and records
+The miner accepts either a local directory or zip and records
 `--release`/`--commit` (or `FORGE_RELEASE`/`FORGE_COMMIT`) in each JSONL row.
 With neither supplied, provenance remains explicitly unset; the script never
 downloads Forge. Faces, Oracle text, duplicate files, and resolvable
-`SubAbility$` chains are retained for later cross-checking against Scryfall.
-The cost colours in `card.facts` are evidence from Forge's `ManaCost`, not
-Commander color identity; the latter remains a Scryfall fact.
+`SubAbility$` chains are retained. `scripts/enrich_ontology.py` already joins
+them to Scryfall by face name / `//` / `AlternateMode` and writes the four
+fact layers. The cost colours in `card.facts` are evidence from Forge's
+`ManaCost`, not Commander color identity; the latter remains a Scryfall fact.
 
-**Tier 1 — structured Scryfall fields.** Free and exact. `keywords`, `produced_mana`, `type_line`, `power`/`toughness`, `mana_cost`. Covers most of `produces(mana)`, all keyword-derived `enables`, and type-based gates. You already persist `keywords` from Stage 3.5e.
+**Tier 1 — structured Scryfall fields.** Free and exact. `keywords`, `produced_mana`, `type_line`, `power`/`toughness`, `mana_cost`. Covers most of `produces(mana)`, all keyword-derived `enables`, and type-based gates. These now live in `canonical_facts` from the stored `scryfall_json`; the remaining Tier 1 work is wiring them to named solver consumers, not re-ingesting the fields.
 
 **Tier 2 — template grammar over oracle text.** This is tractable for a reason worth stating in the paper: **oracle text is not free natural language.** WotC writes to a rigid templating manual. `Whenever ~ deals combat damage to a player`, `Sacrifice a creature:`, `Add {R}`, `When ~ enters, ...`, `Creatures you control get +1/+1`. A shallow pattern grammar covers a large fraction of the catalogue. `mana.py` already proves the approach.
 
@@ -146,8 +163,13 @@ Implement in `src/ontology/patterns.py`. Deterministic, unit-tested against pinn
 **Tier 3 — offline LLM batch annotator for the residual.** Run once over the ~30k unique oracle texts with structured output constrained to the schema. Freeze to `data/ontology/labels_v1.jsonl` with model name, prompt hash, and date. **Never at runtime.** This is the same split the project already committed to: model proposes, symbol decides. Cost is tens of dollars, not months.
 
 - [x] `scripts/mine_forge.py` — parse a local Forge `cardsfolder` directory or zip
-- [x] `data/ontology/forge_mapping.yaml` — versioned Forge-to-schema mapping
+- [x] `data/ontology/forge_mapping.yaml` — versioned Forge-to-schema mapping (P0–P2 predicates; remine required after new entries)
 - [x] `src/ontology/schema.py` — dataclasses + enums
+- [x] `scripts/enrich_ontology.py` — join Scryfall↔Forge; layers `canonical_facts`, `forge`, `resolved_facts`, `model_facts`
+- [x] catalog schema v4 — additive `ontology_cards`, `forge_records`, `ontology_reviews`
+- [x] Final model P0–P2 in `build_model_facts` — faces + merged oracle, face/`//`/`AlternateMode` join, expanded mapping, loyalty/defense/all_parts; `deck_*` stay `validation_only`; SVar stripped from Final effects
+- [x] validator UI (`data/ontology_validator.html`, `/ontology-validator`) — explore/filter; Scryfall / Forge / Final tabs; human review + gold-set export (model-config tab removed)
+- [ ] P3 — `edhrec_rank` / rarity / set as separate features; `resolved` as default source
 - [ ] `src/ontology/patterns.py` — tier 2
 - [ ] `src/ontology/annotate.py` — orchestrates tiers, writes frozen artifact
 - [ ] `python src/ontology/annotate.py --rebuild` wired into `build_dataset.py`
@@ -156,7 +178,7 @@ Implement in `src/ontology/patterns.py`. Deterministic, unit-tested against pinn
 
 You cannot claim a symbolic layer without measuring it.
 
-**Gold set.** 300–500 cards, stratified by: set era (pre-Modern / Modern / recent), card type, rarity, oracle text length, and one deliberate over-sample of weird frames (MDFC, adventure, split, omen). Hand-label against the schema.
+**Gold set.** 300–500 cards, stratified by: set era (pre-Modern / Modern / recent), card type, rarity, oracle text length, and one deliberate over-sample of weird frames (MDFC, adventure, split, omen). Hand-label against the schema. The review UI can export `data/ontology/gold_set_v1.jsonl`; labelled reviews were still 0.
 
 **Free ground truth: mine the Forge card scripts.** Forge's `res/cardsfolder` is over a decade of hand-written functional formalisation in a regular, flat DSL. Mapping its effect names onto your predicates gives tens of thousands of validation rows for the cost of a parser, and its `DeckHas` / `DeckNeeds` fields validate the *relational* layer too. **See Appendix A** for the engine comparison, the licence position, the mapping table, and the validation protocol. Run the protocol in the order given there; reversing steps 1 and 2 imports Forge's biases as ground truth without leaving a trace.
 
@@ -242,13 +264,19 @@ New metrics on top of the `RESEARCH.md` set:
 
 ```
 src/ontology/
-  schema.py      # enums + dataclasses, loaded from schema_v1.yaml
-  patterns.py    # tier-2 template grammar
-  annotate.py    # tier orchestration → frozen artifact
-  graph.py       # derived relations, supply/demand
-  diagnose.py    # typed deficits, feeds diagnose_deck_json
+  schema.py          # enums + dataclasses, loaded from schema_v1.yaml
+  model_config.py    # canonical / resolved / Final model_facts (P0–P2)
+  patterns.py        # tier-2 template grammar (not yet)
+  annotate.py        # tier orchestration → frozen artifact (not yet)
+  graph.py           # derived relations, supply/demand
+  diagnose.py        # typed deficits, feeds diagnose_deck_json
+scripts/
+  mine_forge.py
+  enrich_ontology.py
+data/ontology_validator.html   # served at /ontology-validator
 data/ontology/
   schema_v1.yaml
+  forge_mapping.yaml
   labels_v1.jsonl     # frozen, not in git (size); rebuildable
   gold_v1.jsonl       # in git, small, hand-labelled
 tests/
@@ -257,7 +285,10 @@ tests/
   test_ontology_acceptance.py
 ```
 
-`symbolic_cards.py` and `roles.py` become thin adapters over `src/ontology/` rather than parallel implementations. Migrate them; do not leave two vocabularies in the repo.
+Catalog tables `ontology_cards`, `forge_records`, and `ontology_reviews` sit
+beside the legacy `cards` table. `symbolic_cards.py` and `roles.py` become thin
+adapters over `src/ontology/` rather than parallel implementations. Migrate
+them; do not leave two vocabularies in the repo.
 
 **Maintenance.** 4–6 sets a year, ~1500 new cards. `annotate.py --incremental` runs on the delta after each `scryfall_download`, and new-card labels go through the same tier ladder. Re-run the gold set annually to catch templating drift.
 
@@ -313,7 +344,7 @@ Do **not** embed the engine as a simulator to play out decks. Win rate is explic
 Forge's trigger modes are an empirically derived enumeration of every event a Magic card can subscribe to, refined over fifteen years of scripting. Take that list as the seed for the `Event` enum in `schema_v1.yaml`, then prune to what deckbuilding consumes. This is a week saved and, more importantly, a vocabulary grounded in game mechanics rather than in community archetype names, which is what Scope Rule 2 demands.
 
 **A2 — Bulk gold set for card predicates (replaces most of Phase C hand-labelling).**
-Parse `cardsfolder` → apply the mapping table below → join on card name → compute per-predicate precision and recall for the tier 1/2/3 annotator against tens of thousands of rows instead of a few hundred.
+Parse `cardsfolder` → apply the mapping table below → join on face name / `//` / `AlternateMode` (not exact `Name:` only) → compute per-predicate precision and recall for the tier 1/2/3 annotator against tens of thousands of rows instead of a few hundred.
 
 **A3 — Validate the *relational* layer with `DeckHas` / `DeckNeeds`.**
 Forge carries hand-curated deckbuilding annotations for its drafting AI. `DeckHas:Ability$Token` declares that a card supplies a capability; `DeckNeeds:Ability$Token|Counters` declares that a card demands one. That is the producer/consumer pairing of Layer 2, annotated by humans, and there is no equivalent in XMage.
@@ -330,12 +361,14 @@ This matters because hand-validating pairwise relations is combinatorially hopel
 - Line prefixes: `A` ability effect, `T` triggered, `R` replacement, `S` static, `K` keyword, `SVar` variable, plus `Name` / `ManaCost` / `Types` / `PT` / `Oracle`.
 - Ability prefixes inside `A:` — `SP$` spell, `AB$` activated, `DB$` drawback (chained sub-ability). Follow `SubAbility$` to walk the chain; a card's full effect set is the transitive closure, not the first line.
 - Multi-face cards separate faces with a line containing `ALTERNATE`; the front face carries `AlternateMode:`.
-- **Join key:** `Name:` against `cards.name`. Use the script's `Oracle:` field to cross-check the join and to detect drift between the Forge release and your Scryfall bulk snapshot. A mismatched Oracle means one of the two is stale; log it rather than silently accepting the labels.
+- **Join key:** face name, the `//` layout name, and `AlternateMode` against the Scryfall catalog — not exact `Name:` alone. That is how DFC/splits such as Claim // Fame and Valki match. Use the script's `Oracle:` field to cross-check the join and to detect drift between the Forge release and your Scryfall bulk snapshot. A mismatched Oracle means one of the two is stale; log it rather than silently accepting the labels. Layouts with no playable Oracle (`art_series`, `plane`, `scheme`, `token`, `emblem`) stay unmatched on purpose.
 - **Pin the Forge release tag** in `catalog_meta` alongside the Scryfall bulk date and the price snapshot. API names drift between releases.
 
 ## Mapping table (scaffold)
 
-Verify each pattern against the `AbilityFactory`, `Triggers`, `Replacements`, `Statics` and `Costs` wiki pages before implementing. Treat this as the starting scaffold, not a finished spec; expect to iterate for several days, which is where the real work of A2 lives.
+P0–P2 of this table live in `data/ontology/forge_mapping.yaml` (Destroy, DestroyAll, Counter, GainLife, LoseLife, Untap, PutCounter, DealDamage, Untaps, plus the earlier production/cost/event rows). New predicates in the YAML do not appear until `cardsfolder` is remined and enrich is rerun. Still out of the schema: non-combat `DamageDone` and extra `Phase` events.
+
+Verify each remaining pattern against the `AbilityFactory`, `Triggers`, `Replacements`, `Statics` and `Costs` wiki pages before implementing. Treat the unchecked rows as the next scaffold, not a finished spec.
 
 ### Production
 
@@ -466,9 +499,10 @@ Do not expect the mining step to close Phase B. It leaves:
 
 ## Deliverables
 
-- [ ] `scripts/mine_forge.py` — parse `cardsfolder`, emit raw structured rows
-- [ ] `data/ontology/forge_mapping.yaml` — the table above, versioned separately from the schema
-- [ ] `data/ontology/gold_hand50.jsonl` — held out, in git, never regenerated
+- [x] `scripts/mine_forge.py` — parse `cardsfolder`, emit raw structured rows
+- [x] `data/ontology/forge_mapping.yaml` — the table above, versioned separately from the schema (P0–P2 in; remine after new entries)
+- [x] `scripts/enrich_ontology.py` — Scryfall↔Forge join + Final `model_facts` (P0–P2)
+- [ ] `data/ontology/gold_hand50.jsonl` — held out, in git, never regenerated (review UI exists; reviews were 0)
 - [ ] `data/ontology/gold_forge.jsonl` — derived, **not** in git, not redistributed
 - [ ] `scripts/eval_annotation.py` — three-way agreement report
 - [ ] Forge release tag recorded in `catalog_meta`
