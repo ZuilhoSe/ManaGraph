@@ -1,13 +1,11 @@
-"""Database-backed review endpoints for the Forge/Scryfall ontology join."""
+"""Database-backed catalog inspector for the Forge/Scryfall ontology join."""
 
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
 import sys
 from collections import Counter
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -21,15 +19,10 @@ from ontology.model_config import (
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
-GOLD_SET_PATH = PROJECT_ROOT / "data" / "ontology" / "gold_set_v1.jsonl"
 MODEL_CONFIG_PATH = PROJECT_ROOT / "data" / "ontology" / "model_config_v1.json"
 _SCRIPTS = PROJECT_ROOT / "scripts"
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
-
-
-def _now() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def _loads(value: Any, fallback: Any) -> Any:
@@ -223,7 +216,6 @@ def _summary(row: sqlite3.Row) -> dict[str, Any]:
         "color_identity": _loads(row["color_identity"], []),
         "keywords": _loads(row["keywords"], []),
         "forge_match_status": row["forge_match_status"] or "unmatched",
-        "review_status": row["review_status"] or "unreviewed",
         "forge_facts": _loads(row["forge_facts_json"], {}),
     }
 
@@ -239,14 +231,6 @@ def _detail(row: sqlite3.Row) -> dict[str, Any]:
             "forge": _loads(row["forge_json"], None),
             "forge_candidates": _loads(row["forge_candidates_json"], []),
             "forge_warnings": _loads(row["forge_warnings_json"], []),
-            "review": {
-                "status": row["review_status"] or "unreviewed",
-                "selected_source": row["selected_source"] or "resolved",
-                "field_checks": _loads(row["field_checks_json"], {}),
-                "labels": _loads(row["review_labels_json"], []),
-                "notes": row["review_notes"] or "",
-                "reviewed_at": row["reviewed_at"],
-            },
         }
     )
     return result
@@ -266,24 +250,12 @@ def ontology_stats(db_path: str = DB_NAME) -> dict[str, Any]:
             )
         }
         forge_total = sum(forge_counts.values())
-        statuses = {
-            row["status"]: row["count"]
-            for row in conn.execute(
-                """
-                SELECT COALESCE(r.status, 'unreviewed') AS status, COUNT(*) AS count
-                FROM cards c
-                LEFT JOIN ontology_reviews r ON r.card_id = c.id
-                GROUP BY COALESCE(r.status, 'unreviewed')
-                """
-            )
-        }
         return {
             "cards": total,
             "forge_records": forge_total,
             "forge_matched": forge_counts.get("matched", 0),
             "forge_unmatched": forge_counts.get("unmatched", 0),
             "cards_with_forge": matched_cards,
-            "reviews": statuses,
         }
     finally:
         conn.close()
@@ -296,7 +268,6 @@ def list_ontology_cards(
     color: str = "",
     keyword: str = "",
     forge_status: str = "",
-    review_status: str = "",
     page: int = 1,
     page_size: int = 50,
     db_path: str = DB_NAME,
@@ -325,9 +296,6 @@ def list_ontology_cards(
     if forge_status.strip():
         clauses.append("COALESCE(o.forge_match_status, 'unmatched') = ?")
         params.append(forge_status.strip())
-    if review_status.strip():
-        clauses.append("COALESCE(r.status, 'unreviewed') = ?")
-        params.append(review_status.strip())
 
     where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
     conn = _connect(db_path)
@@ -337,7 +305,6 @@ def list_ontology_cards(
             SELECT COUNT(*)
             FROM cards c
             LEFT JOIN ontology_cards o ON o.card_id = c.id
-            LEFT JOIN ontology_reviews r ON r.card_id = c.id
             {where}
             """,
             params,
@@ -345,11 +312,9 @@ def list_ontology_cards(
         rows = conn.execute(
             f"""
             SELECT c.*, COALESCE(o.forge_match_status, 'unmatched') AS forge_match_status,
-                   o.canonical_facts_json, o.forge_facts_json,
-                   COALESCE(r.status, 'unreviewed') AS review_status
+                   o.canonical_facts_json, o.forge_facts_json
             FROM cards c
             LEFT JOIN ontology_cards o ON o.card_id = c.id
-            LEFT JOIN ontology_reviews r ON r.card_id = c.id
             {where}
             ORDER BY c.name COLLATE NOCASE
             LIMIT ? OFFSET ?
@@ -375,109 +340,13 @@ def get_ontology_card(card_id: str, db_path: str = DB_NAME) -> dict[str, Any] | 
             SELECT c.*, COALESCE(o.forge_match_status, 'unmatched') AS forge_match_status,
                    o.canonical_facts_json, o.resolved_facts_json, o.model_facts_json, o.forge_json,
                    o.forge_facts_json, o.forge_candidates_json,
-                   o.forge_warnings_json, COALESCE(r.status, 'unreviewed') AS review_status,
-                   r.selected_source, r.field_checks_json,
-                   r.labels_json AS review_labels_json, r.notes AS review_notes,
-                   r.reviewed_at
+                   o.forge_warnings_json
             FROM cards c
             LEFT JOIN ontology_cards o ON o.card_id = c.id
-            LEFT JOIN ontology_reviews r ON r.card_id = c.id
             WHERE c.id = ?
             """,
             (card_id,),
         ).fetchone()
         return _detail(row) if row else None
-    finally:
-        conn.close()
-
-
-def save_ontology_review(
-    card_id: str,
-    status: str,
-    labels: list[str] | None = None,
-    notes: str = "",
-    selected_source: str = "resolved",
-    field_checks: dict[str, Any] | None = None,
-    db_path: str = DB_NAME,
-) -> dict[str, Any]:
-    allowed = {"unreviewed", "accepted", "rejected", "uncertain"}
-    allowed_sources = {"scryfall", "forge", "resolved"}
-    if status not in allowed:
-        raise ValueError(f"status must be one of: {', '.join(sorted(allowed))}")
-    if selected_source not in allowed_sources:
-        raise ValueError(f"selected_source must be one of: {', '.join(sorted(allowed_sources))}")
-    conn = _connect(db_path)
-    try:
-        if conn.execute("SELECT 1 FROM cards WHERE id=?", (card_id,)).fetchone() is None:
-            raise ValueError(f"unknown card_id: {card_id}")
-        clean_labels = sorted({str(label).strip() for label in (labels or []) if str(label).strip()})
-        reviewed_at = None if status == "unreviewed" else _now()
-        conn.execute(
-            """
-            INSERT INTO ontology_reviews
-              (card_id, status, selected_source, field_checks_json, labels_json, notes, reviewed_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(card_id) DO UPDATE SET
-              status=excluded.status, labels_json=excluded.labels_json,
-              notes=excluded.notes, reviewed_at=excluded.reviewed_at,
-              selected_source=excluded.selected_source,
-              field_checks_json=excluded.field_checks_json
-            """,
-            (
-                card_id,
-                status,
-                selected_source,
-                json.dumps(field_checks or {}, ensure_ascii=False, sort_keys=True),
-                json.dumps(clean_labels, ensure_ascii=False),
-                notes.strip(),
-                reviewed_at,
-            ),
-        )
-        conn.commit()
-        return get_ontology_card(card_id, db_path) or {}
-    finally:
-        conn.close()
-
-
-def export_gold_set(db_path: str = DB_NAME, output_path: str | Path = GOLD_SET_PATH) -> dict[str, Any]:
-    conn = _connect(db_path)
-    try:
-        rows = conn.execute(
-            """
-            SELECT c.*, o.canonical_facts_json, o.resolved_facts_json, o.model_facts_json,
-                   o.forge_facts_json, o.forge_candidates_json,
-                   COALESCE(r.status, 'unreviewed') AS review_status,
-                   r.selected_source, r.field_checks_json,
-                   r.labels_json AS review_labels_json, r.notes AS review_notes,
-                   r.reviewed_at
-            FROM cards c
-            LEFT JOIN ontology_cards o ON o.card_id = c.id
-            JOIN ontology_reviews r ON r.card_id = c.id
-            WHERE r.status IN ('accepted', 'rejected', 'uncertain')
-            ORDER BY c.name COLLATE NOCASE
-            """
-        ).fetchall()
-        output = Path(output_path)
-        output.parent.mkdir(parents=True, exist_ok=True)
-        with output.open("w", encoding="utf-8") as handle:
-            for row in rows:
-                record = {
-                    "card_id": row["id"],
-                    "name": row["name"],
-                    "status": row["review_status"],
-                    "selected_source": row["selected_source"] or "resolved",
-                    "field_checks": _loads(row["field_checks_json"], {}),
-                    "labels": _loads(row["review_labels_json"], []),
-                    "notes": row["review_notes"] or "",
-                    "reviewed_at": row["reviewed_at"],
-                    "scryfall": _scryfall(row),
-                    "canonical_facts": _loads(row["canonical_facts_json"], {}),
-                    "resolved_facts": _loads(row["resolved_facts_json"], {}),
-                    "model_facts": _loads(row["model_facts_json"], {}),
-                    "forge_facts": _loads(row["forge_facts_json"], {}),
-                    "forge_candidates": _loads(row["forge_candidates_json"], []),
-                }
-                handle.write(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n")
-        return {"count": len(rows), "path": str(output), "download": "/api/ontology/gold-set/download"}
     finally:
         conn.close()

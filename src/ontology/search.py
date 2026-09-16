@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any, Iterable, Mapping
 
+from ontology.patterns import extract_card_predicates
 from retrieval_text import card_document, is_searchable_card
 from symbolic_cards import FAMILY_SEARCH_QUERIES, requirement_families
 
@@ -27,9 +28,22 @@ _PREDICATES = frozenset(
     }
 )
 _EXPLICIT_RE = re.compile(
-    r"\b(" + "|".join(sorted(_PREDICATES)) + r"):(?:([a-z0-9_]+):)?([a-z0-9_]+)\b",
+    r"\b(" + "|".join(sorted(_PREDICATES)) + r")[=:](?:([a-z0-9_]+)[=:])?([a-z0-9_]+)\b",
     re.IGNORECASE,
 )
+_CMC_RE = re.compile(r"\bcmc\s*(<=|>=|<|>|=)\s*(\d+(?:\.\d+)?)\b", re.IGNORECASE)
+_FILTER_ARG_KEY = {
+    "emits": "event",
+    "rewards": "event",
+    "produces": "object",
+    "consumes": "object",
+    "enables": "capability",
+    "answers": "threat_class",
+    "tutors": "selector",
+    "protects": "target_class",
+    "recurs": "zone_from",
+    "requires": "precondition",
+}
 
 # Natural-language / family cues (EN + PT). Values are ontology args, never card names.
 # Extra turn is not extra combat — those phrases are omitted on purpose.
@@ -277,6 +291,8 @@ class SearchIntent:
     clauses: list[OntologyClause]
     oracle_phrases: list[str]
     families: list[str]
+    cmc_min: float | None = None
+    cmc_max: float | None = None
 
 
 def extra_turn_not_combat(text: str) -> bool:
@@ -554,8 +570,43 @@ def _oracle_harness_phrases(query: str, families: list[str]) -> list[str]:
     return phrases
 
 
+def parse_cmc_bounds(query: str) -> tuple[float | None, float | None]:
+    """Parse `cmc<=3` / `cmc>=2` / `cmc=4` tokens. Tighter bound wins on repeats."""
+    cmc_min: float | None = None
+    cmc_max: float | None = None
+    for match in _CMC_RE.finditer(query or ""):
+        op = match.group(1)
+        value = float(match.group(2))
+        if op == "<=":
+            cmc_max = value if cmc_max is None else min(cmc_max, value)
+        elif op == ">=":
+            cmc_min = value if cmc_min is None else max(cmc_min, value)
+        elif op == "<":
+            bound = value - 1e-9
+            cmc_max = bound if cmc_max is None else min(cmc_max, bound)
+        elif op == ">":
+            bound = value + 1e-9
+            cmc_min = bound if cmc_min is None else max(cmc_min, bound)
+        else:
+            cmc_min = value if cmc_min is None else max(cmc_min, value)
+            cmc_max = value if cmc_max is None else min(cmc_max, value)
+    return cmc_min, cmc_max
+
+
+def merge_cmc_bounds(
+    cmc_min: float | None,
+    cmc_max: float | None,
+    other_min: float | None = None,
+    other_max: float | None = None,
+) -> tuple[float | None, float | None]:
+    """Intersect two inclusive CMC windows. Tighter min / tighter max."""
+    mins = [value for value in (cmc_min, other_min) if value is not None]
+    maxs = [value for value in (cmc_max, other_max) if value is not None]
+    return (max(mins) if mins else None, min(maxs) if maxs else None)
+
+
 def compile_search_intent(query: str) -> SearchIntent:
-    """Compile NL or explicit `predicate:value` into ontology clauses + Oracle harness."""
+    """Compile NL or explicit `predicate:value` / `predicate=value` plus optional `cmc<=N`."""
     return _compile_search_intent_cached(query or "")
 
 
@@ -565,20 +616,24 @@ def _compile_search_intent_cached(query: str) -> SearchIntent:
     families = requirement_families(query)
     if extra_turn_not_combat(text):
         families = [name for name in families if name != "extra_combat"]
+    cmc_min, cmc_max = parse_cmc_bounds(query)
     return SearchIntent(
         query=query,
         clauses=parse_ontology_query(query),
         oracle_phrases=_oracle_harness_phrases(query, families),
         families=families,
+        cmc_min=cmc_min,
+        cmc_max=cmc_max,
     )
 
 
 def is_explicit_predicate_query(query: str) -> bool:
-    """True when the query is only explicit `predicate:value` tokens."""
+    """True when the query is only explicit `predicate:value` / `predicate=value` plus `cmc` bounds."""
     text = " ".join((query or "").lower().split())
     if not text or not _EXPLICIT_RE.search(text):
         return False
     leftover = _EXPLICIT_RE.sub(" ", text)
+    leftover = _CMC_RE.sub(" ", leftover)
     leftover = re.sub(r"[,;|/]+", " ", leftover)
     leftover = " ".join(leftover.split())
     return leftover == ""
@@ -698,11 +753,32 @@ def _load_candidates(raw: Any) -> list[Mapping[str, Any]]:
     return [item for item in parsed if isinstance(item, Mapping)]
 
 
+def _merged_candidates(
+    stored: Iterable[Mapping[str, Any]] | None,
+    *,
+    name: str | None = None,
+    oracle_text: str | None = None,
+    type_line: str | None = None,
+    keywords: Any = None,
+) -> list[Mapping[str, Any]]:
+    merged: list[Mapping[str, Any]] = list(_load_candidates(stored))
+    merged.extend(
+        extract_card_predicates(
+            oracle_text or "",
+            name=name or "",
+            type_line=type_line or "",
+            keywords=keywords,
+        )
+    )
+    return merged
+
+
 def rebuild_predicate_index(conn: sqlite3.Connection) -> int:
-    """Rebuild ontology_predicates from stored Forge candidates.
+    """Rebuild ontology_predicates from Forge candidates plus Oracle templates.
 
     ontology_cards is the canonical matched view. forge_records fill in
-    matched_card_id rows that are not already indexed.
+    matched_card_id rows that are not already indexed. Cards with Oracle text
+    and no Forge row still get Tier 2 predicates.
     """
     conn.execute("DELETE FROM ontology_predicates")
     rows: list[tuple[str | None, str, str, str, str]] = []
@@ -711,15 +787,37 @@ def rebuild_predicate_index(conn: sqlite3.Connection) -> int:
     try:
         ontology = conn.execute(
             """
-            SELECT card_id, scryfall_name, forge_candidates_json
-              FROM ontology_cards
+            SELECT o.card_id, o.scryfall_name, o.forge_candidates_json,
+                   c.oracle_text, c.type_line, c.keywords, c.name
+              FROM ontology_cards o
+         LEFT JOIN cards c ON c.id = o.card_id
             """
         ).fetchall()
     except sqlite3.OperationalError:
-        ontology = []
+        try:
+            ontology = conn.execute(
+                """
+                SELECT card_id, scryfall_name, forge_candidates_json,
+                       NULL, NULL, NULL, NULL
+                  FROM ontology_cards
+                """
+            ).fetchall()
+        except sqlite3.OperationalError:
+            ontology = []
     for row in ontology:
         card_id = row[0]
-        flattened = flatten_candidates(card_id, row[1], _load_candidates(row[2]))
+        name = row[6] or row[1]
+        flattened = flatten_candidates(
+            card_id,
+            name,
+            _merged_candidates(
+                row[2],
+                name=name,
+                oracle_text=row[3],
+                type_line=row[4],
+                keywords=row[5],
+            ),
+        )
         rows.extend(flattened)
         if card_id:
             indexed_ids.add(card_id)
@@ -744,6 +842,34 @@ def rebuild_predicate_index(conn: sqlite3.Connection) -> int:
         if card_id:
             indexed_ids.add(card_id)
 
+    try:
+        leftover = conn.execute(
+            """
+            SELECT id, name, oracle_text, type_line, keywords
+              FROM cards
+            """
+        ).fetchall()
+    except sqlite3.OperationalError:
+        leftover = []
+    for card_id, name, oracle_text, type_line, keywords in leftover:
+        if card_id in indexed_ids:
+            continue
+        flattened = flatten_candidates(
+            card_id,
+            name,
+            extract_card_predicates(
+                oracle_text or "",
+                name=name or "",
+                type_line=type_line or "",
+                keywords=keywords,
+            ),
+        )
+        if not flattened:
+            continue
+        rows.extend(flattened)
+        if card_id:
+            indexed_ids.add(card_id)
+
     if rows:
         conn.executemany(
             """
@@ -756,8 +882,111 @@ def rebuild_predicate_index(conn: sqlite3.Connection) -> int:
     return len(rows)
 
 
+def split_filter_values(raw: str) -> list[str]:
+    return [
+        part.strip().lower()
+        for part in str(raw or "").replace(";", ",").split(",")
+        if part.strip()
+    ]
+
+
+def clauses_from_filters(filters: Mapping[str, str] | None) -> list[OntologyClause]:
+    """AND-filters from search_cards kwargs (`rewards=etb`, comma-separated values)."""
+    clauses: list[OntologyClause] = []
+    for predicate, raw in (filters or {}).items():
+        name = str(predicate or "").strip().lower()
+        if name not in _PREDICATES:
+            continue
+        arg_key = _FILTER_ARG_KEY.get(name)
+        for value in split_filter_values(raw):
+            clauses.append(
+                OntologyClause(
+                    predicate=name,
+                    arg_key=arg_key,
+                    arg_value=value,
+                    distance=0.06,
+                    origin="filter",
+                )
+            )
+    return _unique_clauses(clauses)
+
+
+def names_matching_clause(conn: sqlite3.Connection, clause: OntologyClause) -> set[str]:
+    """Lowercased card names that carry one predicate clause."""
+    if clause.arg_key and clause.arg_value:
+        sql = (
+            "SELECT DISTINCT card_name FROM ontology_predicates "
+            "WHERE predicate = ? AND arg_key = ? AND arg_value = ?"
+        )
+        params: list[Any] = [clause.predicate, clause.arg_key, clause.arg_value]
+    elif clause.arg_value:
+        sql = (
+            "SELECT DISTINCT card_name FROM ontology_predicates "
+            "WHERE predicate = ? AND arg_value = ?"
+        )
+        params = [clause.predicate, clause.arg_value]
+    elif clause.arg_key:
+        sql = (
+            "SELECT DISTINCT card_name FROM ontology_predicates "
+            "WHERE predicate = ? AND arg_key = ?"
+        )
+        params = [clause.predicate, clause.arg_key]
+    else:
+        sql = "SELECT DISTINCT card_name FROM ontology_predicates WHERE predicate = ?"
+        params = [clause.predicate]
+    try:
+        rows = conn.execute(sql, params).fetchall()
+    except sqlite3.OperationalError:
+        return set()
+    return {str(row[0]).lower() for row in rows if row[0]}
+
+
+def names_matching_all_clauses(
+    conn: sqlite3.Connection,
+    clauses: Iterable[OntologyClause],
+    candidate_names: Iterable[str] | None = None,
+) -> set[str]:
+    """Names that satisfy every clause. Empty clauses keep the candidate set."""
+    unique = _unique_clauses(list(clauses or []))
+    if not unique:
+        if candidate_names is None:
+            return set()
+        return {str(name) for name in candidate_names if str(name).strip()}
+    matching: set[str] | None = None
+    for clause in unique:
+        names = names_matching_clause(conn, clause)
+        matching = names if matching is None else matching & names
+        if not matching:
+            return set()
+    allowed = matching or set()
+    if candidate_names is None:
+        return allowed
+    return {str(name) for name in candidate_names if str(name).lower() in allowed}
+
+
+def filter_hits_by_clauses(
+    conn: sqlite3.Connection,
+    hits: Iterable[Mapping[str, Any]],
+    clauses: Iterable[OntologyClause],
+) -> list[dict]:
+    """Keep hybrid hits whose names match every filter clause."""
+    unique = _unique_clauses(list(clauses or []))
+    material = [dict(hit) for hit in hits]
+    if not unique:
+        return material
+    allowed = {
+        name.lower()
+        for name in names_matching_all_clauses(
+            conn,
+            unique,
+            candidate_names=[str(hit.get("name") or "") for hit in material],
+        )
+    }
+    return [hit for hit in material if str(hit.get("name") or "").lower() in allowed]
+
+
 def parse_ontology_query(query: str) -> list[OntologyClause]:
-    """Parse explicit `predicate:value` forms and NL / requirement families."""
+    """Parse explicit `predicate:value` / `predicate=value` forms and NL / requirement families."""
     text = " ".join((query or "").lower().split())
     if not text:
         return []

@@ -27,50 +27,45 @@ from catalog_filters import (
     type_line_has_fragment,
 )
 from deck_state import MAIN_DECK_SIZE, DeckState, _normalize_key
-from geometry import cosine, load_card_views, multi_view_cosine
+from geometry import VIEW_WEIGHTS, cosine, load_card_views, multi_view_cosine
 from inventory import get_card as get_inventory_card
 from mana import cmc_bucket, diagnose, produces_mana, shape_bonus, strategy_from_name
 from roles import ROLE_QUOTAS, role_counts, role_need_bonus, token_classes
+from ontology.ablation import geometry_mode, ontology_score_enabled, resolve_ablation
+from ontology.diagnose import summarize_predicates, typed_deficit_records
+from ontology.graph import (
+    empty_pred_sets as _empty_pred_sets,
+    flow_repair_records,
+    merge_deficit_records,
+    pred_sets_from_rows as _predicate_sets_from_rows,
+    predicate_signature,
+    repair_hit_count,
+    search_queries_from_records,
+    signature_redundancy,
+)
 from ontology.search import (
     compile_search_intent,
+    is_explicit_predicate_query,
     predicates_for_names,
     search_ontology_clauses,
 )
 
 ONTOLOGY_PAIR_WEIGHT = 0.25
+# Must beat a typical 2.0 * Jaccard name-overlap gap so a deficit repair, not
+# cosine/text resemblance, decides the swap.
+ONTOLOGY_REPAIR_WEIGHT = 2.0
+KNN_REDUNDANCY_K = 8
 
 
 def _ontology_score_enabled(deck: DeckState) -> bool:
-    flag = os.environ.get("MANAGRAPH_ONTOLOGY_SCORE", "1").strip().lower()
-    if flag in {"0", "false", "off", "no"}:
-        return False
-    return bool(getattr(deck, "ontology_score", True))
-
-
-def _predicate_sets_from_rows(rows: list[tuple[str, str, str, str]]) -> dict[str, dict[str, set[str]]]:
-    by_name: dict[str, dict[str, set[str]]] = {}
-    for card_name, predicate, arg_key, arg_value in rows:
-        key = card_name.lower()
-        bucket = by_name.setdefault(
-            key,
-            {"emits": set(), "rewards": set(), "produces": set(), "consumes": set()},
-        )
-        if predicate == "emits" and arg_key == "event" and arg_value:
-            bucket["emits"].add(arg_value)
-        elif predicate == "rewards" and arg_key == "event" and arg_value:
-            bucket["rewards"].add(arg_value)
-        elif predicate == "produces" and arg_key == "object" and arg_value:
-            bucket["produces"].add(arg_value)
-        elif predicate == "consumes" and arg_key == "object" and arg_value:
-            bucket["consumes"].add(arg_value)
-    return by_name
+    return ontology_score_enabled(resolve_ablation(), deck)
 
 
 def _union_pred_sets(
     by_name: dict[str, dict[str, set[str]]],
     skip: str | None = None,
 ) -> dict[str, set[str]]:
-    union = {"emits": set(), "rewards": set(), "produces": set(), "consumes": set()}
+    union = _empty_pred_sets()
     skip_key = (skip or "").lower()
     for name, sets in by_name.items():
         if skip_key and name == skip_key:
@@ -242,9 +237,10 @@ TOKEN_ALIGN_BONUS = 0.8
 class DeckSolver:
     """Greedy fill/cut. Geometry score is text overlap; Chroma distance is optional."""
 
-    def __init__(self, db_path: str = DB_NAME, searcher=None):
+    def __init__(self, db_path: str = DB_NAME, searcher=None, ablation: str | None = None):
         self.db_path = db_path
         self.searcher = searcher
+        self.ablation = resolve_ablation(ablation)
         self._oracle: dict[str, dict | None] = {}
         self._owned: dict[str, int] = {}
         self._baseline_lookup: dict[str, int] | None = None
@@ -253,14 +249,18 @@ class DeckSolver:
         self._views: dict[str, dict] = {}
         self._view_store: dict | None | bool = False  # False = not loaded yet
 
+    def _use_ontology_score(self, deck: DeckState) -> bool:
+        return ontology_score_enabled(self.ablation, deck)
+
+    def _geometry_mode(self) -> str:
+        return geometry_mode(self.ablation)
+
+    def _cut_mode(self) -> str:
+        return self.ablation.cut
+
     def _ontology_sets_for(self, name: str | None) -> dict[str, set[str]]:
         key = (name or "").lower()
-        empty = {
-            "emits": set(),
-            "rewards": set(),
-            "produces": set(),
-            "consumes": set(),
-        }
+        empty = _empty_pred_sets()
         if not key:
             return empty
         cache = (self._ctx or {}).setdefault("ontology_by_name", {})
@@ -361,12 +361,8 @@ class DeckSolver:
             "budget": budget,
             "mana": mana,
             "ontology_by_name": {},
-            "ontology_deck": {
-                "emits": set(),
-                "rewards": set(),
-                "produces": set(),
-                "consumes": set(),
-            },
+            "ontology_deck": _empty_pred_sets(),
+            "ontology_repairs": [],
         }
         names = [card.get("name") for card in deck_cards if card.get("name")]
         if cmd and cmd.get("name"):
@@ -380,6 +376,16 @@ class DeckSolver:
             by_name = _predicate_sets_from_rows(rows)
             self._ctx["ontology_by_name"] = by_name
             self._ctx["ontology_deck"] = _union_pred_sets(by_name)
+            quantities = {
+                card["name"]: int(card.get("quantity") or 1) for card in deck_cards
+            }
+            if cmd and cmd.get("name"):
+                quantities.setdefault(cmd["name"], 1)
+            counts = summarize_predicates(rows, quantities)
+            self._ctx["ontology_repairs"] = merge_deficit_records(
+                typed_deficit_records(counts),
+                flow_repair_records(counts),
+            )
         except sqlite3.Error:
             pass
 
@@ -1255,16 +1261,25 @@ class DeckSolver:
         idx = store["index"].get(card_id)
         if idx is None:
             return None
-        return {"oracle": store["oracle"][idx], "type": store["type"][idx]} | {
-            key: store[key][idx] for key in ("keywords", "mana") if key in store
-        }
+        pair = {}
+        for key in ("oracle", "type", "keywords", "mana", "predicates"):
+            if key in store:
+                pair[key] = store[key][idx]
+        return pair or None
 
     def _geometry_cos(self, info: dict | None) -> float | None:
         cmd = (self._ctx or {}).get("cmd") or {}
         cmd_id = cmd.get("id") or ""
         card_id = (info or {}).get("id") or ""
+        mode = self._geometry_mode()
         cv, tv = self._view_pair(cmd_id), self._view_pair(card_id)
-        if cv and tv:
+        if mode == "predicates":
+            if cv and tv and "predicates" in cv and "predicates" in tv:
+                return cosine(cv["predicates"], tv["predicates"])
+            return 0.0
+        if mode == "multiview" and cv and tv and any(
+            key in cv and key in tv for key in VIEW_WEIGHTS
+        ):
             return multi_view_cosine(cv, tv)
         a = self._emb.get(cmd_id)
         b = self._emb.get(card_id)
@@ -1276,12 +1291,43 @@ class DeckSolver:
         cmd = (self._ctx or {}).get("cmd") or {}
         cv = self._view_pair(cmd.get("id") or "")
         tv = self._view_pair((info or {}).get("id") or "")
+        keys = ("oracle", "type", "keywords", "mana", "predicates")
         if not cv or not tv:
-            return {"oracle": None, "type": None, "keywords": None, "mana": None}
-        out = {}
-        for key in ("oracle", "type", "keywords", "mana"):
-            out[key] = cosine(cv[key], tv[key]) if key in cv and key in tv else None
-        return out
+            return {key: None for key in keys}
+        return {
+            key: cosine(cv[key], tv[key]) if key in cv and key in tv else None
+            for key in keys
+        }
+
+    def _knn_density(
+        self,
+        info: dict,
+        deck_cards: list[dict],
+        skip_self: bool = False,
+        k: int = KNN_REDUNDANCY_K,
+    ) -> tuple[float, str | None]:
+        """Mean cosine to the k nearest other cards in concat embedding space."""
+        card_id = info.get("id") or ""
+        vec = self._emb.get(card_id) if card_id else None
+        if vec is None:
+            return 0.0, None
+        name = (info.get("name") or "").lower()
+        sims: list[tuple[float, str]] = []
+        for other in deck_cards:
+            other_name = other.get("name") or ""
+            if other_name.lower() == name:
+                continue
+            oid = other.get("id") or ""
+            other_vec = self._emb.get(oid) if oid else None
+            if other_vec is None:
+                continue
+            sims.append((cosine(vec, other_vec), other_name))
+        if not sims:
+            return 0.0, None
+        sims.sort(key=lambda item: item[0], reverse=True)
+        top = sims[: min(max(int(k), 1), len(sims))]
+        nearest = top[0][1] if top else None
+        return float(sum(item[0] for item in top) / len(top)), nearest
 
     def _card_roles(self, info: dict) -> set[str]:
         arch = (self._ctx or {}).get("archetype") or "generic"
@@ -1422,16 +1468,49 @@ class DeckSolver:
 
         redundancy = 0.0
         redundancy_with = None
-        for other, other_tok in zip(ctx["deck_cards"], ctx["other_toks"]):
-            other_name = other.get("name") or ""
-            if skip_self and other_name.lower() == info["name"].lower():
-                continue
-            overlap = _jaccard(card_tok, other_tok)
-            if roles & self._card_roles(other):
-                overlap *= 1.25
-            if overlap > redundancy:
-                redundancy = overlap
-                redundancy_with = other_name
+        redundancy_kind = "text"
+        use_ontology = self._use_ontology_score(deck)
+        if self._cut_mode() == "knn":
+            redundancy, redundancy_with = self._knn_density(
+                info, ctx["deck_cards"], skip_self=skip_self
+            )
+            redundancy_kind = "knn"
+        else:
+            card_sets = (
+                self._ontology_sets_for(info.get("name") or name)
+                if use_ontology
+                else _empty_pred_sets()
+            )
+            card_sig = predicate_signature(card_sets)
+            card_cmc = float(info.get("cmc") or 0)
+            by_name = ctx.get("ontology_by_name") or {}
+            for other, other_tok in zip(ctx["deck_cards"], ctx["other_toks"]):
+                other_name = other.get("name") or ""
+                if other_name.lower() == info["name"].lower():
+                    continue
+                other_sets = None
+                if use_ontology:
+                    other_sets = by_name.get(other_name.lower())
+                    if other_sets is None:
+                        other_sets = self._ontology_sets_for(other_name)
+                other_sig = predicate_signature(other_sets) if other_sets else frozenset()
+                if card_sig and other_sig:
+                    overlap = signature_redundancy(
+                        card_sets,
+                        other_sets,
+                        card_cmc,
+                        float(other.get("cmc") or 0),
+                    )
+                    kind = "ontology"
+                else:
+                    overlap = _jaccard(card_tok, other_tok)
+                    if roles & self._card_roles(other):
+                        overlap *= 1.25
+                    kind = "text"
+                if overlap > redundancy:
+                    redundancy = overlap
+                    redundancy_with = other_name
+                    redundancy_kind = kind
 
         shape = shape_bonus(info, ctx.get("mana"), deck.identity)
         curve_penalty = shape["curve_penalty"]
@@ -1479,7 +1558,8 @@ class DeckSolver:
                 land_urgent += 0.5
 
         ontology_pair = 0.0
-        if _ontology_score_enabled(deck):
+        ontology_repair = 0.0
+        if self._use_ontology_score(deck):
             card_sets = self._ontology_sets_for(info.get("name") or name)
             deck_sets = ctx.get("ontology_deck") or _union_pred_sets(
                 ctx.get("ontology_by_name") or {}
@@ -1490,6 +1570,9 @@ class DeckSolver:
                     skip=info.get("name") or name,
                 )
             ontology_pair = _ontology_pair_score(card_sets, deck_sets)
+            ontology_repair = ONTOLOGY_REPAIR_WEIGHT * repair_hit_count(
+                card_sets, ctx.get("ontology_repairs") or []
+            )
 
         unit = card_unit_price(info, deck.currency) or 0.0
         value = synergy / (unit + 0.5) if deck.budget_cap is not None else 0.0
@@ -1506,6 +1589,7 @@ class DeckSolver:
             + land_urgent
             + symbolic_bonus
             + ontology_pair
+            + ontology_repair
         )
         profile = ctx.get("profile") or profile_for(ctx.get("archetype"))
         cap = profile.max_creatures
@@ -1543,6 +1627,7 @@ class DeckSolver:
             "geometry_type": geo_type,
             "geometry_keywords": geo_views.get("keywords"),
             "geometry_mana": geo_views.get("mana"),
+            "geometry_predicates": geo_views.get("predicates"),
             "theme_match": theme,
             "synergy": synergy,
             "role_bonuses": role_bonuses,
@@ -1551,6 +1636,7 @@ class DeckSolver:
             "token_align": token_align,
             "redundancy": redundancy,
             "redundancy_with": redundancy_with,
+            "redundancy_kind": redundancy_kind,
             "curve_penalty": curve_penalty,
             "curve_bonus": shape["curve_bonus"],
             "land_bonus": land_bonus,
@@ -1560,6 +1646,7 @@ class DeckSolver:
             "symbolic_facts": facts.to_dict(),
             "symbolic_bonus": symbolic_bonus,
             "ontology_pair": ontology_pair,
+            "ontology_repair": ontology_repair,
             "total": total,
             "info": info,
         }
@@ -1603,6 +1690,7 @@ class DeckSolver:
                 "geometry_type": None,
                 "geometry_keywords": None,
                 "geometry_mana": None,
+                "geometry_predicates": None,
                 "theme_match": False,
                 "synergy": 0.0,
                 "role_bonuses": {},
@@ -1611,6 +1699,7 @@ class DeckSolver:
                 "token_align": 0.0,
                 "redundancy": 0.0,
                 "redundancy_with": None,
+                "redundancy_kind": "text",
                 "curve_penalty": 0.0,
                 "curve_bonus": 0.0,
                 "land_bonus": 0.0,
@@ -1620,6 +1709,7 @@ class DeckSolver:
                 "symbolic_facts": {},
                 "symbolic_bonus": 0.0,
                 "ontology_pair": 0.0,
+                "ontology_repair": 0.0,
                 "total": -999.0,
                 "error": parts["error"],
             }
@@ -1655,6 +1745,9 @@ class DeckSolver:
             "geometry_mana": None
             if parts.get("geometry_mana") is None
             else round(parts["geometry_mana"], 4),
+            "geometry_predicates": None
+            if parts.get("geometry_predicates") is None
+            else round(parts["geometry_predicates"], 4),
             "theme_match": parts["theme_match"],
             "synergy": round(parts["synergy"], 4),
             "role_bonuses": parts["role_bonuses"],
@@ -1663,6 +1756,7 @@ class DeckSolver:
             "token_align": round(parts.get("token_align") or 0.0, 4),
             "redundancy": round(parts["redundancy"], 4),
             "redundancy_with": parts["redundancy_with"],
+            "redundancy_kind": parts.get("redundancy_kind") or "text",
             "curve_penalty": parts["curve_penalty"],
             "curve_bonus": round(parts.get("curve_bonus") or 0.0, 4),
             "land_bonus": round(parts.get("land_bonus") or 0.0, 4),
@@ -1672,6 +1766,7 @@ class DeckSolver:
             "symbolic_facts": parts.get("symbolic_facts") or {},
             "symbolic_bonus": round(parts.get("symbolic_bonus") or 0.0, 4),
             "ontology_pair": round(parts.get("ontology_pair") or 0.0, 4),
+            "ontology_repair": round(parts.get("ontology_repair") or 0.0, 4),
             "total": round(parts["total"], 4),
         }
 
@@ -1956,30 +2051,46 @@ class DeckSolver:
             phrases.append(compact)
 
         push_query(query)
-        q_norm = " ".join((query or "").lower().split())
-        for phrase in intent.oracle_phrases:
-            if " ".join(phrase.lower().split()) == q_norm:
-                continue
-            push_query(phrase)
-        if profile.retrieve_tribe and cmd:
-            tribal_types = self_referential_types(cmd)
-            if tribal_types:
-                push_query(" ".join(sorted(tribal_types)) + " creature")
-        if cmd:
-            for theme in detect_known_themes(cmd):
-                for theme_q in THEME_QUERIES[theme]:
-                    push_query(theme_q)
-        for arch_q in search_queries_for(arch):
-            push_query(arch_q)
+        if self._ctx is None:
+            self._rebuild_context(deck, query)
+        retrieval = self.ablation.retrieval
+        ontology_only = retrieval == "ontology"
+        if ontology_only:
+            phrases.clear()
+            seen_q.clear()
+            if is_explicit_predicate_query(query):
+                push_query(query)
+        if retrieval != "minilm":
+            for deficit_q in search_queries_from_records(
+                (self._ctx or {}).get("ontology_repairs") or []
+            ):
+                push_query(deficit_q)
         lex_only: list[str] = []
-        commander_oracle = ((cmd or {}).get("oracle_text") or "").strip()
-        if commander_oracle:
-            lex_only.append(commander_oracle)
+        if not ontology_only:
+            q_norm = " ".join((query or "").lower().split())
+            for phrase in intent.oracle_phrases:
+                if " ".join(phrase.lower().split()) == q_norm:
+                    continue
+                push_query(phrase)
+            if profile.retrieve_tribe and cmd:
+                tribal_types = self_referential_types(cmd)
+                if tribal_types:
+                    push_query(" ".join(sorted(tribal_types)) + " creature")
+            if cmd:
+                for theme in detect_known_themes(cmd):
+                    for theme_q in THEME_QUERIES[theme]:
+                        push_query(theme_q)
+            for arch_q in search_queries_for(arch):
+                push_query(arch_q)
+            commander_oracle = ((cmd or {}).get("oracle_text") or "").strip()
+            if commander_oracle:
+                lex_only.append(commander_oracle)
         colors = list(deck.identity or (cmd or {}).get("color_identity") or [])
         found = []
         n_sources = max(len(phrases) + len(lex_only), 1)
         batch_fn = getattr(searcher, "search_cards_batch", None)
         hit_groups: list[tuple[str, list]] = []
+        hybrid = retrieval != "minilm"
         if callable(batch_fn):
             try:
                 hits = batch_fn(
@@ -1992,6 +2103,8 @@ class DeckSolver:
                     currency=deck.currency,
                     n_results=160,
                     lexical_only_queries=lex_only or None,
+                    hybrid=hybrid,
+                    ontology_only=ontology_only,
                 )
                 hit_groups.append((query or (phrases[0] if phrases else ""), hits))
             except Exception as exc:

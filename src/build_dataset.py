@@ -128,7 +128,7 @@ def build_dataset(
     else:
         stamp_metadata_only()
 
-    _step(4, total, "Encode multi-view vectors (oracle, type, keywords, mana)")
+    _step(4, total, "Encode multi-view vectors (oracle, type, keywords, mana, predicates)")
     if skip_views:
         print("Skipped (--skip-views).")
     else:

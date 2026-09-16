@@ -8,10 +8,17 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src"))
 
 from catalog import ensure_schema  # noqa: E402
-from ontology.diagnose import typed_deficits  # noqa: E402
+from ontology.diagnose import (  # noqa: E402
+    curve_fill_cmc_max,
+    suggested_searches_from_queries,
+    typed_deficits,
+)
 from ontology.search import (  # noqa: E402
+    clauses_from_filters,
     compile_search_intent,
+    filter_hits_by_clauses,
     flatten_candidates,
+    parse_cmc_bounds,
     parse_ontology_query,
     rebuild_predicate_index,
     search_ontology,
@@ -257,9 +264,64 @@ class OntologySearchTests(unittest.TestCase):
         self.assertEqual(search_route("enables:extra_combat"), "ontology")
         self.assertEqual(search_route("enables:capability:extra_combat"), "ontology")
         self.assertEqual(search_route("enables:extra_combat enables:sac_outlet"), "ontology")
+        self.assertEqual(search_route("enables=extra_combat"), "ontology")
+        self.assertEqual(search_route("rewards=etb, cmc<=3"), "ontology")
         self.assertEqual(search_route("I want extra combat"), "hybrid")
         self.assertEqual(search_route("draw a card"), "hybrid")
         self.assertEqual(search_route("enables:extra_combat and ramp"), "hybrid")
+
+    def test_equals_form_matches_colon(self):
+        colon = parse_ontology_query("enables:extra_combat")
+        equals = parse_ontology_query("enables=extra_combat")
+        self.assertEqual(colon[0].predicate, equals[0].predicate)
+        self.assertEqual(colon[0].arg_value, equals[0].arg_value)
+        hits = search_ontology(
+            self.conn, "enables=extra_combat", allowed_colors=["R"]
+        )
+        self.assertIn("Anonymous Combat Engine", [hit["name"] for hit in hits])
+
+    def test_compile_cmc_bounds_from_query(self):
+        intent = compile_search_intent("rewards=etb, cmc<=3")
+        self.assertEqual(intent.cmc_max, 3.0)
+        self.assertIsNone(intent.cmc_min)
+        self.assertTrue(
+            any(
+                clause.predicate == "rewards" and clause.arg_value == "etb"
+                for clause in intent.clauses
+            )
+        )
+        cmc_min, cmc_max = parse_cmc_bounds("cmc>=2 cmc<=4")
+        self.assertEqual(cmc_min, 2.0)
+        self.assertEqual(cmc_max, 4.0)
+
+    def test_and_filter_drops_cards_missing_predicate(self):
+        hits = search_ontology(
+            self.conn,
+            "enables:extra_combat",
+            allowed_colors=["W", "U", "B", "R", "G"],
+        )
+        names = {hit["name"] for hit in hits}
+        self.assertIn("Anonymous Combat Engine", names)
+        self.assertIn("Blue Combat Trick", names)
+        filtered = filter_hits_by_clauses(
+            self.conn, hits, clauses_from_filters({"emits": "attack"})
+        )
+        kept = {hit["name"] for hit in filtered}
+        self.assertIn("Anonymous Combat Engine", kept)
+        self.assertNotIn("Blue Combat Trick", kept)
+        self.assertNotIn("Anonymous Outlet", kept)
+
+    def test_suggested_searches_equals_and_curve_slack(self):
+        self.assertEqual(
+            curve_fill_cmc_max({"curve_gaps": [{"bucket": "2", "status": "low"}]}),
+            3,
+        )
+        self.assertIsNone(
+            curve_fill_cmc_max({"curve_gaps": [{"bucket": "2", "status": "ok"}]})
+        )
+        rows = suggested_searches_from_queries(["enables:sac_outlet"], 3)
+        self.assertEqual(rows[0]["query"], "enables=sac_outlet, cmc<=3")
+        self.assertEqual(rows[0]["cmc_max"], 3)
 
     def test_flatten_drops_leaked_color_rate_and_token_script(self):
         rows = flatten_candidates(

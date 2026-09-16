@@ -110,11 +110,13 @@ subject to the existing hard constraints (99, identity, singleton, legality, P_m
 
 The data spine for Stage 3.6 is in the catalog. Forge mining, Scryfall ingest
 (`scryfall_json`), enrichment, and Final `model_facts` (P0–P2) are live. The
-validator at `/ontology-validator` can explore every card (Scryfall / Forge /
-Final tabs) and record human reviews. The model-config catalog tab was removed;
-backend rebuild/config APIs may still exist. The stage is **not** done: no named
-consumers, no acceptance tests, no gold-set labels (reviews were 0), no
-`patterns.py` / solver graph. TDA stays blocked.
+page at `/ontology-validator` is a catalog inspector (Scryfall / Forge / Final
+tabs). Human gold-set review is **not** a product gate and is not in the UI.
+
+Typed-deficit and ontology-driven cut tests live in
+`tests/test_ontology_acceptance.py`. `patterns.py` (Tier 2 Oracle templates)
+feeds the predicate index on rebuild. TDA stays blocked until fill/cut change
+for typed reasons on real decks.
 
 Rebuild snapshot: 38,651 cards; 33,760 Forge-matched / 4,891 unmatched; 879
 DFC/splits newly joined. Claim // Fame and Valki now carry faces + oracle in
@@ -130,8 +132,7 @@ search also queries `ontology_predicates`; explicit forms include
 - [ ] Pin a Forge release and record its tag/commit in `catalog_meta`.
 - [x] Write `data/ontology/schema_v1.yaml`: resources, events, predicates, capability enum, threat classes.
 - [ ] For each predicate, name its **consumer** in code. Delete any predicate with no consumer.
-- [ ] Define the gold-set sampling plan (below).
-- [ ] Write the two acceptance tests as failing tests in `tests/test_ontology_acceptance.py`.
+- [x] Write the two acceptance tests in `tests/test_ontology_acceptance.py`.
 
 No annotation yet. Schema churn after annotation is the expensive failure mode.
 
@@ -161,7 +162,10 @@ fact layers. The cost colours in `card.facts` are evidence from Forge's
 
 **Tier 2 — template grammar over oracle text.** This is tractable for a reason worth stating in the paper: **oracle text is not free natural language.** WotC writes to a rigid templating manual. `Whenever ~ deals combat damage to a player`, `Sacrifice a creature:`, `Add {R}`, `When ~ enters, ...`, `Creatures you control get +1/+1`. A shallow pattern grammar covers a large fraction of the catalogue. `mana.py` already proves the approach.
 
-Implement in `src/ontology/patterns.py`. Deterministic, unit-tested against pinned cards. Measure coverage per predicate as you go.
+Implemented in `src/ontology/patterns.py`. Deterministic, unit-tested against
+pinned cards. Labels carry `source: tier2` (Oracle) or `source: tier1`
+(Scryfall keywords). Rebuild the index with
+`python scripts/enrich_ontology.py --rebuild-predicates`.
 
 **Tier 3 — offline LLM batch annotator for the residual.** Run once over the ~30k unique oracle texts with structured output constrained to the schema. Freeze to `data/ontology/labels_v1.jsonl` with model name, prompt hash, and date. **Never at runtime.** This is the same split the project already committed to: model proposes, symbol decides. Cost is tens of dollars, not months.
 
@@ -174,21 +178,30 @@ Implement in `src/ontology/patterns.py`. Deterministic, unit-tested against pinn
 
 Natural language is compiled by `compile_search_intent` into ontology predicates (`produces`, `consumes`, `emits`, `rewards`, `enables`, `answers`, `tutors`, `recurs`, `protects`); `ontology_predicates` is the mechanic index. Oracle lexical + embedding search is a harness for phrasing Forge missed, not the primary retrieval language.
 - [x] Final model P0–P2 in `build_model_facts` — faces + merged oracle, face/`//`/`AlternateMode` join, expanded mapping, loyalty/defense/all_parts; `deck_*` stay `validation_only`; SVar stripped from Final effects
-- [x] validator UI (`data/ontology_validator.html`, `/ontology-validator`) — explore/filter; Scryfall / Forge / Final tabs; human review + gold-set export (model-config tab removed)
+- [x] validator UI (`data/ontology_validator.html`, `/ontology-validator`) — catalog inspector; Scryfall / Forge / Final tabs (model-config tab removed)
 - [ ] P3 — `edhrec_rank` / rarity / set as separate features; `resolved` as default source
-- [ ] `src/ontology/patterns.py` — tier 2
+- [x] `src/ontology/patterns.py` — tier 2
 - [ ] `src/ontology/annotate.py` — orchestrates tiers, writes frozen artifact
 - [ ] `python src/ontology/annotate.py --rebuild` wired into `build_dataset.py`
 
 ### Phase C — Validation (≈1 week, overlaps B)
 
-You cannot claim a symbolic layer without measuring it.
+A hand-labelled gold set is **not** a product requirement. Stage 3.6 closes on
+acceptance tests (a typed deficit Stage 3.5 cannot express; a cut that changes
+because of that deficit), not on mapping precision against human labels.
 
-**Gold set.** 300–500 cards, stratified by: set era (pre-Modern / Modern / recent), card type, rarity, oracle text length, and one deliberate over-sample of weird frames (MDFC, adventure, split, omen). Hand-label against the schema. The review UI can export `data/ontology/gold_set_v1.jsonl`; labelled reviews were still 0.
+Forge's `res/cardsfolder` remains the internal bootstrap and comparison corpus.
+Mapping its effect names onto predicates gives tens of thousands of rows for
+the cost of a parser, and `DeckHas` / `DeckNeeds` check the relational layer.
+**See Appendix A.** Do not redistribute Forge-derived labels. Published labels
+come from the tier 1/2/3 pipeline.
 
-**Free ground truth: mine the Forge card scripts.** Forge's `res/cardsfolder` is over a decade of hand-written functional formalisation in a regular, flat DSL. Mapping its effect names onto your predicates gives tens of thousands of validation rows for the cost of a parser, and its `DeckHas` / `DeckNeeds` fields validate the *relational* layer too. **See Appendix A** for the engine comparison, the licence position, the mapping table, and the validation protocol. Run the protocol in the order given there; reversing steps 1 and 2 imports Forge's biases as ground truth without leaving a trace.
+If a paper later claims per-predicate precision, measure it then. Until then,
+missing human reviews are not a stage blocker. Predicates used as hard
+constraints still need a precision argument; the table below is the bar, not a
+gold-set deliverable.
 
-**Report per-predicate precision and recall.** Gate on it:
+**If you promote a predicate to a consumer, gate on precision:**
 
 | Consumer | Minimum precision |
 |---|---|
@@ -197,21 +210,24 @@ You cannot claim a symbolic layer without measuring it.
 | Soft score term | 0.80 |
 | Diagnosis text only | 0.70 |
 
-A predicate below its gate stays in the schema but is switched off for that consumer. Publish the table; it is a paper asset, and it is the difference between an ontology and a pile of regex.
+A predicate below its gate stays in the schema but is switched off for that consumer.
 
 ### Phase D — Make the solver consume it (≈2–3 weeks)
 
 This is where the stage earns its keep. Nothing above matters without this.
 
-- [ ] `src/ontology/graph.py` — derived relations, supply/demand tables
-- [ ] `diagnose_deck_json` **v2**: event supply vs demand, orphan payoffs, starved consumers, dead cards, answer-class coverage, unmatched producers
-- [ ] `solver._score_parts`: add the saturating matched-pair term
-- [ ] Cut: swap kNN-density redundancy for predicate-signature redundancy
-- [ ] `search_cards`: predicate filters (`emits=`, `rewards=`, `answers=`, `enables=`)
-- [ ] Architect prompt consumes typed deficits; queries become `rewards=etb, cmc<=3` instead of `"good Krenko cards"`
-- [ ] New view in `card_views.npz`: multi-hot predicate vector, built offline like the others
+- [x] `src/ontology/graph.py` — derived relations, supply/demand tables
+- [x] `diagnose_deck_json` **v2**: event supply vs demand, orphan payoffs, starved consumers, unmatched producers
+- [x] `solver._score_parts`: add the saturating matched-pair term
+- [x] Cut: swap kNN-density redundancy for predicate-signature redundancy
+- [x] `search_cards`: predicate filters (`emits=`, `rewards=`, `answers=`, `enables=`)
+- [x] Architect prompt consumes typed deficits; queries become `rewards=etb, cmc<=3` instead of `"good Krenko cards"`
+- [x] New view in `card_views.npz`: multi-hot predicate vector, built offline like the others
 
-The last item is nearly free and buys a genuine ablation row.
+The last item is nearly free and buys a genuine ablation row. Rebuild with
+`python src/vectorize_cards.py --predicates-only` (keeps MiniLM views).
+`MANAGRAPH_ONTOLOGY_GEOMETRY=1` scores commander↔card cosine in that space
+instead of MiniLM (ablation row E). Default fill still uses oracle/type/keywords/mana.
 
 ### Phase E — Evaluation and ablation (≈1–2 weeks)
 
@@ -220,12 +236,16 @@ Extends the harness in `scripts/eval_selection.py`, on the same 3–5 commanders
 | Row | Retrieval | Score | Cut |
 |---|---|---|---|
 | A | MiniLM concat | 3.5 symbolic terms | kNN density |
-| B | multi-view | 3.5 symbolic terms | kNN density |
-| C | multi-view | + ontology matched-pairs | kNN density |
-| D | multi-view | + ontology matched-pairs | predicate redundancy |
-| E | **ontology filters only** | ontology only | predicate redundancy |
+| B | MiniLM concat | 3.5 + multi-view geometry | kNN density |
+| C | hybrid | + ontology matched-pairs | kNN density |
+| D | hybrid | + ontology matched-pairs | predicate redundancy |
+| E | **ontology filters only** | ontology geometry + pairs | predicate redundancy |
 
-Row E is the interesting one. If a purely symbolic pipeline builds a coherent legal 99, that is a real and slightly uncomfortable finding, and it belongs in the paper either way.
+Default product is **D**. `python scripts/eval_selection.py --row E` or `--all-rows`.
+There is no separate multi-view retrieval index; B’s table cell is score-side.
+
+- [x] Rows A–E are switchable (`DeckSolver(ablation=...)` / `--row`)
+- [x] Metrics: matched-pair coverage, orphan / starved / dead-card rates, answer-class coverage
 
 New metrics on top of the `RESEARCH.md` set:
 - matched-pair coverage (fraction of subscribers with a live emitter)
@@ -272,7 +292,7 @@ New metrics on top of the `RESEARCH.md` set:
 src/ontology/
   schema.py          # enums + dataclasses, loaded from schema_v1.yaml
   model_config.py    # canonical / resolved / Final model_facts (P0–P2)
-  patterns.py        # tier-2 template grammar (not yet)
+  patterns.py        # tier-2 template grammar
   annotate.py        # tier orchestration → frozen artifact (not yet)
   graph.py           # derived relations, supply/demand
   diagnose.py        # typed deficits, feeds diagnose_deck_json
@@ -284,19 +304,19 @@ data/ontology/
   schema_v1.yaml
   forge_mapping.yaml
   labels_v1.jsonl     # frozen, not in git (size); rebuildable
-  gold_v1.jsonl       # in git, small, hand-labelled
 tests/
   test_ontology_patterns.py
   test_ontology_graph.py
   test_ontology_acceptance.py
 ```
 
-Catalog tables `ontology_cards`, `forge_records`, and `ontology_reviews` sit
-beside the legacy `cards` table. `symbolic_cards.py` and `roles.py` become thin
+Catalog tables `ontology_cards` and `forge_records` sit beside the legacy
+`cards` table. `ontology_reviews` remains in the DDL for existing databases
+and is unused. `symbolic_cards.py` and `roles.py` become thin
 adapters over `src/ontology/` rather than parallel implementations. Migrate
 them; do not leave two vocabularies in the repo.
 
-**Maintenance.** 4–6 sets a year, ~1500 new cards. `annotate.py --incremental` runs on the delta after each `scryfall_download`, and new-card labels go through the same tier ladder. Re-run the gold set annually to catch templating drift.
+**Maintenance.** 4–6 sets a year, ~1500 new cards. `annotate.py --incremental` runs on the delta after each `scryfall_download`, and new-card labels go through the same tier ladder.
 
 ---
 
@@ -349,7 +369,7 @@ Do **not** embed the engine as a simulator to play out decks. Win rate is explic
 **A1 — Seed the Event vocabulary from `T:Mode$`.**
 Forge's trigger modes are an empirically derived enumeration of every event a Magic card can subscribe to, refined over fifteen years of scripting. Take that list as the seed for the `Event` enum in `schema_v1.yaml`, then prune to what deckbuilding consumes. This is a week saved and, more importantly, a vocabulary grounded in game mechanics rather than in community archetype names, which is what Scope Rule 2 demands.
 
-**A2 — Bulk gold set for card predicates (replaces most of Phase C hand-labelling).**
+**A2 — Bulk comparison corpus for card predicates.**
 Parse `cardsfolder` → apply the mapping table below → join on face name / `//` / `AlternateMode` (not exact `Name:` only) → compute per-predicate precision and recall for the tier 1/2/3 annotator against tens of thousands of rows instead of a few hundred.
 
 **A3 — Validate the *relational* layer with `DeckHas` / `DeckNeeds`.**
@@ -482,15 +502,22 @@ The replacement-effect doublers are the strongest argument for this whole append
 
 ## Validation protocol
 
-Order matters. Getting this backwards silently imports Forge's biases as ground truth.
+Forge is an internal comparison corpus, not independent ground truth. Treating
+the mapping as labels silently imports Forge's biases.
 
-1. **Hand-label ~50 cards**, stratified across the predicate families, blind to Forge.
-2. **Validate the mapping table** against those 50. Measure how well Forge-derived labels match your hand labels. This is validating the *translation*, not the annotator.
-3. Only once step 2 clears, **run the mapping over the full corpus** to produce `data/ontology/gold_forge.jsonl`.
-4. **Evaluate the tier 1/2/3 annotator** against that gold set, per predicate, and fill in the precision table from Phase C.
-5. Keep the 50 hand-labelled cards as a permanent held-out set. They are the only labels in the project that are independent of both Forge and the LLM annotator.
+1. Pin a Forge release in `catalog_meta`.
+2. Apply `forge_mapping.yaml` over the corpus after each mapping change.
+3. Use `DeckHas` / `DeckNeeds` as a precision check on derived relations
+   (absence of a tag means nothing).
+4. Stage 3.6 acceptance is `tests/test_ontology_acceptance.py`, not a labelled
+   card sample.
 
-Report all three agreement numbers in the paper: hand vs Forge, hand vs pipeline, Forge vs pipeline. Disagreement between Forge and the pipeline is not automatically a pipeline error, and saying so honestly is worth more than a clean-looking single number.
+A held-out human sample is optional later if a paper claims mapping precision.
+It is not a product deliverable.
+
+Report agreement against Forge as a quality metric if you measure the
+annotator. Disagreement between Forge and the pipeline is not automatically a
+pipeline error.
 
 ## What Forge will not give you
 
@@ -508,7 +535,5 @@ Do not expect the mining step to close Phase B. It leaves:
 - [x] `scripts/mine_forge.py` — parse `cardsfolder`, emit raw structured rows
 - [x] `data/ontology/forge_mapping.yaml` — the table above, versioned separately from the schema (P0–P2 in; `--reapply-mapping` after YAML changes)
 - [x] `scripts/enrich_ontology.py` — Scryfall↔Forge join + Final `model_facts` (P0–P2)
-- [ ] `data/ontology/gold_hand50.jsonl` — held out, in git, never regenerated (review UI exists; reviews were 0)
-- [ ] `data/ontology/gold_forge.jsonl` — derived, **not** in git, not redistributed
-- [ ] `scripts/eval_annotation.py` — three-way agreement report
+- [ ] `scripts/eval_annotation.py` — optional agreement report against Forge
 - [ ] Forge release tag recorded in `catalog_meta`

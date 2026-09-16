@@ -177,6 +177,10 @@ def architect_node(state: GraphState):
             "sources",
             "pips_per_source",
             "deficits",
+            "ontology_deficits",
+            "ontology_queries",
+            "suggested_searches",
+            "ontology_flow",
             "remaining_slots",
             "slot_count",
         )
@@ -271,6 +275,8 @@ def solver_node(state: GraphState):
     before = deck.to_dict()
     solver = DeckSolver()
     query = state.get("user_query") or ""
+    # fill_to_99 follows require_complete: full Commander builds fill the 99;
+    # improve / substitute / cut / explicit partial opt-out do not.
     report = solver.solve(
         deck, query=query, fill_to_99=bool(deck.require_complete and deck.commander)
     )

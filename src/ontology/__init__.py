@@ -10,14 +10,18 @@ from .schema import (
     ThreatClass,
     load_schema,
 )
+from .patterns import PATTERN_VERSION, extract_oracle_predicates, signatures
 
 __all__ = [
     "Capability",
     "EventName",
     "ObjectName",
     "OntologySchema",
+    "PATTERN_VERSION",
     "PredicateName",
     "SchemaValidationError",
     "ThreatClass",
+    "extract_oracle_predicates",
     "load_schema",
+    "signatures",
 ]

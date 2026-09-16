@@ -4,6 +4,7 @@ import sqlite3
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import numpy as np
 
@@ -100,12 +101,51 @@ class Stage3Tests(unittest.TestCase):
             ids = ["krenko", "warchief"]
             oracle = np.array([[1.0, 0.0], [0.9, 0.1]], dtype=np.float16)
             types = np.array([[1.0, 0.0], [0.95, 0.05]], dtype=np.float16)
-            save_card_views(ids, oracle, types, path=tmp.name)
+            preds = np.array([[1, 0], [1, 1]], dtype=np.uint8)
+            save_card_views(
+                ids,
+                oracle,
+                types,
+                path=tmp.name,
+                predicates=preds,
+                predicate_vocab=["emits:etb", "rewards:etb"],
+            )
             store = load_card_views(tmp.name)
             self.assertEqual(store["index"]["warchief"], 1)
             self.assertEqual(store["oracle"].shape, (2, 2))
+            self.assertEqual(store["predicates"].shape, (2, 2))
+            self.assertEqual(store["predicate_vocab"], ["emits:etb", "rewards:etb"])
         finally:
             os.unlink(tmp.name)
+
+    def test_predicate_view_skips_mana_and_is_not_minilm_weight(self):
+        from geometry import cosine, encode_predicate_views, multi_view_cosine
+
+        by_id = {
+            "a": {"produces": {"token"}, "emits": {"etb"}},
+            "b": {"produces": {"token"}, "emits": {"etb"}},
+            "c": {"rewards": {"etb"}},
+            "rock": {"produces": {"mana"}},
+        }
+        matrix, vocab = encode_predicate_views(["a", "b", "c", "rock"], by_id)
+        tokens = [str(token) for token in vocab]
+        self.assertIn("produces:token", tokens)
+        self.assertIn("emits:etb", tokens)
+        self.assertIn("rewards:etb", tokens)
+        self.assertNotIn("produces:mana", tokens)
+        self.assertAlmostEqual(cosine(matrix[0], matrix[1]), 1.0)
+        self.assertEqual(cosine(matrix[0], matrix[3]), 0.0)
+        cmd = {
+            "oracle": [1.0, 0.0],
+            "type": [1.0, 0.0],
+            "predicates": matrix[0],
+        }
+        other = {
+            "oracle": [0.0, 1.0],
+            "type": [0.0, 1.0],
+            "predicates": matrix[0],
+        }
+        self.assertEqual(multi_view_cosine(cmd, other), 0.0)
 
     def test_warm_embeddings_accepts_numpy_from_chroma(self):
         tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
@@ -239,6 +279,36 @@ class Stage3Tests(unittest.TestCase):
             self.assertGreater(goblin["geometry"], saga["geometry"])
             self.assertIsNotNone(goblin["geometry_oracle"])
             self.assertGreater(goblin["geometry_type"], saga["geometry_type"])
+        finally:
+            os.unlink(tmp.name)
+
+    def test_ontology_geometry_flag_uses_predicate_cosine(self):
+        tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        tmp.close()
+        try:
+            _seed(tmp.name)
+            solver = DeckSolver(tmp.name)
+            solver._view_store = {
+                "index": {"krenko": 0, "warchief": 1, "kumano": 2},
+                "predicates": np.array(
+                    [[1, 1, 0], [1, 1, 0], [0, 0, 1]], dtype=np.uint8
+                ),
+            }
+            solver._emb = {
+                "krenko": np.array([1.0, 0.0]),
+                "warchief": np.array([0.0, 1.0]),
+                "kumano": np.array([0.99, 0.01]),
+            }
+            deck = DeckState(commander="Krenko, Mob Boss", identity=["R"])
+            solver._rebuild_context(deck, "goblin tokens")
+            with patch.dict(os.environ, {"MANAGRAPH_ONTOLOGY_GEOMETRY": "1"}):
+                goblin = solver.score_breakdown(deck, "Goblin Warchief", "goblin tokens")
+                saga = solver.score_breakdown(
+                    deck, "Kumano Faces Kakkazan // Etching of Kumano", "goblin tokens"
+                )
+            self.assertAlmostEqual(goblin["geometry"], 1.0)
+            self.assertEqual(saga["geometry"], 0.0)
+            self.assertAlmostEqual(goblin["geometry_predicates"], 1.0)
         finally:
             os.unlink(tmp.name)
 

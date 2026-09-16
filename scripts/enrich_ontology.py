@@ -3,7 +3,7 @@
 
 The SQLite ``cards`` table remains the backwards-compatible catalog.  This
 script adds an additive ontology view beside it, retaining both complete raw
-records and the normalized Forge facts used by the review UI.
+records and the normalized Forge facts used by the catalog inspector.
 """
 
 from __future__ import annotations
@@ -882,12 +882,30 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Re-run Forge mapping on stored records without remine/jsonl",
     )
+    parser.add_argument(
+        "--rebuild-predicates",
+        action="store_true",
+        help="Rebuild ontology_predicates from stored Forge candidates plus Oracle templates",
+    )
     return parser
 
 
 if __name__ == "__main__":
     args = _parser().parse_args()
-    if args.reapply_mapping:
+    if args.rebuild_predicates:
+        conn = sqlite3.connect(args.db)
+        try:
+            ensure_schema(conn)
+            predicate_rows = rebuild_predicate_index(conn)
+            conn.execute(
+                "INSERT OR REPLACE INTO catalog_meta (key, value) VALUES (?, ?)",
+                ("ontology_predicate_rows", str(predicate_rows)),
+            )
+            conn.commit()
+            result = {"predicate_rows": predicate_rows, "db_path": args.db}
+        finally:
+            conn.close()
+    elif args.reapply_mapping:
         result = refresh_forge_candidates(
             args.db,
             mapping_path=args.mapping,

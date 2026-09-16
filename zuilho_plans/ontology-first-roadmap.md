@@ -93,7 +93,7 @@ alternativas, Oracle e cadeias `SubAbility$`.
 
 O cruzamento Scryfall↔Forge e o modelo Final (P0–P2) já estão no catálogo;
 ver Estado atual. Ainda abertos: consumidores por predicate, testes de
-aceitação, gold set rotulado, Tier 2/3 e consumo pelo grafo/solver.
+aceitação, Tier 2/3 e consumo pelo grafo/solver.
 
 #### Camada semântica factual inicial
 
@@ -120,19 +120,18 @@ entram após remine de `cardsfolder` + enrich; o rebuild apenas rematcha.
 
 ### C. Validação
 
-1. Criar um gold set estratificado de 300–500 cartas, começando por uma amostra
-   manual cega ao Forge. A UI de revisão existe; as reviews ainda estão em 0.
-2. Criar `data/ontology/forge_mapping.yaml` para mapear o DSL do Forge aos
+1. Criar `data/ontology/forge_mapping.yaml` para mapear o DSL do Forge aos
    predicates mecânicos do schema. Feito e expandido (P0–P2); predicates
    novos no YAML exigem remine + enrich.
-3. Executar o mapeamento sobre `cardsfolder` e gerar
-   `data/ontology/gold_forge.jsonl` apenas como corpus interno de comparação.
-4. Usar Forge para validar precisão da tradução e relações `DeckHas`/`DeckNeeds`;
+2. Usar Forge como corpus interno de comparação (`forge_records`), não como
+   gold set rotulado à mão. Não redistribuir labels derivadas do Forge.
+3. Usar Forge para checar precisão da tradução e relações `DeckHas`/`DeckNeeds`;
    nunca importar seus nomes de arquétipo para o schema e nunca tratar ausência
    de uma tag como evidência negativa.
-5. Medir precisão e recall por predicate, reportando hand-vs-Forge,
-   hand-vs-pipeline e Forge-vs-pipeline.
-6. Desligar predicates que não atingirem o limiar do consumidor, sem apagar o
+4. Stage 3.6 fecha nos testes de aceitação, não em precisão/recall contra
+   labels humanas. Um sample rotulado só entra se um paper reivindicar
+   precisão do mapeamento.
+5. Desligar predicates que não atingirem o limiar do consumidor, sem apagar o
    predicate do schema.
 
 Limiares mínimos:
@@ -241,9 +240,9 @@ legalidade, coerência funcional, explicabilidade e descoberta.
 
 ## Estado atual
 
-A espinha de dados do Stage 3.6 está no catálogo. O solver ainda não
-consome esses fatos: faltam consumidores nomeados, testes de aceitação,
-gold set rotulado e o grafo de supply/demand. TDA continua bloqueado.
+A espinha de dados do Stage 3.6 está no catálogo. Faltam consumidores
+nomeados, Tier 2 Oracle e o grafo de supply/demand no motor real. TDA
+continua bloqueado. Gold set rotulado não é requisito de produto.
 
 Pipeline operacional:
 
@@ -275,25 +274,23 @@ Modelo Final (P0–P2 em `build_model_facts` / config / mapping):
   como fonte padrão.
 
 Validador em `/ontology-validator` (`data/ontology_validator.html`):
-explorar/filtrar o catálogo; abas Scryfall / Forge / Final; revisão
-humana e export do gold set. A aba de configuração do modelo foi
+explorar/filtrar o catálogo; abas Scryfall / Forge / Final. Sem revisão
+humana nem export de gold set. A aba de configuração do modelo foi
 removida a pedido; APIs de rebuild/config no backend podem existir, mas
-não há UI de catálogo para isso. Reviews do gold set ainda em 0.
+não há UI de catálogo para isso.
 
 ## Próximas tarefas
 
 1. Fixar uma release do Forge e seu hash/identificador em `catalog_meta`.
 2. Nomear o consumidor de cada predicate e escrever os dois testes de
    aceitação como testes falhando.
-3. Rotular o gold set no validador (começar ~50 cartas às cegas ao Forge)
-   e medir precisão/recall por predicate.
+3. Implementar P3 só se o solver for consumir rank/rarity/set. Tier 2
+   (`src/ontology/patterns.py`) já alimenta o índice no rebuild.
 4. Reminar `cardsfolder` + enrich depois de predicates novos no mapping
    (rebuild sozinho não reextrai DSL).
-5. Implementar Tier 2 (`src/ontology/patterns.py`) sobre o resíduo Oracle;
-   P3 só se o solver for consumir rank/rarity/set.
-6. Implementar o grafo de supply/demand.
-7. Fazer o diagnóstico tipado alimentar o solver e o Architect.
-8. Rodar as ablações antes de iniciar TDA.
+5. Implementar o grafo de supply/demand.
+6. Fazer o diagnóstico tipado alimentar o solver e o Architect.
+7. Rodar as ablações antes de iniciar TDA.
 
 ## Critérios de parada
 

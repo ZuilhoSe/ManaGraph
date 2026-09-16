@@ -3,7 +3,7 @@ import json
 from langchain.tools import tool
 from hybrid_search import RAGSearcher
 from inventory import get_cards, list_inventory, FREE_POOL
-from ontology.search import compile_search_intent, compiled_payload
+from ontology.search import compile_search_intent, compiled_payload, merge_cmc_bounds
 from rules_validator import CommanderValidator
 from deck_state import DeckState, _normalize_key
 
@@ -39,6 +39,27 @@ def _json(data) -> str:
     return json.dumps(data, ensure_ascii=False, default=str)
 
 
+def _predicate_filters(
+    emits: str = "",
+    rewards: str = "",
+    answers: str = "",
+    enables: str = "",
+    protects: str = "",
+) -> dict[str, str]:
+    filters = {}
+    for key, value in (
+        ("emits", emits),
+        ("rewards", rewards),
+        ("answers", answers),
+        ("enables", enables),
+        ("protects", protects),
+    ):
+        text = str(value or "").strip()
+        if text:
+            filters[key] = text
+    return filters
+
+
 def _run_compiled_search(
     query: str,
     colors: list,
@@ -49,11 +70,14 @@ def _run_compiled_search(
     cmc_min: float | None,
     cmc_max: float | None,
     role: str,
+    predicate_filters: dict[str, str] | None = None,
 ) -> str:
     if owned_only is None:
         owned_only = _deck_owned_only.get()
     intent = compile_search_intent(query)
     compiled = compiled_payload(intent)
+    cmc_min, cmc_max = merge_cmc_bounds(cmc_min, cmc_max, intent.cmc_min, intent.cmc_max)
+    filters = dict(predicate_filters or {})
     results = _get_searcher().search_cards(
         query=query,
         allowed_colors=colors,
@@ -65,17 +89,22 @@ def _run_compiled_search(
         cmc_min=cmc_min,
         cmc_max=cmc_max,
         role=role or None,
+        predicate_filters=filters or None,
     )
+    payload = {
+        "ok": True,
+        "compiled": compiled,
+        "cards": results,
+    }
+    if cmc_min is not None:
+        payload["cmc_min"] = cmc_min
+    if cmc_max is not None:
+        payload["cmc_max"] = cmc_max
+    if filters:
+        payload["filters"] = filters
     if not results:
-        return _json(
-            {
-                "ok": True,
-                "compiled": compiled,
-                "cards": [],
-                "message": "No cards found with those criteria.",
-            }
-        )
-    return _json({"ok": True, "compiled": compiled, "cards": results})
+        payload["message"] = "No cards found with those criteria."
+    return _json(payload)
 
 
 @tool
@@ -89,18 +118,24 @@ def search_cards(
     cmc_min: float | None = None,
     cmc_max: float | None = None,
     role: str = "",
+    emits: str = "",
+    rewards: str = "",
+    answers: str = "",
+    enables: str = "",
+    protects: str = "",
 ):
     """
     Compile natural language into ontology predicates, then search. The Forge
     predicate index is the mechanic search; Oracle lexical + embedding is a
     harness for phrasing the index missed. Returns JSON with `compiled` then `cards`.
 
-    Pass mechanic language ("extra combat", "sac outlet") or explicit predicates
-    (`enables:extra_combat rewards:etb`). Oracle phrasing ("draw a card") still
-    works via the harness.
+    Prefer explicit predicates (`rewards=etb, cmc<=3` or `enables:extra_combat`)
+    over vibe strings like "good Krenko cards". Filter kwargs AND-match: the
+    card must carry every listed predicate. Empty query plus filters is valid.
 
     Args:
-        query: Mechanic NL or explicit `predicate:value` clauses.
+        query: Mechanic NL, explicit `predicate=value` / `predicate:value`, and
+            optional `cmc<=N`. May be empty when a filter kwarg is set.
         colors: Allowed color identity, e.g. ["R", "U"].
         owned_only: True to search only owned cards, False for the full catalog.
             Leave unset to use the deck's own owned_only setting.
@@ -110,6 +145,11 @@ def search_cards(
         cmc_min: Optional inclusive mana-value floor.
         cmc_max: Optional inclusive mana-value ceiling.
         role: Optional role class: land, ramp, draw, interaction, threat, token_producer, token_payoff.
+        emits: AND-filter event, e.g. "etb". Comma-separated values are AND.
+        rewards: AND-filter event, e.g. "etb".
+        answers: AND-filter threat class, e.g. "board".
+        enables: AND-filter capability, e.g. "sac_outlet" or "extra_combat".
+        protects: AND-filter target class, e.g. "commander".
     """
     return _run_compiled_search(
         query,
@@ -121,6 +161,7 @@ def search_cards(
         cmc_min,
         cmc_max,
         role,
+        _predicate_filters(emits, rewards, answers, enables, protects),
     )
 
 
@@ -135,13 +176,18 @@ def search_predicates(
     cmc_min: float | None = None,
     cmc_max: float | None = None,
     role: str = "",
+    emits: str = "",
+    rewards: str = "",
+    answers: str = "",
+    enables: str = "",
+    protects: str = "",
 ):
     """
     Search from explicit ontology predicates (ontology index + Oracle harness).
 
     Call this after search_cards shows `compiled`, or directly when you already
-    know the clauses. Each item is `predicate:value` or `predicate:key:value`,
-    e.g. ["enables:extra_combat", "rewards:etb"].
+    know the clauses. Each item is `predicate=value`, `predicate:value`, or
+    `predicate:key:value`, e.g. ["enables:extra_combat", "rewards=etb"].
 
     Args:
         predicates: Explicit clauses such as ["enables:extra_combat"].
@@ -154,6 +200,11 @@ def search_predicates(
         cmc_min: Optional inclusive mana-value floor.
         cmc_max: Optional inclusive mana-value ceiling.
         role: Optional role class: land, ramp, draw, interaction, threat, token_producer, token_payoff.
+        emits: AND-filter event, e.g. "etb".
+        rewards: AND-filter event, e.g. "etb".
+        answers: AND-filter threat class, e.g. "board".
+        enables: AND-filter capability, e.g. "sac_outlet".
+        protects: AND-filter target class, e.g. "commander".
     """
     joined = " ".join(str(item).strip() for item in (predicates or []) if str(item).strip())
     if not joined:
@@ -168,6 +219,7 @@ def search_predicates(
         cmc_min,
         cmc_max,
         role,
+        _predicate_filters(emits, rewards, answers, enables, protects),
     )
 
 

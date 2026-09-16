@@ -218,6 +218,51 @@ class Stage1Tests(unittest.TestCase):
         self.assertFalse(report["valid"])
         self.assertTrue(report["size_errors"])
 
+    def test_infer_full_99_card_commander_build(self):
+        lightning = infer_task(
+            "Build me a full 99-card Boros voltron with extra combat and hexproof"
+        )
+        self.assertEqual(lightning["intent"], "build")
+        self.assertTrue(lightning["require_complete"])
+        self.assertEqual(
+            infer_intent(
+                "Build me a full 99-card Boros voltron with extra combat and hexproof",
+                has_cards=True,
+            ),
+            "build",
+        )
+
+        no_deck_word = infer_task("Build me a Boros voltron for Lightning")
+        self.assertEqual(no_deck_word["intent"], "build")
+        self.assertTrue(no_deck_word["require_complete"])
+
+        improve = infer_task("suggest better cards for my Krenko list")
+        self.assertEqual(improve["intent"], "improve")
+        self.assertFalse(improve["require_complete"])
+
+        self.assertEqual(infer_intent("100-card Boros list"), "build")
+        self.assertEqual(infer_intent("full 99 commander"), "build")
+
+        staples = infer_task("Build me a Boros voltron for Lightning, staples only")
+        self.assertEqual(staples["intent"], "build")
+        self.assertFalse(staples["require_complete"])
+
+        cut = infer_task("cut the worst cards in this list")
+        self.assertEqual(cut["intent"], "cut")
+        self.assertFalse(cut["require_complete"])
+
+    def test_gate_rejects_incomplete_when_require_complete(self):
+        report = self.validator.validate_deck(
+            "Krenko, Mob Boss",
+            {"Mountain": 10},
+            require_complete=True,
+        )
+        gate = deterministic_gate(report)
+        self.assertFalse(report["valid"])
+        self.assertTrue(report["size_errors"])
+        self.assertEqual(gate["decision"], "REJECTED")
+        self.assertIn("size_errors", gate["reason_codes"])
+
     def test_banned_and_illegal_commander(self):
         banned = self.validator.validate_deck("Krenko, Mob Boss", {"Black Lotus": 1})
         self.assertTrue(banned["format_errors"])

@@ -1,0 +1,1686 @@
+{
+  "deck": {
+    "schema_version": "1",
+    "commander": "Krenko, Mob Boss",
+    "revision": 1,
+    "cards": {
+      "Fountainport": 1,
+      "Lindblum, Industrial Regency // Mage Siege": 1,
+      "Beetleback Chief": 1,
+      "Treasure Map // Treasure Cove": 1,
+      "The Gold Saucer": 1,
+      "Tarnished Citadel": 1,
+      "The Great Mound": 1,
+      "Avengers Tower": 1,
+      "Stardew Valley": 1,
+      "Ally Encampment": 1,
+      "Maelstrom of the Spirit Dragon": 1,
+      "Bucolic Ranch": 1,
+      "Haven of the Spirit Dragon": 1,
+      "Forbidden Orchard": 1,
+      "Abundant Countryside": 1,
+      "Kher Keep": 1,
+      "Heap Gate": 1,
+      "Jasmine Dragon Tea Shop": 1,
+      "Gods' Eye, Gate to the Reikai": 1,
+      "The Mycosynth Gardens": 1,
+      "Hall of Tagsin": 1,
+      "Foundry of the Consuls": 1,
+      "Hellion Crucible": 1,
+      "Urza's Factory": 1,
+      "Sliver Hive": 1,
+      "Springjack Pasture": 1,
+      "Cradle of the Accursed": 1,
+      "Spawning Bed": 1,
+      "Abstergo Entertainment": 1,
+      "Dunes of the Dead": 1,
+      "Fire Nation Palace": 1,
+      "Opal Palace": 1,
+      "Rainbow Vale": 1,
+      "Captivating Cave": 1,
+      "Thaumatic Compass // Spires of Orazca": 1,
+      "Impulsive Pilferer": 1,
+      "Reckless Lackey": 1,
+      "Underfoot Underdogs": 1,
+      "Ardoz, Cobbler of War": 1,
+      "Redcap Gutter-Dweller": 1,
+      "Akki Ember-Keeper": 1,
+      "Goblin Pyromancer": 1,
+      "Squee, Dubious Monarch": 1,
+      "Battle Cry Goblin": 1,
+      "Sticky Fingers": 1,
+      "Idol of False Gods": 1,
+      "Charisma Bobblehead": 1,
+      "Vault 21: House Gambit": 1,
+      "Monument to Endurance": 1,
+      "Daily Bugle Newspaper": 1,
+      "Kiki-Jiki, Mirror Breaker": 1,
+      "Goblin General": 1,
+      "Goblin Goliath": 1,
+      "Gargoyle Castle": 1,
+      "Arterial Alchemy": 1,
+      "Sarkhan, Fireblood": 1,
+      "Lowland Oaf": 1,
+      "Gate to the Afterlife": 1,
+      "Goblin Lookout": 1,
+      "Melded Moxite": 1,
+      "Goblin Taskmaster": 1,
+      "Airdrop Condor": 1,
+      "Roar of Resistance": 1,
+      "Contested Game Ball": 1,
+      "Chandra, Flamecaller": 1,
+      "Illuminate History": 1,
+      "Stensia Uprising": 1,
+      "Turtle Blimp": 1,
+      "Ugin, Eye of the Storms": 1,
+      "Promising Vein": 1,
+      "Founding of Omashu": 1,
+      "Bag End Banquet": 1,
+      "Chandra, Spark Hunter": 1,
+      "Recon Craft Theta": 1,
+      "Frontline Heroism": 1,
+      "Quarrel's End": 1,
+      "Luck Bobblehead": 1,
+      "Idol of Oblivion": 1,
+      "Aether Refinery": 1,
+      "Animation Module": 1,
+      "Replicating Ring": 1,
+      "Clown Car": 1,
+      "Throne of Empires": 1,
+      "Skyclave Relic": 1,
+      "Grenzo's Rebuttal": 1,
+      "Goblin Gathering": 1,
+      "Weatherlight Compleated": 1,
+      "Baku Altar": 1,
+      "Devils' Playground": 1,
+      "Goblin Scouts": 1,
+      "Acorn Catapult": 1,
+      "Dragon Roost": 1,
+      "Hire a Crew": 1,
+      "Goblin Wizardry": 1,
+      "Reckless Crew": 1,
+      "Serpent Generator": 1,
+      "Thatcher Revolt": 1,
+      "Summoning Station": 1,
+      "Diamond Kaleidoscope": 1
+    },
+    "identity": [
+      "R"
+    ],
+    "owned_only": false,
+    "require_complete": true,
+    "currency": "usd",
+    "max_card_price": null,
+    "budget_cap": null,
+    "owned_cost_zero": true,
+    "intent": "build",
+    "archetype": "tribal",
+    "last_delta": {},
+    "candidate_pool": {
+      "Abundant Countryside": 1,
+      "Aether Chaser": 1,
+      "Akoum Stonewaker": 1,
+      "Akroan Crusader": 1,
+      "Akroan Horse": 1,
+      "Anax, Hardened in the Forge": 1,
+      "Ancient Stone Idol": 1,
+      "And\u00faril, Flame of the West": 1,
+      "Bloodforged Battle-Axe": 1,
+      "Dino DNA": 1,
+      "The One Ring": 1,
+      "Moonring Mirror": 1,
+      "Moonveil Regent": 1,
+      "Staff of Nin": 1,
+      "Eye of Vecna": 1,
+      "Mindstorm Crown": 1,
+      "Case of the Crimson Pulse": 1,
+      "Relic Vial": 1,
+      "Fists of Flame": 1,
+      "Demand Answers": 1,
+      "Seize the Spoils": 1,
+      "Big Score": 1,
+      "Pirate's Pillage": 1,
+      "Unexpected Windfall": 1,
+      "Faithless Looting": 1,
+      "Highway Robbery": 1,
+      "Electric Revelation": 1,
+      "Laughing Mad": 1,
+      "Witch's Mark": 1,
+      "Grab the Prize": 1,
+      "Collector's Vault": 1,
+      "Negative Zone Portal": 1,
+      "Avarice Amulet": 1,
+      "Romantic Rendezvous": 1,
+      "Tamiyo's Journal": 1,
+      "Dangerous Wager": 1,
+      "Words of War": 1,
+      "Blood Sun": 1,
+      "Change of Fortune": 1,
+      "Dragon Mantle": 1,
+      "Mask of Memory": 1,
+      "Stormshriek Feral // Flush Out": 1,
+      "Skullclamp": 1,
+      "Charming Scoundrel": 1,
+      "Rogue's Gloves": 1,
+      "Bestial Fury": 1,
+      "Rune of Speed": 1,
+      "Slate of Ancestry": 1,
+      "Zephyr Boots": 1,
+      "Dungeoneer's Pack": 1,
+      "Fear of Missing Out": 1,
+      "Aggressive Mining": 1,
+      "Bitter Reunion": 1,
+      "Fountain of Renewal": 1,
+      "Thrill of Possibility": 1,
+      "Tormenting Voice": 1,
+      "Wild Guess": 1,
+      "Vision of Love": 1,
+      "Magmatic Insight": 1,
+      "Ribskiff": 1,
+      "Well of Knowledge": 1,
+      "Humble Defector": 1,
+      "Urabrask, Heretic Praetor": 1,
+      "Bazaar of Baghdad": 1,
+      "Blitzball": 1,
+      "Buster Sword": 1,
+      "Endless Atlas": 1,
+      "Tapestry of the Ages": 1,
+      "Plasma Jockey": 1,
+      "Environmental Sciences": 1,
+      "Arm-Mounted Anchor": 1,
+      "Unpredictable Cyclone": 1,
+      "Bargaining Table": 1,
+      "Urza's Tome": 1,
+      "Fool's Tome": 1,
+      "Amber Gristle O'Maul": 1,
+      "Scroll of Origins": 1,
+      "Heat Shimmer": 1,
+      "Heirloom Epic": 1,
+      "Blood Moon": 1,
+      "Magus of the Moon": 1,
+      "Mox Jasper": 1,
+      "Reflecting Pool": 1,
+      "Ticket Turbotubes": 1,
+      "Arcane Signet": 1,
+      "Command Tower": 1,
+      "Honored Heirloom": 1,
+      "Ancient Ziggurat": 1,
+      "Exotic Orchard": 1,
+      "Fellwar Stone": 1,
+      "Spinning Wheel": 1,
+      "Redrock Sentinel": 1,
+      "Salvaged Manaworker": 1,
+      "Pillar of the Paruns": 1,
+      "Patriar's Seal": 1,
+      "Mox Amber": 1,
+      "Intelligence Bobblehead": 1,
+      "Relic of Legends": 1,
+      "Urn of Godfire": 1,
+      "Fountain of Ichor": 1,
+      "Scuttlemutt": 1,
+      "Bonder's Ornament": 1,
+      "Urza's Blueprints": 1,
+      "Mishra's Command": 1,
+      "Potioner's Trove": 1,
+      "Emmessi Tome": 1,
+      "Cogwork Assembler": 1,
+      "Undiscovered Paradise": 1,
+      "Barrels of Blasting Jelly": 1,
+      "Sceptre of Eternal Glory": 1,
+      "Gravestone Strider": 1,
+      "Jalum Tome": 1,
+      "All-Fates Scroll": 1,
+      "Jodah's Codex": 1,
+      "Uba Mask": 1,
+      "Phyrexian Atlas": 1,
+      "Hearth Elemental // Stoke Genius": 1,
+      "Strength Bobblehead": 1,
+      "Alloy Myr": 1,
+      "Manalith": 1,
+      "Opaline Unicorn": 1,
+      "Prismite": 1,
+      "Cultivator's Caravan": 1,
+      "Grabby Giant // That's Mine": 1,
+      "Journeyer's Kite": 1,
+      "Demonic Ruckus": 1,
+      "Mystic Skull // Mystic Monstrosity": 1,
+      "Faithless Salvaging": 1,
+      "Molten Duplication": 1,
+      "Mirror of Galadriel": 1,
+      "Cool but Rude": 1,
+      "Bomat Bazaar Barge": 1,
+      "Aetheric Amplifier": 1,
+      "Uncontrolled Infestation": 1,
+      "Wedding Invitation": 1,
+      "Golden Egg": 1,
+      "Omni-Cheese Pizza": 1,
+      "Tsabo's Web": 1,
+      "Elsewhere Flask": 1,
+      "Scarecrow Guide": 1,
+      "Sleeper Dart": 1,
+      "Myr Propagator": 1,
+      "Fiery Encore": 1,
+      "Arcane Spyglass": 1,
+      "Pyramid of the Pantheon": 1,
+      "The Flame of Keld": 1,
+      "Sonic Screwdriver": 1,
+      "Human Torch, Johnny Storm": 1,
+      "Dependable Quinjet": 1,
+      "Electroduplicate": 1,
+      "Bounty Board": 1,
+      "Coalition Relic": 1,
+      "Guild Globe": 1,
+      "Endurance Bobblehead": 1,
+      "Lantern of Revealing": 1,
+      "Sowing Salt": 1,
+      "Mishra, Excavation Prodigy": 1,
+      "Zhao, the Moon Slayer": 1,
+      "Phial of Galadriel": 1,
+      "Origin of Thor": 1,
+      "Shire Scarecrow": 1,
+      "Feldon of the Third Path": 1,
+      "Ceremonial Knife": 1,
+      "Agility Bobblehead": 1,
+      "White Lotus Hideout": 1,
+      "Exploding Barrel": 1,
+      "Turtle Lair": 1,
+      "Possessed Portal": 1,
+      "Mox Opal": 1,
+      "Foreboding Statue // Forsaken Thresher": 1,
+      "Mech Hangar": 1,
+      "Brotherhood Headquarters": 1,
+      "Solar Array": 1,
+      "From the Ashes": 1,
+      "Lava Blister": 1,
+      "Ivora, Insatiable Heir": 1,
+      "Bottled Cloister": 1,
+      "Flywheel Racer": 1,
+      "Culling Dais": 1,
+      "Excavator": 1,
+      "Perception Bobblehead": 1,
+      "H.E.R.B.I.E. Scout Unit": 1,
+      "Rhystic Cave": 1,
+      "Skeleton Key": 1,
+      "Misty Knight, Hero for Hire": 1,
+      "Cave of Temptation": 1,
+      "Daily Bugle Building": 1,
+      "Guildmages' Forum": 1,
+      "Pact of the Titan": 1,
+      "Song of Totentanz": 1,
+      "Satyr's Cunning": 1,
+      "Pili-Pala": 1,
+      "Celestial Prism": 1,
+      "Mana Cylix": 1,
+      "The Seedcore": 1,
+      "Hall of Oracles": 1,
+      "Laser Screwdriver": 1,
+      "Study Hall": 1,
+      "Information Booth": 1,
+      "Tin Street Market": 1,
+      "Fabled Passage": 1,
+      "Trailblazer's Boots": 1,
+      "Jaws, Relentless Predator": 1,
+      "The Endstone": 1,
+      "Azor's Gateway // Sanctum of the Sun": 1,
+      "Volcanic Offering": 1,
+      "Prophetic Prism": 1,
+      "Puca's Eye": 1,
+      "Empty the Warrens": 1,
+      "Escape Tunnel": 1,
+      "Scampering Surveyor": 1,
+      "Instant Ramen": 1,
+      "Conch Horn": 1,
+      "Evolving Wilds": 1,
+      "Terramorphic Expanse": 1,
+      "Vibrant Cityscape": 1,
+      "Dance with Devils": 1,
+      "Plaza of Heroes": 1,
+      "Summon: Bahamut": 1,
+      "Guidelight Matrix": 1,
+      "Mimic": 1,
+      "Furnace Skullbomb": 1,
+      "Hidden Hideout": 1,
+      "Energy Refractor": 1,
+      "Lotus Guardian": 1,
+      "Ornithopter of Paradise": 1,
+      "Dwarven Blastminer": 1,
+      "Hobbit Hole": 1,
+      "Molten Birth": 1,
+      "Multiversal Passage": 1,
+      "Fire Nation Attacks": 1,
+      "Firecat Blitz": 1,
+      "Epiphany Storm": 1,
+      "Shenanigans": 1,
+      "Ravenous Amulet": 1,
+      "Kindle the Inner Flame": 1,
+      "Traveler's Amulet": 1,
+      "Wanderer's Twig": 1,
+      "Cactus Preserve": 1,
+      "Aladdin's Lamp": 1,
+      "Smuggler's Copter": 1,
+      "Elemental Eruption": 1,
+      "Dwarven Reinforcements": 1,
+      "Ominous Parcel": 1,
+      "Embermouth Sentinel": 1,
+      "Arcane Encyclopedia": 1,
+      "Jayemdae Tome": 1,
+      "Thawing Glaciers": 1,
+      "Mezzio Mugger": 1,
+      "Tempestra, Dame of Games": 1,
+      "Dire Mimic": 1,
+      "Roadside Reliquary": 1,
+      "Ecologist's Terrarium": 1,
+      "Silver Deputy": 1,
+      "Prophetic Ravings": 1,
+      "Diviner's Wand": 1,
+      "Path of Ancestry": 1,
+      "Keys to the House": 1,
+      "Burning Earth": 1,
+      "World Map": 1,
+      "Compass Gnome": 1,
+      "Cryptolith Fragment // Aurora of Emrakul": 1,
+      "Mascot Exhibition": 1,
+      "Cryptex": 1,
+      "Seize the Storm": 1,
+      "Feral Lightning": 1,
+      "Wayfarer's Bauble": 1,
+      "Braidwood Sextant": 1,
+      "Scrapwork Mutt": 1,
+      "Campus Guide": 1,
+      "Great Hall of the Biblioplex": 1,
+      "Matzalantli, the Great Door // The Core": 1,
+      "Skittering Surveyor": 1,
+      "Orthion, Hero of Lavabrink": 1,
+      "Myr Turbine": 1,
+      "Signpost Scarecrow": 1,
+      "Tectonic Reformation": 1,
+      "Elven Passage": 1,
+      "Nahiri's Lithoforming": 1,
+      "Spire of Industry": 1,
+      "Helm of the Host": 1,
+      "Goblin War Party": 1,
+      "Chromatic Lantern": 1,
+      "Vaultbreaker": 1,
+      "Falkenrath Pit Fighter": 1,
+      "Base Camp": 1,
+      "Summon: G.F. Ifrit": 1,
+      "Tempt with Vengeance": 1,
+      "Strixhaven Skycoach": 1,
+      "Ragged Short Spear": 1,
+      "Riveteers Requisitioner": 1,
+      "Ring of Ma'r\u00fbf": 1,
+      "Solfatara": 1,
+      "Cryptic Caves": 1,
+      "Star Compass": 1,
+      "Prismatic Vista": 1,
+      "Case of the Shattered Pact": 1,
+      "Big Wheel": 1,
+      "Buried Treasure": 1,
+      "Power Depot": 1,
+      "Burnout": 1,
+      "Telim'Tor's Edict": 1,
+      "Mana Confluence": 1,
+      "Phyrexian Lens": 1,
+      "Veronica, Dissident Scribe": 1,
+      "Splinter Twin": 1,
+      "Flamerush Rider": 1,
+      "Flick a Coin": 1,
+      "Spider-Bot": 1,
+      "Crumble to Dust": 1,
+      "Introduction to Prophecy": 1,
+      "Crash Through": 1,
+      "Rally at the Hornburg": 1,
+      "Heroes of the Revel": 1,
+      "Pilgrim's Eye": 1,
+      "Mascot Interception": 1,
+      "Terminal Moraine": 1,
+      "Balloon Stand": 1,
+      "Kyoshi Battle Fan": 1,
+      "Scion of Draco": 1,
+      "Tome of the Guildpact": 1,
+      "Draco": 1,
+      "Enchanted Carriage": 1,
+      "Jaxis, the Troublemaker": 1,
+      "Redoubled Stormsinger": 1,
+      "Shire Terrace": 1,
+      "Warped Landscape": 1,
+      "Chrome Dome": 1,
+      "Farfinder": 1,
+      "ED-E, Lonesome Eyebot": 1,
+      "Hylda's Crown of Winter": 1,
+      "Headsplitter": 1,
+      "The Hive": 1,
+      "Dollhouse of Horrors": 1,
+      "Sparkspitter": 1,
+      "Hornet Cannon": 1,
+      "Magmatic Hellkite": 1,
+      "Byway Barterer": 1,
+      "Lodestone Bauble": 1,
+      "Exocrine": 1,
+      "Progenitor's Icon": 1,
+      "Surveyor's Scope": 1,
+      "Fearless Liberator": 1,
+      "Terrain Generator": 1,
+      "Echo Chamber": 1,
+      "Prickly Pair": 1,
+      "Eye of Ojer Taq // Apex Observatory": 1,
+      "Anticausal Vestige": 1,
+      "Mystic Compass": 1,
+      "Wildfire Howl": 1,
+      "Mysidian Elder": 1,
+      "Flame Blitz": 1,
+      "Paradise Mantle": 1,
+      "Stormsplitter": 1,
+      "Clockwork Fox": 1,
+      "Spare Supplies": 1,
+      "Firdoch Core": 1,
+      "Hot Dog Cart": 1,
+      "Big Apple, 3 a.m.": 1,
+      "Artistic Process": 1,
+      "Avacyn's Collar": 1,
+      "Awaken the Sky Tyrant": 1,
+      "Basalt Golem": 1,
+      "Become Brutes": 1,
+      "Belligerent Guest": 1,
+      "Big Mother Mouser": 1,
+      "Chromatic Orrery": 1,
+      "The Mightstone and Weakstone": 1
+    },
+    "price_cap_new_only": true,
+    "baseline_cards": {},
+    "mana_strategy": "hypergeometric",
+    "card_pool": {},
+    "pool_only": false,
+    "commander_by_pool_fit": false,
+    "preferred_land_types": [],
+    "theme_types": [],
+    "land_types_strict": false,
+    "slot_count": 99,
+    "complete": true
+  },
+  "query": "Build me a full 99-card goblin tribal tokens deck. Go wide with goblin tokens and lords.",
+  "supervisor_decision": "APPROVED",
+  "validation": {
+    "valid": true,
+    "complete": true,
+    "ontology_interaction": {
+      "answers": {
+        "graveyard": 1,
+        "board": 2,
+        "creature": 1
+      },
+      "protects": {},
+      "queried": true
+    },
+    "commander": "Krenko, Mob Boss",
+    "commander_identity": [
+      "R"
+    ],
+    "slot_count": 99,
+    "target_slots": 99,
+    "budget_used": 243.57,
+    "budget_cap": null,
+    "max_card_price": null,
+    "currency": "usd",
+    "curve": {
+      "0": 1,
+      "1": 5,
+      "2": 13,
+      "3": 17,
+      "4": 13,
+      "5": 4,
+      "6": 8,
+      "7+": 2
+    },
+    "land_count": 36,
+    "land_alert": {
+      "status": "ok",
+      "count": 36,
+      "quota": [
+        36,
+        38
+      ],
+      "delta": 0,
+      "pct": 0.0,
+      "severity": "none"
+    },
+    "commander_errors": [],
+    "color_errors": [],
+    "singleton_errors": [],
+    "format_errors": [],
+    "size_errors": [],
+    "owned_errors": [],
+    "pool_errors": [],
+    "price_errors": [],
+    "unknown_cards": [],
+    "warnings": [],
+    "catalog_meta": {
+      "dataset:moxfield:37d951146a8123bc97bc:sha256": "37d951146a8123bc97bc545b02a6737b35aae1c960611544cc6b1c86bfe749c3",
+      "dataset:moxfield:37d951146a8123bc97bc:collected_at": "2026-08-28T14:58:46Z",
+      "dataset:moxfield:d11528c5f7be8d1eafb5:sha256": "d11528c5f7be8d1eafb55a3bf6ef39dbed667e5de2d7af9e057dfd9cca987f54",
+      "dataset:moxfield:d11528c5f7be8d1eafb5:collected_at": "2026-08-28T21:44:55Z",
+      "forge_path": "C:\\Users\\segun\\Documents\\forge",
+      "forge_cardsfolder": "C:\\Users\\segun\\Documents\\forge\\forge-gui\\res\\cardsfolder",
+      "forge_release": "daily-snapshots",
+      "forge_commit": "2416d71ab4988b365b5bb0a006897c757a1d59d7",
+      "forge_mined_artifact": "data/ontology/forge_raw_v1.jsonl",
+      "forge_mined_records": "33666",
+      "forge_mined_at": "2026-08-29T03:52:35.153295+00:00",
+      "price_snapshot_at": "2026-08-29T04:20:50Z",
+      "scryfall_bulk_type": "oracle_cards",
+      "card_count": "38626",
+      "dataset:scryfall:oracle_cards:sha256": "1f798bf1cae3129f46219d71fc9e0b04e593430f8c6b0acde0711b9c1ca679df",
+      "dataset:scryfall:oracle_cards:byte_size": "24530420",
+      "ontology_enriched_at": "2026-08-29T11:14:32Z",
+      "ontology_scryfall_cards": "38651",
+      "ontology_forge_records": "33666",
+      "ontology_model_config": "data/ontology/model_config_v1.json",
+      "ontology_forge_matches": "33760",
+      "collection_schema_version": "5",
+      "ontology_mapping_reapplied_at": "2026-09-02T04:57:58Z",
+      "ontology_model_rebuilt_at": "2026-09-02T05:10:34Z",
+      "ontology_predicate_rows": "83113"
+    }
+  },
+  "solver_report": {
+    "stripped": {
+      "removed": []
+    },
+    "fill": {
+      "ok": true,
+      "added": [
+        {
+          "name": "Fountainport",
+          "score": 9.9777,
+          "source": "greedy"
+        },
+        {
+          "name": "Lindblum, Industrial Regency // Mage Siege",
+          "score": 9.0411,
+          "source": "greedy"
+        },
+        {
+          "name": "Beetleback Chief",
+          "score": 6.698,
+          "source": "greedy"
+        },
+        {
+          "name": "Treasure Map // Treasure Cove",
+          "score": 12.7172,
+          "source": "greedy"
+        },
+        {
+          "name": "The Gold Saucer",
+          "score": 12.3274,
+          "source": "greedy"
+        },
+        {
+          "name": "Tarnished Citadel",
+          "score": 12.1711,
+          "source": "greedy"
+        },
+        {
+          "name": "The Great Mound",
+          "score": 12.1361,
+          "source": "greedy"
+        },
+        {
+          "name": "Avengers Tower",
+          "score": 12.078,
+          "source": "greedy"
+        },
+        {
+          "name": "Stardew Valley",
+          "score": 12.0402,
+          "source": "greedy"
+        },
+        {
+          "name": "Ally Encampment",
+          "score": 11.9538,
+          "source": "greedy"
+        },
+        {
+          "name": "Maelstrom of the Spirit Dragon",
+          "score": 11.7712,
+          "source": "greedy"
+        },
+        {
+          "name": "Bucolic Ranch",
+          "score": 11.6204,
+          "source": "greedy"
+        },
+        {
+          "name": "Haven of the Spirit Dragon",
+          "score": 11.5944,
+          "source": "greedy"
+        },
+        {
+          "name": "Forbidden Orchard",
+          "score": 10.4789,
+          "source": "greedy"
+        },
+        {
+          "name": "Abundant Countryside",
+          "score": 10.3195,
+          "source": "greedy"
+        },
+        {
+          "name": "Kher Keep",
+          "score": 10.2508,
+          "source": "greedy"
+        },
+        {
+          "name": "Heap Gate",
+          "score": 10.2406,
+          "source": "greedy"
+        },
+        {
+          "name": "Jasmine Dragon Tea Shop",
+          "score": 10.193,
+          "source": "greedy"
+        },
+        {
+          "name": "Gods' Eye, Gate to the Reikai",
+          "score": 10.1186,
+          "source": "greedy"
+        },
+        {
+          "name": "The Mycosynth Gardens",
+          "score": 10.0734,
+          "source": "greedy"
+        },
+        {
+          "name": "Hall of Tagsin",
+          "score": 10.0606,
+          "source": "greedy"
+        },
+        {
+          "name": "Foundry of the Consuls",
+          "score": 10.0247,
+          "source": "greedy"
+        },
+        {
+          "name": "Hellion Crucible",
+          "score": 9.9791,
+          "source": "greedy"
+        },
+        {
+          "name": "Urza's Factory",
+          "score": 9.9645,
+          "source": "greedy"
+        },
+        {
+          "name": "Sliver Hive",
+          "score": 9.9436,
+          "source": "greedy"
+        },
+        {
+          "name": "Springjack Pasture",
+          "score": 9.8954,
+          "source": "greedy"
+        },
+        {
+          "name": "Cradle of the Accursed",
+          "score": 9.884,
+          "source": "greedy"
+        },
+        {
+          "name": "Spawning Bed",
+          "score": 9.8588,
+          "source": "greedy"
+        },
+        {
+          "name": "Abstergo Entertainment",
+          "score": 9.8286,
+          "source": "greedy"
+        },
+        {
+          "name": "Dunes of the Dead",
+          "score": 9.7874,
+          "source": "greedy"
+        },
+        {
+          "name": "Fire Nation Palace",
+          "score": 9.7384,
+          "source": "greedy"
+        },
+        {
+          "name": "Opal Palace",
+          "score": 9.7248,
+          "source": "greedy"
+        },
+        {
+          "name": "Rainbow Vale",
+          "score": 9.7227,
+          "source": "greedy"
+        },
+        {
+          "name": "Captivating Cave",
+          "score": 9.7106,
+          "source": "greedy"
+        },
+        {
+          "name": "Thaumatic Compass // Spires of Orazca",
+          "score": 8.4781,
+          "source": "greedy"
+        },
+        {
+          "name": "Impulsive Pilferer",
+          "score": 6.7215,
+          "source": "greedy"
+        },
+        {
+          "name": "Reckless Lackey",
+          "score": 6.5429,
+          "source": "greedy"
+        },
+        {
+          "name": "Underfoot Underdogs",
+          "score": 6.5337,
+          "source": "greedy"
+        },
+        {
+          "name": "Ardoz, Cobbler of War",
+          "score": 6.1695,
+          "source": "greedy"
+        },
+        {
+          "name": "Redcap Gutter-Dweller",
+          "score": 6.1455,
+          "source": "greedy"
+        },
+        {
+          "name": "Akki Ember-Keeper",
+          "score": 6.0658,
+          "source": "greedy"
+        },
+        {
+          "name": "Goblin Pyromancer",
+          "score": 6.0414,
+          "source": "greedy"
+        },
+        {
+          "name": "Squee, Dubious Monarch",
+          "score": 6.0394,
+          "source": "greedy"
+        },
+        {
+          "name": "Battle Cry Goblin",
+          "score": 6.0387,
+          "source": "greedy"
+        },
+        {
+          "name": "Sticky Fingers",
+          "score": 5.5883,
+          "source": "greedy"
+        },
+        {
+          "name": "Idol of False Gods",
+          "score": 5.5792,
+          "source": "greedy"
+        },
+        {
+          "name": "Charisma Bobblehead",
+          "score": 5.5375,
+          "source": "greedy"
+        },
+        {
+          "name": "Vault 21: House Gambit",
+          "score": 5.5235,
+          "source": "greedy"
+        },
+        {
+          "name": "Monument to Endurance",
+          "score": 5.7532,
+          "source": "greedy"
+        },
+        {
+          "name": "Daily Bugle Newspaper",
+          "score": 5.5299,
+          "source": "greedy"
+        },
+        {
+          "name": "Kiki-Jiki, Mirror Breaker",
+          "score": 5.8081,
+          "source": "greedy"
+        },
+        {
+          "name": "Goblin General",
+          "score": 5.4574,
+          "source": "greedy"
+        },
+        {
+          "name": "Goblin Goliath",
+          "score": 3.2852,
+          "source": "greedy"
+        },
+        {
+          "name": "Gargoyle Castle",
+          "score": 5.534,
+          "source": "greedy"
+        },
+        {
+          "name": "Arterial Alchemy",
+          "score": 3.285,
+          "source": "greedy"
+        },
+        {
+          "name": "Sarkhan, Fireblood",
+          "score": 3.2748,
+          "source": "greedy"
+        },
+        {
+          "name": "Lowland Oaf",
+          "score": 3.2555,
+          "source": "greedy"
+        },
+        {
+          "name": "Gate to the Afterlife",
+          "score": 3.1926,
+          "source": "greedy"
+        },
+        {
+          "name": "Goblin Lookout",
+          "score": 3.1432,
+          "source": "greedy"
+        },
+        {
+          "name": "Melded Moxite",
+          "score": 3.1388,
+          "source": "greedy"
+        },
+        {
+          "name": "Goblin Taskmaster",
+          "score": 3.0365,
+          "source": "greedy"
+        },
+        {
+          "name": "Airdrop Condor",
+          "score": 3.0362,
+          "source": "greedy"
+        },
+        {
+          "name": "Roar of Resistance",
+          "score": 2.8251,
+          "source": "greedy"
+        },
+        {
+          "name": "Contested Game Ball",
+          "score": 2.7475,
+          "source": "greedy"
+        },
+        {
+          "name": "Chandra, Flamecaller",
+          "score": 3.5549,
+          "source": "greedy"
+        },
+        {
+          "name": "Illuminate History",
+          "score": 2.9772,
+          "source": "greedy"
+        },
+        {
+          "name": "Stensia Uprising",
+          "score": 2.9473,
+          "source": "greedy"
+        },
+        {
+          "name": "Turtle Blimp",
+          "score": 2.5941,
+          "source": "greedy"
+        },
+        {
+          "name": "Ugin, Eye of the Storms",
+          "score": 2.5876,
+          "source": "greedy"
+        },
+        {
+          "name": "The Mightstone and Weakstone",
+          "score": 2.5761,
+          "source": "greedy"
+        },
+        {
+          "name": "Chromatic Orrery",
+          "score": 2.4796,
+          "source": "greedy"
+        },
+        {
+          "name": "Promising Vein",
+          "score": 5.3508,
+          "source": "greedy"
+        },
+        {
+          "name": "Founding of Omashu",
+          "score": 2.0744,
+          "source": "greedy"
+        },
+        {
+          "name": "Bag End Banquet",
+          "score": 1.9483,
+          "source": "greedy"
+        },
+        {
+          "name": "Chandra, Spark Hunter",
+          "score": 1.8127,
+          "source": "greedy"
+        },
+        {
+          "name": "Recon Craft Theta",
+          "score": 1.6354,
+          "source": "greedy"
+        },
+        {
+          "name": "Frontline Heroism",
+          "score": 1.5553,
+          "source": "greedy"
+        },
+        {
+          "name": "Quarrel's End",
+          "score": 1.5353,
+          "source": "greedy"
+        },
+        {
+          "name": "Luck Bobblehead",
+          "score": 1.5205,
+          "source": "greedy"
+        },
+        {
+          "name": "Idol of Oblivion",
+          "score": 1.4549,
+          "source": "greedy"
+        },
+        {
+          "name": "Aether Refinery",
+          "score": 1.4414,
+          "source": "greedy"
+        },
+        {
+          "name": "Animation Module",
+          "score": 1.3952,
+          "source": "greedy"
+        },
+        {
+          "name": "Replicating Ring",
+          "score": 1.6073,
+          "source": "greedy"
+        },
+        {
+          "name": "Clown Car",
+          "score": 1.4185,
+          "source": "greedy"
+        },
+        {
+          "name": "Throne of Empires",
+          "score": 1.3895,
+          "source": "greedy"
+        },
+        {
+          "name": "Skyclave Relic",
+          "score": 1.367,
+          "source": "greedy"
+        },
+        {
+          "name": "Grenzo's Rebuttal",
+          "score": 1.361,
+          "source": "greedy"
+        },
+        {
+          "name": "Goblin Gathering",
+          "score": 1.3519,
+          "source": "greedy"
+        },
+        {
+          "name": "Weatherlight Compleated",
+          "score": 1.3264,
+          "source": "greedy"
+        },
+        {
+          "name": "Baku Altar",
+          "score": 1.3211,
+          "source": "greedy"
+        },
+        {
+          "name": "Devils' Playground",
+          "score": 1.3164,
+          "source": "greedy"
+        },
+        {
+          "name": "Goblin Scouts",
+          "score": 1.3054,
+          "source": "greedy"
+        },
+        {
+          "name": "Acorn Catapult",
+          "score": 1.3012,
+          "source": "greedy"
+        },
+        {
+          "name": "Dragon Roost",
+          "score": 1.3008,
+          "source": "greedy"
+        },
+        {
+          "name": "Hire a Crew",
+          "score": 1.2933,
+          "source": "greedy"
+        },
+        {
+          "name": "Goblin Wizardry",
+          "score": 1.2894,
+          "source": "greedy"
+        },
+        {
+          "name": "Reckless Crew",
+          "score": 1.2762,
+          "source": "greedy"
+        },
+        {
+          "name": "Serpent Generator",
+          "score": 1.2663,
+          "source": "greedy"
+        },
+        {
+          "name": "Thatcher Revolt",
+          "score": 1.23,
+          "source": "greedy"
+        }
+      ],
+      "skipped": [
+        {
+          "name": "Aether Chaser",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Akoum Stonewaker",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Akroan Crusader",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Akroan Horse",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Anax, Hardened in the Forge",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Ancient Stone Idol",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Moonveil Regent",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Stormshriek Feral // Flush Out",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Charming Scoundrel",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Fear of Missing Out",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Humble Defector",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Urabrask, Heretic Praetor",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Bazaar of Baghdad",
+          "reason": "land produces no mana"
+        },
+        {
+          "name": "Plasma Jockey",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Amber Gristle O'Maul",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Magus of the Moon",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Reflecting Pool",
+          "reason": "land produces no mana"
+        },
+        {
+          "name": "Redrock Sentinel",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Salvaged Manaworker",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Scuttlemutt",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Cogwork Assembler",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Gravestone Strider",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Hearth Elemental // Stoke Genius",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Alloy Myr",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Opaline Unicorn",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Prismite",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Grabby Giant // That's Mine",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Mystic Skull // Mystic Monstrosity",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Scarecrow Guide",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Myr Propagator",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Human Torch, Johnny Storm",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Mishra, Excavation Prodigy",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Zhao, the Moon Slayer",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Shire Scarecrow",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Feldon of the Third Path",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Foreboding Statue // Forsaken Thresher",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Ivora, Insatiable Heir",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "H.E.R.B.I.E. Scout Unit",
+          "reason": "off-tribe creature"
+        },
+        {
+          "name": "Rhystic Cave",
+          "reason": "land produces no mana"
+        },
+        {
+          "name": "Misty Knight, Hero for Hire",
+          "reason": "off-tribe creature"
+        }
+      ],
+      "slot_count": 99,
+      "remaining_slots": 0,
+      "pool_count": 368
+    },
+    "cut": {
+      "ok": true,
+      "removed": [],
+      "swapped": [
+        {
+          "out": "Chromatic Orrery",
+          "in": "Summoning Station"
+        },
+        {
+          "out": "The Mightstone and Weakstone",
+          "in": "Diamond Kaleidoscope"
+        }
+      ],
+      "slot_count": 99,
+      "pool_count": 368
+    },
+    "land_alert": {
+      "status": "ok",
+      "count": 36,
+      "quota": [
+        36,
+        38
+      ],
+      "delta": 0,
+      "pct": 0.0,
+      "severity": "none"
+    }
+  },
+  "deck_diff": {
+    "removed": [],
+    "added": [
+      {
+        "name": "Abstergo Entertainment",
+        "quantity": 1
+      },
+      {
+        "name": "Abundant Countryside",
+        "quantity": 1
+      },
+      {
+        "name": "Acorn Catapult",
+        "quantity": 1
+      },
+      {
+        "name": "Aether Refinery",
+        "quantity": 1
+      },
+      {
+        "name": "Airdrop Condor",
+        "quantity": 1
+      },
+      {
+        "name": "Akki Ember-Keeper",
+        "quantity": 1
+      },
+      {
+        "name": "Ally Encampment",
+        "quantity": 1
+      },
+      {
+        "name": "Animation Module",
+        "quantity": 1
+      },
+      {
+        "name": "Ardoz, Cobbler of War",
+        "quantity": 1
+      },
+      {
+        "name": "Arterial Alchemy",
+        "quantity": 1
+      },
+      {
+        "name": "Avengers Tower",
+        "quantity": 1
+      },
+      {
+        "name": "Bag End Banquet",
+        "quantity": 1
+      },
+      {
+        "name": "Baku Altar",
+        "quantity": 1
+      },
+      {
+        "name": "Battle Cry Goblin",
+        "quantity": 1
+      },
+      {
+        "name": "Beetleback Chief",
+        "quantity": 1
+      },
+      {
+        "name": "Bucolic Ranch",
+        "quantity": 1
+      },
+      {
+        "name": "Captivating Cave",
+        "quantity": 1
+      },
+      {
+        "name": "Chandra, Flamecaller",
+        "quantity": 1
+      },
+      {
+        "name": "Chandra, Spark Hunter",
+        "quantity": 1
+      },
+      {
+        "name": "Charisma Bobblehead",
+        "quantity": 1
+      },
+      {
+        "name": "Clown Car",
+        "quantity": 1
+      },
+      {
+        "name": "Contested Game Ball",
+        "quantity": 1
+      },
+      {
+        "name": "Cradle of the Accursed",
+        "quantity": 1
+      },
+      {
+        "name": "Daily Bugle Newspaper",
+        "quantity": 1
+      },
+      {
+        "name": "Devils' Playground",
+        "quantity": 1
+      },
+      {
+        "name": "Diamond Kaleidoscope",
+        "quantity": 1
+      },
+      {
+        "name": "Dragon Roost",
+        "quantity": 1
+      },
+      {
+        "name": "Dunes of the Dead",
+        "quantity": 1
+      },
+      {
+        "name": "Fire Nation Palace",
+        "quantity": 1
+      },
+      {
+        "name": "Forbidden Orchard",
+        "quantity": 1
+      },
+      {
+        "name": "Founding of Omashu",
+        "quantity": 1
+      },
+      {
+        "name": "Foundry of the Consuls",
+        "quantity": 1
+      },
+      {
+        "name": "Fountainport",
+        "quantity": 1
+      },
+      {
+        "name": "Frontline Heroism",
+        "quantity": 1
+      },
+      {
+        "name": "Gargoyle Castle",
+        "quantity": 1
+      },
+      {
+        "name": "Gate to the Afterlife",
+        "quantity": 1
+      },
+      {
+        "name": "Goblin Gathering",
+        "quantity": 1
+      },
+      {
+        "name": "Goblin General",
+        "quantity": 1
+      },
+      {
+        "name": "Goblin Goliath",
+        "quantity": 1
+      },
+      {
+        "name": "Goblin Lookout",
+        "quantity": 1
+      },
+      {
+        "name": "Goblin Pyromancer",
+        "quantity": 1
+      },
+      {
+        "name": "Goblin Scouts",
+        "quantity": 1
+      },
+      {
+        "name": "Goblin Taskmaster",
+        "quantity": 1
+      },
+      {
+        "name": "Goblin Wizardry",
+        "quantity": 1
+      },
+      {
+        "name": "Gods' Eye, Gate to the Reikai",
+        "quantity": 1
+      },
+      {
+        "name": "Grenzo's Rebuttal",
+        "quantity": 1
+      },
+      {
+        "name": "Hall of Tagsin",
+        "quantity": 1
+      },
+      {
+        "name": "Haven of the Spirit Dragon",
+        "quantity": 1
+      },
+      {
+        "name": "Heap Gate",
+        "quantity": 1
+      },
+      {
+        "name": "Hellion Crucible",
+        "quantity": 1
+      },
+      {
+        "name": "Hire a Crew",
+        "quantity": 1
+      },
+      {
+        "name": "Idol of False Gods",
+        "quantity": 1
+      },
+      {
+        "name": "Idol of Oblivion",
+        "quantity": 1
+      },
+      {
+        "name": "Illuminate History",
+        "quantity": 1
+      },
+      {
+        "name": "Impulsive Pilferer",
+        "quantity": 1
+      },
+      {
+        "name": "Jasmine Dragon Tea Shop",
+        "quantity": 1
+      },
+      {
+        "name": "Kher Keep",
+        "quantity": 1
+      },
+      {
+        "name": "Kiki-Jiki, Mirror Breaker",
+        "quantity": 1
+      },
+      {
+        "name": "Lindblum, Industrial Regency // Mage Siege",
+        "quantity": 1
+      },
+      {
+        "name": "Lowland Oaf",
+        "quantity": 1
+      },
+      {
+        "name": "Luck Bobblehead",
+        "quantity": 1
+      },
+      {
+        "name": "Maelstrom of the Spirit Dragon",
+        "quantity": 1
+      },
+      {
+        "name": "Melded Moxite",
+        "quantity": 1
+      },
+      {
+        "name": "Monument to Endurance",
+        "quantity": 1
+      },
+      {
+        "name": "Opal Palace",
+        "quantity": 1
+      },
+      {
+        "name": "Promising Vein",
+        "quantity": 1
+      },
+      {
+        "name": "Quarrel's End",
+        "quantity": 1
+      },
+      {
+        "name": "Rainbow Vale",
+        "quantity": 1
+      },
+      {
+        "name": "Reckless Crew",
+        "quantity": 1
+      },
+      {
+        "name": "Reckless Lackey",
+        "quantity": 1
+      },
+      {
+        "name": "Recon Craft Theta",
+        "quantity": 1
+      },
+      {
+        "name": "Redcap Gutter-Dweller",
+        "quantity": 1
+      },
+      {
+        "name": "Replicating Ring",
+        "quantity": 1
+      },
+      {
+        "name": "Roar of Resistance",
+        "quantity": 1
+      },
+      {
+        "name": "Sarkhan, Fireblood",
+        "quantity": 1
+      },
+      {
+        "name": "Serpent Generator",
+        "quantity": 1
+      },
+      {
+        "name": "Skyclave Relic",
+        "quantity": 1
+      },
+      {
+        "name": "Sliver Hive",
+        "quantity": 1
+      },
+      {
+        "name": "Spawning Bed",
+        "quantity": 1
+      },
+      {
+        "name": "Springjack Pasture",
+        "quantity": 1
+      },
+      {
+        "name": "Squee, Dubious Monarch",
+        "quantity": 1
+      },
+      {
+        "name": "Stardew Valley",
+        "quantity": 1
+      },
+      {
+        "name": "Stensia Uprising",
+        "quantity": 1
+      },
+      {
+        "name": "Sticky Fingers",
+        "quantity": 1
+      },
+      {
+        "name": "Summoning Station",
+        "quantity": 1
+      },
+      {
+        "name": "Tarnished Citadel",
+        "quantity": 1
+      },
+      {
+        "name": "Thatcher Revolt",
+        "quantity": 1
+      },
+      {
+        "name": "Thaumatic Compass // Spires of Orazca",
+        "quantity": 1
+      },
+      {
+        "name": "The Gold Saucer",
+        "quantity": 1
+      },
+      {
+        "name": "The Great Mound",
+        "quantity": 1
+      },
+      {
+        "name": "The Mycosynth Gardens",
+        "quantity": 1
+      },
+      {
+        "name": "Throne of Empires",
+        "quantity": 1
+      },
+      {
+        "name": "Treasure Map // Treasure Cove",
+        "quantity": 1
+      },
+      {
+        "name": "Turtle Blimp",
+        "quantity": 1
+      },
+      {
+        "name": "Ugin, Eye of the Storms",
+        "quantity": 1
+      },
+      {
+        "name": "Underfoot Underdogs",
+        "quantity": 1
+      },
+      {
+        "name": "Urza's Factory",
+        "quantity": 1
+      },
+      {
+        "name": "Vault 21: House Gambit",
+        "quantity": 1
+      },
+      {
+        "name": "Weatherlight Compleated",
+        "quantity": 1
+      }
+    ],
+    "commander_changed": null,
+    "removed_count": 0,
+    "added_count": 99
+  }
+}

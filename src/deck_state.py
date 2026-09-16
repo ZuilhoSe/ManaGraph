@@ -52,6 +52,29 @@ VALID_INTENTS = ("build", "improve", "substitute", "cut")
 VALID_MANA_STRATEGIES = ("static", "hypergeometric")
 STATE_SCHEMA_VERSION = "1"
 
+# Hyphenated "99-card" / "full 99" must count as a build even when a seed list
+# is already present (has_cards=True); otherwise the fallback would classify
+# those as improve and skip filling to 99.
+_BUILD_SIZE_RE = re.compile(r"\b(?:99|100)[\s-]cards?\b|\bfull\s+(?:99|100)\b")
+_PARTIAL_BUILD_PHRASES = (
+    "don't fill",
+    "dont fill",
+    "do not fill",
+    "staples only",
+    "just staples",
+    "core only",
+    "seed only",
+    "not a full",
+    "partial deck",
+    "not 99",
+)
+
+
+def _asks_partial_build(query: str) -> bool:
+    """True when the user opted out of a filled 99 (seed / staples / partial)."""
+    q = (query or "").lower().replace("\u2019", "'").replace("\u2018", "'")
+    return any(phrase in q for phrase in _PARTIAL_BUILD_PHRASES)
+
 
 def infer_intent(query: str, has_cards: bool = False) -> str:
     """Classify the user task. Improve/substitute are first-class, not failed builds."""
@@ -93,8 +116,23 @@ def infer_intent(query: str, has_cards: bool = False) -> str:
         return "improve"
     if any(
         phrase in q
-        for phrase in ("from scratch", "build me a deck", "build a deck", "full deck", "99 cards")
-    ):
+        for phrase in (
+            "from scratch",
+            "build me a deck",
+            "build a deck",
+            "build me a ",
+            "build me an ",
+            "full deck",
+            "99 cards",
+            "99-card",
+            "99 card",
+            "100-card",
+            "100 card",
+            "100 cards",
+            "full 99",
+            "full 100",
+        )
+    ) or bool(_BUILD_SIZE_RE.search(q)):
         return "build"
     return "improve" if has_cards else "build"
 
@@ -160,26 +198,15 @@ def infer_task(query: str, has_cards: bool = False) -> dict:
             "focus on cards i own",
         )
     )
-    full_build = intent == "build" and (
-        any(
-            phrase in q
-            for phrase in (
-                "full deck",
-                "99 cards",
-                "complete deck",
-                "build me a deck",
-                "build a deck",
-                "from scratch",
-            )
-        )
-        or bool(re.search(r"\bfull\b.{0,40}\bdeck\b", q))
-        or bool(re.search(r"\bbuild\b.{0,80}\bdeck\b", q))
-    )
+    # Commander builds default to a filled 99 (commander sits outside that 99)
+    # unless the user asked for a seed / staples-only / partial list.
+    # Improve / substitute / cut never require a complete 99.
+    require_complete = intent == "build" and not _asks_partial_build(q)
     filters = infer_build_filters(query)
     return {
         "intent": intent,
         "owned_only": owned_only,
-        "require_complete": full_build,
+        "require_complete": require_complete,
         "archetype": infer_archetype(query),
         **filters,
     }

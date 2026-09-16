@@ -674,7 +674,12 @@ def merge_hit_maps(
         if k in by_key:
             prev = by_key[k]
             prev["_lex_distance"] = lex_d
+            # None when this name was lexical/ontology-only on a prior pass
+            # (second merge_hit_maps for ontology) or a duplicate in this list.
             emb_d = prev["_emb_distance"]
+            if emb_d is None:
+                emb_d = 1.0
+                prev["_emb_distance"] = emb_d
             emb_s = 1.0 / (1.0 + emb_d)
             lex_s = 1.0 / (1.0 + lex_d)
             blended = lexical_weight * lex_s + embedding_weight * emb_s
@@ -817,23 +822,17 @@ def lexical_search_sqlite(
     )
 
     q_norm = " ".join((query or "").lower().split())
-    extra_norms = {
-        " ".join((extra or "").lower().split())
-        for extra in (extra_phrases or [])
-        if extra
-    }
     allowed = set(allowed_colors or [])
     by_name: dict[str, dict] = {}
 
     for phrase in ordered_phrases:
-        # Never LIMIT the user query or core family templates — a random LIMIT
-        # was dropping Village Rites / Negate / Mesa Enchantress behind noise.
+        # User query is unlimited so a short oracle string ("draw a card")
+        # is not truncated by LIMIT. Harness extras are capped.
         params = [f"%{phrase}%"] + identity_params + cmc_params
-        if (
-            phrase == q_norm
-            or phrase in extra_norms
-            or phrase in _UNLIMITED_CORE_PHRASES
-        ):
+        # Unlimited scan only for the user's own query. Harness extras
+        # ("draw a card" on every draw-shaped search) used to fetchall the
+        # whole catalog (1400+ rows) per parallel tool call.
+        if phrase == q_norm:
             rows = conn.execute(base_sql, params).fetchall()
         else:
             rows = conn.execute(base_sql + " LIMIT 500", params).fetchall()

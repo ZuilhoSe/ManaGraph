@@ -1,78 +1,98 @@
 1 Lightning, Army of One
-16 Mountain
-8 Plains
-1 Abandoned Air Temple
+3 Mountain
+1 Abundant Countryside
 1 Aggravated Assault
-1 Akki Battle Squad
-1 Alpine Moon
+1 Ally Encampment
 1 Ancient Ziggurat
-1 Armistice
-1 Ash Barrens
-1 Aurelia, the Warleader
-1 Benevolent Blessing
+1 Arm-Mounted Anchor
+1 Beamtown Beatstick
 1 Bilbo's Ring
-1 Bloodthirster
+1 Blossoming Calm
+1 Bounty Board
 1 Breath of Fury
-1 Brightstone Ritual
 1 Brilliant Wings
+1 Brotherhood Headquarters
+1 Caduceus, Staff of Hermes
+1 Captain America's Shield
+1 Captivating Cave
+1 Castle Doom
+1 Cave of Temptation
+1 Charming Scoundrel
+1 Chromatic Orrery
 1 Combat Celebrant
 1 Command Tower
+1 Contested Game Ball
+1 Cool but Rude
+1 Courageous Resolve
+1 Crown of Awe
+1 Currency Converter
+1 Daily Bugle Building
+1 Daily Bugle Newspaper
 1 Desert Were-Worm
-1 Drumbellower
+1 Dungeoneer's Pack
 1 Eater of Virtue
+1 Eldritch Immunity
+1 Enduring Renewal
 1 Enter the Avatar State
+1 Everybody Lives!
 1 Exotic Orchard
-1 Faith's Shield
+1 Fated Clash
 1 Fear of Missing Out
-1 Fire Nation Palace
-1 Fists of Flame
 1 Forbidden Orchard
-1 Fury of the Horde
-1 Genji Glove
-1 Godo, Bandit Warlord
+1 Fountainport
+1 Gate to the Afterlife
+1 Gleaming Splendor
 1 Great Train Heist
-1 Grim Reaper's Sprint
+1 Guildmages' Forum
+1 Hall of Oracles
+1 Hall of Tagsin
+1 Haven of the Spirit Dragon
+1 Heap Gate
 1 Hellkite Charger
-1 Hexplate Wallbreaker
-1 Jangling Automaton
+1 Hook Swords
+1 Jasmine Dragon Tea Shop
 1 Karlach, Fury of Avernus
-1 Lightning Blast
-1 Lightning Runner
+1 Krovod Haunch
 1 Lotus Field
+1 Maelstrom of the Spirit Dragon
 1 Manhole Cover
-1 Moraug, Fury of Akoum
-1 Nahiri, the Lithomancer
-1 Nine Lives
-1 Orbs of Warding
-1 Overpowering Attack
+1 Mech Hangar
+1 Monument to Endurance
+1 Nazgûl Battle-Mace
+1 Omni-Cheese Pizza
 1 Pillar of the Paruns
-1 Planar Nexus
-1 Port Razer
+1 Plains
+1 Quintorius, History Chaser
 1 Rainbow Vale
 1 Raiyuu, Storm's Edge
-1 Rally the Troops
 1 Raph & Leo, Sibling Rivals
 1 Raphael, Tag Team Tough
+1 Reckoner Bankbuster
 1 Relentless Assault
-1 Response // Resurgence
-1 Reveille Squad
-1 Rite of Flame
-1 Savage Beating
+1 Sarkhan, Fireblood
 1 Scourge of the Throne
 1 Seize the Day
-1 Soulbright Flamekin
-1 Spectacular Tactics
-1 Spectrum Sentinel
-1 Swinging Ship
+1 Seraphic Greatsword
+1 Shadowspear
+1 Sheltering Prayers
+1 Sliver Hive
+1 Sticky Fingers
+1 Study Hall
 1 Take the Bait
+1 Tarnished Citadel
+1 Tempt with Bunnies
+1 Teyo, Geometric Tactician
 1 Teyo, the Shieldmage
-1 Thaumatic Compass // Spires of Orazca
-1 The One Ring
+1 The Flame of Keld
+1 The Mycosynth Gardens
+1 The Seedcore
+1 Tin Street Market
+1 Turtle Lair
+1 Ultima Weapon
 1 Undiscovered Paradise
-1 Urn of Godfire
 1 Vault 21: House Gambit
-1 Waves of Aggression
-1 World at War
+1 Wedding Announcement // Wedding Festivity
+1 White Lotus Hideout
+1 Witch's Mark
 1 Zariel, Archduke of Avernus
-1 Zhao, the Moon Slayer
-1 Éomer, Marshal of Rohan
+1 Zephyr Boots

@@ -260,6 +260,9 @@ class CommanderValidator:
             size_errors.append(
                 f"Main deck has {slot_count} cards; Commander allows {MAIN_DECK_SIZE}."
             )
+        # Incomplete 99 is a hard fail only for full builds (require_complete).
+        # Improve / substitute / cut keep it as a warning so the Supervisor can
+        # still APPROVE a legal partial list.
         if deck.require_complete and slot_count != MAIN_DECK_SIZE:
             size_errors.append(
                 f"Main deck has {slot_count}/{MAIN_DECK_SIZE} cards (complete deck required)."

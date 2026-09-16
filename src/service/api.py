@@ -12,7 +12,6 @@ import sys
 from dataclasses import fields
 from pathlib import Path
 from typing import Any
-from typing import Literal
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -27,7 +26,6 @@ from service.handlers.deck_run import cancel_deck_run, stream_deck_run
 from service.handlers.decks import add_missing_cards, build_pool, delete_deck, get_deck, list_decks, save_deck
 from service.handlers.inventory import delete_inventory_card, list_inventory_cards
 from service.handlers.ontology import (
-    export_gold_set,
     get_model_config,
     get_ontology_card,
     list_ontology_cards,
@@ -36,7 +34,6 @@ from service.handlers.ontology import (
     ontology_stats,
     rebuild_model_facts,
     save_model_config,
-    save_ontology_review,
 )
 from contracts import AllocationCommand, SCHEMA_VERSION
 from deck_state import DeckState
@@ -223,7 +220,7 @@ def analyze_deck_route(payload: AnalyzeDeckRequest):
 
 @app.get("/ontology-validator", response_class=FileResponse)
 def ontology_validator_page():
-    """Serve the zero-build review page kept in ``data``."""
+    """Serve the local catalog inspector kept in ``data``."""
     if not ONTOLOGY_PAGE.is_file():
         raise HTTPException(status_code=404, detail="ontology_validator.html is missing")
     return FileResponse(ONTOLOGY_PAGE, media_type="text/html")
@@ -278,7 +275,6 @@ def ontology_cards_route(
     color: str = "",
     keyword: str = "",
     forge_status: str = "",
-    review_status: str = "",
     page: int = 1,
     page_size: int = 50,
 ):
@@ -288,7 +284,6 @@ def ontology_cards_route(
         color=color,
         keyword=keyword,
         forge_status=forge_status,
-        review_status=review_status,
         page=page,
         page_size=page_size,
     )
@@ -300,42 +295,3 @@ def ontology_card_route(card_id: str):
     if card is None:
         raise HTTPException(status_code=404, detail=f"Card '{card_id}' was not found.")
     return card
-
-
-class OntologyReviewRequest(BaseModel):
-    card_id: str
-    status: Literal["unreviewed", "accepted", "rejected", "uncertain"]
-    selected_source: Literal["scryfall", "forge", "resolved"] = "resolved"
-    field_checks: dict[str, Any] = {}
-    labels: list[str] = []
-    notes: str = ""
-
-
-@app.post("/api/ontology/reviews")
-def save_ontology_review_route(payload: OntologyReviewRequest):
-    try:
-        return save_ontology_review(
-            payload.card_id,
-            payload.status,
-            payload.labels,
-            payload.notes,
-            payload.selected_source,
-            payload.field_checks,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
-
-
-@app.post("/api/ontology/gold-set/export")
-def export_ontology_gold_set_route():
-    return export_gold_set()
-
-
-@app.get("/api/ontology/gold-set/download")
-def download_ontology_gold_set():
-    result = export_gold_set()
-    return FileResponse(
-        result["path"],
-        media_type="application/x-ndjson",
-        filename="gold_set_v1.jsonl",
-    )

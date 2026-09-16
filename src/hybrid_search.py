@@ -20,7 +20,10 @@ from embeddings import MiniLMStrategy, describe_embedding_device, place_model_on
 from geometry import identity_where
 from ontology.search import (
     OntologyClause,
+    clauses_from_filters,
     compile_search_intent,
+    filter_hits_by_clauses,
+    merge_cmc_bounds,
     search_ontology_clauses,
     search_route,
 )
@@ -313,6 +316,8 @@ class RAGSearcher:
         role=None,
         hybrid=True,
         lexical_only_queries: list[str] | None = None,
+        predicate_filters: dict | None = None,
+        ontology_only: bool = False,
     ):
         """Compile unique phrases, one ontology SQL, one Chroma batch, one lexical pass."""
         phrases = self._unique_texts([str(q) for q in (queries or []) if q is not None])
@@ -332,15 +337,24 @@ class RAGSearcher:
                     continue
                 seen_clause.add(key)
                 clauses.append(clause)
+        if len(intents) == 1:
+            cmc_min, cmc_max = merge_cmc_bounds(
+                cmc_min, cmc_max, intents[0].cmc_min, intents[0].cmc_max
+            )
+        filter_clauses = clauses_from_filters(predicate_filters)
 
         primary = phrases[0] if phrases else (lex_only[0] if lex_only else "")
+        if not phrases and not lex_only and not filter_clauses:
+            return []
         if len(phrases) == 1 and not lex_only:
             print(f"\nSearching for: '{primary}'")
-        else:
+        elif phrases or lex_only:
             print(
                 f"\nSearching batch: {len(phrases)} phrases"
                 + (f" + {len(lex_only)} lexical-only" if lex_only else "")
             )
+        else:
+            print("\nSearching filters only")
         print(
             f"Filters -> Colors: {allowed_colors} | Owned only: {owned_only} | "
             f"P_max: {max_card_price} | cmc: [{cmc_min}, {cmc_max}] | role: {role} | "
@@ -351,11 +365,16 @@ class RAGSearcher:
             for c in clauses
         ) or "(none)"
         print(f"Compiled clauses: [{clause_fmt}]")
+        if filter_clauses:
+            filter_fmt = ", ".join(
+                f"{c.predicate}={c.arg_value}" for c in filter_clauses
+            )
+            print(f"AND filters: [{filter_fmt}]")
         if len(intents) == 1:
             print(f"Oracle harness: {intents[0].oracle_phrases}")
 
         fetch = n_results if n_results is not None else max(limit * 4, 50)
-        if cmc_min is not None or cmc_max is not None or role_key:
+        if cmc_min is not None or cmc_max is not None or role_key or filter_clauses:
             fetch = max(fetch, limit * 8)
         fetch = min(max(int(fetch), limit), 400)
 
@@ -366,7 +385,15 @@ class RAGSearcher:
         need_embed = False
         need_lex = False
         need_ontology = False
-        if not hybrid:
+        if not phrases and not lex_only:
+            need_ontology = True
+            if not clauses:
+                clauses = list(filter_clauses)
+        elif ontology_only:
+            need_ontology = bool(clauses or filter_clauses)
+            if not clauses:
+                clauses = list(filter_clauses)
+        elif not hybrid:
             need_embed = bool(phrases)
         elif all_ontology and not lex_only:
             need_ontology = bool(clauses)
@@ -404,67 +431,73 @@ class RAGSearcher:
                 embed_queries, allowed_colors, fetch
             )
 
-        with _conn_lock:
-            conn = sqlite3.connect(DB_NAME)
-            cursor = conn.cursor()
-            try:
-                lexical_hits: list[dict] = []
-                ontology_hits: list[dict] = []
-                if need_lex:
-                    n_lex = max(1, 1 + len(self._unique_texts(lex_extras)))
-                    lex_limit = max(limit * 15, 500) * n_lex
-                    lexical_hits = lexical_search_sqlite(
-                        conn,
-                        primary,
-                        allowed_colors,
-                        limit=lex_limit,
-                        cmc_min=cmc_min,
-                        cmc_max=cmc_max,
-                        extra_phrases=self._unique_texts(lex_extras) or None,
-                    )
-                if need_ontology:
-                    try:
-                        ontology_hits = search_ontology_clauses(
-                            conn,
-                            clauses,
-                            allowed_colors,
-                            k=max(limit * 15, 200),
-                        )
-                    except sqlite3.OperationalError:
-                        ontology_hits = []
-                if hybrid:
-                    print(
-                        f"Hybrid: {len(embedding_hits)} embedding + {len(lexical_hits)} lexical "
-                        f"+ {len(ontology_hits)} ontology (pre-merge)"
-                    )
-
-                if hybrid:
-                    merged = merge_hit_maps(embedding_hits, lexical_hits)
-                    merged = merge_hit_maps(merged, ontology_hits)
-                else:
-                    merged = sorted(embedding_hits, key=lambda h: h["distance"])
-                q_compact = " ".join(str(primary).lower().split())
-                if hybrid and len(q_compact) <= 80:
-                    merged.sort(key=hit_sort_key)
-                    if "counter" in q_compact:
-                        merged = diversify_by_phrase(
-                            merged, max(limit * 4, 80), prefer_phrase=q_compact
-                        )
-
-                return self._materialize_hits(
-                    cursor,
-                    merged,
-                    card_pool=card_pool,
-                    limit=limit,
-                    max_card_price=max_card_price,
-                    currency=currency,
+        # One connection per call — do not hold `_conn_lock` across the
+        # lexical scan. Architect fires searches in parallel; serializing
+        # them on a leftover singleton lock made a 35-minute Architect turn.
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        try:
+            lexical_hits: list[dict] = []
+            ontology_hits: list[dict] = []
+            if need_lex:
+                n_lex = max(1, 1 + len(self._unique_texts(lex_extras)))
+                lex_limit = max(limit * 15, 500) * n_lex
+                lexical_hits = lexical_search_sqlite(
+                    conn,
+                    primary,
+                    allowed_colors,
+                    limit=lex_limit,
                     cmc_min=cmc_min,
                     cmc_max=cmc_max,
-                    role_key=role_key,
-                    owned_only=owned_only,
+                    extra_phrases=self._unique_texts(lex_extras) or None,
                 )
-            finally:
-                conn.close()
+            if need_ontology:
+                try:
+                    ontology_hits = search_ontology_clauses(
+                        conn,
+                        clauses,
+                        allowed_colors,
+                        k=max(limit * 15, 200),
+                    )
+                except sqlite3.OperationalError:
+                    ontology_hits = []
+            if hybrid:
+                print(
+                    f"Hybrid: {len(embedding_hits)} embedding + {len(lexical_hits)} lexical "
+                    f"+ {len(ontology_hits)} ontology (pre-merge)"
+                )
+
+            if not phrases and not lex_only:
+                merged = list(ontology_hits)
+            elif hybrid:
+                merged = merge_hit_maps(embedding_hits, lexical_hits)
+                merged = merge_hit_maps(merged, ontology_hits)
+            else:
+                merged = sorted(embedding_hits, key=lambda h: h["distance"])
+            q_compact = " ".join(str(primary).lower().split())
+            if hybrid and len(q_compact) <= 80:
+                merged.sort(key=hit_sort_key)
+                if "counter" in q_compact:
+                    merged = diversify_by_phrase(
+                        merged, max(limit * 4, 80), prefer_phrase=q_compact
+                    )
+            if filter_clauses:
+                merged = filter_hits_by_clauses(conn, merged, filter_clauses)
+
+            return self._materialize_hits(
+                cursor,
+                merged,
+                card_pool=card_pool,
+                limit=limit,
+                max_card_price=max_card_price,
+                currency=currency,
+                cmc_min=cmc_min,
+                cmc_max=cmc_max,
+                role_key=role_key,
+                owned_only=owned_only,
+            )
+        finally:
+            conn.close()
 
     def search_cards(
         self,
@@ -480,6 +513,8 @@ class RAGSearcher:
         cmc_max=None,
         role=None,
         hybrid=True,
+        predicate_filters: dict | None = None,
+        ontology_only: bool = False,
     ):
         return self.search_cards_batch(
             queries=[query],
@@ -494,6 +529,8 @@ class RAGSearcher:
             cmc_max=cmc_max,
             role=role,
             hybrid=hybrid,
+            predicate_filters=predicate_filters,
+            ontology_only=ontology_only,
         )
 
     def close(self):

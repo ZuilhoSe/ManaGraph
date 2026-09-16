@@ -11,7 +11,8 @@ Prefer the full pipeline: python src/build_dataset.py
 
   python src/vectorize_cards.py              # only changed cards
   python src/vectorize_cards.py --metadata-only
-  python src/vectorize_cards.py --views-only   # oracle+type+keywords+mana, for scoring
+  python src/vectorize_cards.py --views-only   # oracle+type+keywords+mana+predicates
+  python src/vectorize_cards.py --predicates-only  # multi-hot only; keeps MiniLM views
   python src/vectorize_cards.py --rebuild
 """
 
@@ -30,7 +31,15 @@ from embeddings import (
     encode_texts,
     place_model_on_device,
 )
-from geometry import VIEWS_PATH, chroma_metadata, save_card_views, view_texts
+from geometry import (
+    VIEWS_PATH,
+    chroma_metadata,
+    encode_predicate_views,
+    load_card_views,
+    save_card_views,
+    view_texts,
+)
+from ontology.graph import pred_sets_from_id_rows
 from retrieval_text import DOCUMENT_FORMAT, card_document, is_searchable_card
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -218,7 +227,12 @@ def main():
     parser.add_argument(
         "--views-only",
         action="store_true",
-        help="Encode oracle, type, keywords, and mana-cost views once into data/card_views.npz (no Chroma write).",
+        help="Encode oracle, type, keywords, mana-cost, and predicate views into data/card_views.npz (no Chroma write).",
+    )
+    parser.add_argument(
+        "--predicates-only",
+        action="store_true",
+        help="Rebuild the multi-hot predicate view in data/card_views.npz without MiniLM.",
     )
     parser.add_argument("--batch-size", type=int, default=256, help="Chroma upsert batch size.")
     parser.add_argument(
@@ -230,6 +244,9 @@ def main():
     args = parser.parse_args()
     if args.metadata_only:
         stamp_metadata_only()
+        return
+    if args.predicates_only:
+        generate_predicate_views()
         return
     if args.views_only:
         generate_card_views(encode_batch=args.encode_batch)
@@ -259,6 +276,60 @@ def stamp_metadata_only():
     stamp_chroma_metadata(collection, kept, metadatas, ids)
 
 
+def _searchable_cards(conn: sqlite3.Connection) -> list[tuple]:
+    cols = {row[1] for row in conn.execute("PRAGMA table_info(cards)")}
+    kw_sql = "keywords" if "keywords" in cols else "NULL"
+    cards = conn.execute(
+        f"SELECT id, name, type_line, oracle_text, mana_cost, {kw_sql}, legalities FROM cards "
+        "WHERE type_line NOT LIKE '%Basic Land%'"
+    ).fetchall()
+    return [row for row in cards if is_searchable_card(row[1], row[2], row[6])]
+
+
+def _predicate_sets_by_id(conn: sqlite3.Connection) -> dict:
+    try:
+        rows = conn.execute(
+            "SELECT card_id, predicate, arg_key, arg_value FROM ontology_predicates"
+        ).fetchall()
+    except sqlite3.OperationalError:
+        return {}
+    return pred_sets_from_id_rows(rows)
+
+
+def generate_predicate_views(path: str = VIEWS_PATH):
+    """Write the multi-hot predicate matrix. Keeps MiniLM views when the npz exists."""
+    conn = sqlite3.connect(DB_NAME)
+    by_id = _predicate_sets_by_id(conn)
+    existing = load_card_views(path)
+    if existing is not None:
+        ids = [card_id for card_id, _idx in sorted(existing["index"].items(), key=lambda item: item[1])]
+    else:
+        ids = [row[0] for row in _searchable_cards(conn)]
+    conn.close()
+    matrix, vocab = encode_predicate_views(ids, by_id)
+    payload = {
+        "oracle": existing.get("oracle") if existing else None,
+        "type": existing.get("type") if existing else None,
+        "keywords": existing.get("keywords") if existing else None,
+        "mana": existing.get("mana") if existing else None,
+    }
+    save_card_views(
+        ids,
+        oracle=payload["oracle"],
+        type_vecs=payload["type"],
+        path=path,
+        keywords=payload["keywords"],
+        mana=payload["mana"],
+        predicates=matrix,
+        predicate_vocab=vocab,
+    )
+    occupied = int(matrix.sum()) if matrix.size else 0
+    print(
+        f"Wrote {len(ids)} x {len(vocab)} predicate view "
+        f"({occupied} hot bits) to {path}."
+    )
+
+
 def generate_card_views(encode_batch: int | None = None):
     """One-shot MiniLM encode of oracle, type, keywords, mana cost; fill only looks up ids."""
     if encode_batch is None:
@@ -269,14 +340,9 @@ def generate_card_views(encode_batch: int | None = None):
     model = MiniLMStrategy().get_function()._model
     place_model_on_device(model)
     conn = sqlite3.connect(DB_NAME)
-    cols = {row[1] for row in conn.execute("PRAGMA table_info(cards)")}
-    kw_sql = "keywords" if "keywords" in cols else "NULL"
-    cards = conn.execute(
-        f"SELECT id, name, type_line, oracle_text, mana_cost, {kw_sql}, legalities FROM cards "
-        "WHERE type_line NOT LIKE '%Basic Land%'"
-    ).fetchall()
+    kept = _searchable_cards(conn)
+    by_id = _predicate_sets_by_id(conn)
     conn.close()
-    kept = [row for row in cards if is_searchable_card(row[1], row[2], row[6])]
     ids = [row[0] for row in kept]
     texts = {key: [] for key in ("oracle", "type", "keywords", "mana")}
     for row in kept:
@@ -294,14 +360,20 @@ def generate_card_views(encode_batch: int | None = None):
     n = len(ids)
     blob = texts["oracle"] + texts["type"] + texts["keywords"] + texts["mana"]
     encoded = encode_texts(model, blob, batch_size=encode_batch, normalize=False)
+    matrix, vocab = encode_predicate_views(ids, by_id)
     save_card_views(
         ids,
         encoded[0:n],
         encoded[n : 2 * n],
         keywords=encoded[2 * n : 3 * n],
         mana=encoded[3 * n : 4 * n],
+        predicates=matrix,
+        predicate_vocab=vocab,
     )
-    print(f"Wrote {n} x 4 views to {VIEWS_PATH} ({time.perf_counter() - t0:.1f}s).")
+    print(
+        f"Wrote {n} x 4 MiniLM views + {len(vocab)} predicate dims to {VIEWS_PATH} "
+        f"({time.perf_counter() - t0:.1f}s)."
+    )
 
 
 if __name__ == "__main__":

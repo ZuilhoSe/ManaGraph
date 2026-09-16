@@ -12,6 +12,12 @@ from collections import defaultdict
 from typing import Iterable, Mapping
 
 from catalog import DB_NAME
+from ontology.graph import (
+    flow_repair_records,
+    flow_snapshot,
+    merge_deficit_records,
+    search_queries_from_records,
+)
 from ontology.search import predicates_for_names
 
 
@@ -58,16 +64,36 @@ def summarize_predicates(
     return dict(counts)
 
 
-def typed_deficits(counts: Mapping[str, int]) -> list[str]:
-    """ONTOLOGY.md-style mismatches Stage 3.5 cannot express."""
-    deficits: list[str] = []
+def _repair(predicate: str, arg_key: str, arg_value: str) -> dict[str, str]:
+    return {"predicate": predicate, "arg_key": arg_key, "arg_value": arg_value}
+
+
+def typed_deficit_records(counts: Mapping[str, int]) -> list[dict]:
+    """Typed mismatches plus the predicates that close them.
+
+    Texts stay Stage 3.5-incompatible on purpose. `repairs` is what the solver
+    consumes so cut can prefer a sac outlet over another cosine neighbour.
+    """
+    records: list[dict] = []
     treasures = int(counts.get("produces:treasure") or 0)
     outlets = int(counts.get("enables:sac_outlet") or 0)
+    outlet_repairs = (
+        _repair("enables", "capability", "sac_outlet"),
+        _repair("consumes", "object", "treasure"),
+    )
     if treasures > 0 and outlets == 0:
-        deficits.append(f"{treasures} treasure sources, 0 sacrifice outlets")
+        records.append(
+            {
+                "text": f"{treasures} treasure sources, 0 sacrifice outlets",
+                "repairs": list(outlet_repairs),
+            }
+        )
     elif treasures >= 3 and outlets > 0 and treasures > outlets * 3:
-        deficits.append(
-            f"{treasures} treasure sources, {outlets} sacrifice outlets"
+        records.append(
+            {
+                "text": f"{treasures} treasure sources, {outlets} sacrifice outlets",
+                "repairs": list(outlet_repairs),
+            }
         )
 
     tokens = int(counts.get("produces:token") or 0) + int(
@@ -75,24 +101,46 @@ def typed_deficits(counts: Mapping[str, int]) -> list[str]:
     )
     token_payoffs = int(counts.get("rewards:token_created") or 0)
     if tokens > 0 and token_payoffs == 0:
-        deficits.append(f"{tokens} token sources, 0 token-created payoffs")
+        records.append(
+            {
+                "text": f"{tokens} token sources, 0 token-created payoffs",
+                "repairs": [_repair("rewards", "event", "token_created")],
+            }
+        )
 
     extra_combat = int(counts.get("enables:extra_combat") or 0)
     attack_payoffs = int(counts.get("rewards:attack") or 0)
     if attack_payoffs >= 3 and extra_combat == 0:
-        deficits.append(f"{attack_payoffs} attack payoffs, 0 extra combat")
+        records.append(
+            {
+                "text": f"{attack_payoffs} attack payoffs, 0 extra combat",
+                "repairs": [_repair("enables", "capability", "extra_combat")],
+            }
+        )
 
     reanimates = int(counts.get("recurs:graveyard") or 0)
     gy_fuel = int(counts.get("produces:creature_in_graveyard") or 0) + int(
         counts.get("produces:card_in_graveyard") or 0
     )
+    gy_repairs = [
+        _repair("produces", "object", "creature_in_graveyard"),
+        _repair("produces", "object", "card_in_graveyard"),
+    ]
     if reanimates > 0 and gy_fuel == 0:
-        deficits.append(
-            f"{reanimates} reanimation effects, 0 mill/self-fill sources"
+        records.append(
+            {
+                "text": f"{reanimates} reanimation effects, 0 mill/self-fill sources",
+                "repairs": gy_repairs,
+            }
         )
     elif reanimates > 0 and gy_fuel > 0 and reanimates > gy_fuel * 2:
-        deficits.append(
-            f"{reanimates} reanimation effects, {gy_fuel} graveyard fill sources"
+        records.append(
+            {
+                "text": (
+                    f"{reanimates} reanimation effects, {gy_fuel} graveyard fill sources"
+                ),
+                "repairs": gy_repairs,
+            }
         )
 
     draws = int(counts.get("emits:draw") or 0) + int(
@@ -100,16 +148,39 @@ def typed_deficits(counts: Mapping[str, int]) -> list[str]:
     )
     draw_payoffs = int(counts.get("rewards:draw") or 0)
     if draw_payoffs > 0 and draws == 0:
-        deficits.append(f"{draw_payoffs} draw payoffs, 0 draw sources")
+        records.append(
+            {
+                "text": f"{draw_payoffs} draw payoffs, 0 draw sources",
+                "repairs": [
+                    _repair("emits", "event", "draw"),
+                    _repair("produces", "object", "card_in_hand"),
+                ],
+            }
+        )
 
     landfall_payoffs = int(counts.get("rewards:landfall") or 0)
     land_events = int(counts.get("emits:landfall") or 0) + int(
         counts.get("produces:land_in_play") or 0
     )
     if landfall_payoffs > 0 and land_events == 0:
-        deficits.append(f"{landfall_payoffs} landfall payoffs, 0 extra land / land ETB")
+        records.append(
+            {
+                "text": (
+                    f"{landfall_payoffs} landfall payoffs, 0 extra land / land ETB"
+                ),
+                "repairs": [
+                    _repair("emits", "event", "landfall"),
+                    _repair("produces", "object", "land_in_play"),
+                ],
+            }
+        )
 
-    return deficits
+    return records
+
+
+def typed_deficits(counts: Mapping[str, int]) -> list[str]:
+    """ONTOLOGY.md-style mismatches Stage 3.5 cannot express."""
+    return [record["text"] for record in typed_deficit_records(counts)]
 
 
 def interaction_snapshot(
@@ -138,6 +209,37 @@ def interaction_snapshot(
     }
 
 
+def curve_fill_cmc_max(report: Mapping | None) -> int | None:
+    """Cheapest low curve bucket plus one mana of slack (curve 2 low → 3)."""
+    lows: list[int] = []
+    for gap in (report or {}).get("curve_gaps") or []:
+        if str(gap.get("status") or "") != "low":
+            continue
+        bucket = str(gap.get("bucket") or "")
+        if bucket.isdigit():
+            lows.append(int(bucket))
+    if not lows:
+        return None
+    return min(lows) + 1
+
+
+def suggested_searches_from_queries(
+    queries: Iterable[str],
+    cmc_max: int | None = None,
+) -> list[dict]:
+    """Architect-facing `rewards=etb, cmc<=3` copies of `predicate:value` queries."""
+    suggested: list[dict] = []
+    for query in queries:
+        predicate, _, value = str(query).partition(":")
+        equals = f"{predicate}={value}" if value else predicate
+        item: dict = {"query": equals}
+        if cmc_max is not None:
+            item["cmc_max"] = int(cmc_max)
+            item["query"] = f"{equals}, cmc<={int(cmc_max)}"
+        suggested.append(item)
+    return suggested
+
+
 def attach_ontology_deficits(
     report: dict,
     names: Iterable[str],
@@ -153,9 +255,19 @@ def attach_ontology_deficits(
     finally:
         conn.close()
     counts = summarize_predicates(rows, quantities)
-    extra = typed_deficits(counts)
+    records = merge_deficit_records(
+        typed_deficit_records(counts),
+        flow_repair_records(counts),
+    )
+    extra = [record["text"] for record in records]
+    queries = search_queries_from_records(records)
+    cmc_max = curve_fill_cmc_max(report)
     report["ontology_counts"] = counts
     report["ontology_deficits"] = extra
+    report["ontology_deficit_records"] = records
+    report["ontology_flow"] = flow_snapshot(counts)
+    report["ontology_queries"] = queries
+    report["suggested_searches"] = suggested_searches_from_queries(queries, cmc_max)
     existing = list(report.get("deficits") or [])
     report["deficits"] = existing + extra
     return report

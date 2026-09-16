@@ -4,83 +4,103 @@
     "commander": "Lightning, Army of One",
     "revision": 1,
     "cards": {
-      "Thaumatic Compass // Spires of Orazca": 1,
-      "Ash Barrens": 1,
-      "Great Train Heist": 1,
-      "Lotus Field": 1,
-      "Fire Nation Palace": 1,
-      "Forbidden Orchard": 1,
-      "Rainbow Vale": 1,
-      "Planar Nexus": 1,
-      "Pillar of the Paruns": 1,
-      "Undiscovered Paradise": 1,
-      "Exotic Orchard": 1,
-      "Command Tower": 1,
-      "Abandoned Air Temple": 1,
-      "Ancient Ziggurat": 1,
+      "Tarnished Citadel": 1,
+      "Fountainport": 1,
       "Fear of Missing Out": 1,
+      "Maelstrom of the Spirit Dragon": 1,
+      "Ally Encampment": 1,
+      "Haven of the Spirit Dragon": 1,
+      "Lotus Field": 1,
+      "Forbidden Orchard": 1,
+      "Hall of Tagsin": 1,
+      "Castle Doom": 1,
+      "Rainbow Vale": 1,
+      "Daily Bugle Building": 1,
+      "The Mycosynth Gardens": 1,
+      "Jasmine Dragon Tea Shop": 1,
+      "Heap Gate": 1,
+      "Study Hall": 1,
+      "The Seedcore": 1,
+      "Mech Hangar": 1,
+      "Abundant Countryside": 1,
+      "Guildmages' Forum": 1,
+      "Undiscovered Paradise": 1,
+      "Captivating Cave": 1,
+      "Sliver Hive": 1,
+      "Command Tower": 1,
+      "Pillar of the Paruns": 1,
+      "Brotherhood Headquarters": 1,
+      "Turtle Lair": 1,
+      "Hall of Oracles": 1,
+      "Exotic Orchard": 1,
+      "White Lotus Hideout": 1,
+      "Ancient Ziggurat": 1,
+      "Great Train Heist": 1,
       "Breath of Fury": 1,
+      "Cave of Temptation": 1,
       "Zariel, Archduke of Avernus": 1,
-      "Brightstone Ritual": 1,
-      "Zhao, the Moon Slayer": 1,
-      "Soulbright Flamekin": 1,
-      "Urn of Godfire": 1,
-      "Spectrum Sentinel": 1,
-      "Bloodthirster": 1,
-      "Rite of Flame": 1,
-      "Godo, Bandit Warlord": 1,
-      "Genji Glove": 1,
-      "Overpowering Attack": 1,
-      "Alpine Moon": 1,
-      "Akki Battle Squad": 1,
-      "The One Ring": 1,
-      "Manhole Cover": 1,
-      "Bilbo's Ring": 1,
-      "Vault 21: House Gambit": 1,
-      "Drumbellower": 1,
-      "Combat Celebrant": 1,
-      "Raph & Leo, Sibling Rivals": 1,
-      "Jangling Automaton": 1,
-      "Aggravated Assault": 1,
-      "Nine Lives": 1,
-      "Benevolent Blessing": 1,
+      "Charming Scoundrel": 1,
+      "Currency Converter": 1,
       "Raphael, Tag Team Tough": 1,
-      "Teyo, the Shieldmage": 1,
-      "Spectacular Tactics": 1,
-      "Brilliant Wings": 1,
-      "Response // Resurgence": 1,
+      "Bilbo's Ring": 1,
+      "Arm-Mounted Anchor": 1,
+      "Sticky Fingers": 1,
+      "Vault 21: House Gambit": 1,
+      "Contested Game Ball": 1,
+      "Bounty Board": 1,
       "Raiyuu, Storm's Edge": 1,
-      "Grim Reaper's Sprint": 1,
-      "Lightning Runner": 1,
-      "Reveille Squad": 1,
-      "Scourge of the Throne": 1,
-      "\u00c9omer, Marshal of Rohan": 1,
+      "Raph & Leo, Sibling Rivals": 1,
       "Karlach, Fury of Avernus": 1,
-      "Hexplate Wallbreaker": 1,
-      "Port Razer": 1,
-      "Savage Beating": 1,
-      "Seize the Day": 1,
-      "Rally the Troops": 1,
-      "Take the Bait": 1,
-      "World at War": 1,
-      "Fury of the Horde": 1,
-      "Moraug, Fury of Akoum": 1,
-      "Aurelia, the Warleader": 1,
+      "Aggravated Assault": 1,
+      "Scourge of the Throne": 1,
+      "Manhole Cover": 1,
+      "Eater of Virtue": 1,
+      "Omni-Cheese Pizza": 1,
+      "Cool but Rude": 1,
       "Hellkite Charger": 1,
       "Desert Were-Worm": 1,
-      "Swinging Ship": 1,
-      "Waves of Aggression": 1,
-      "Eater of Virtue": 1,
+      "Zephyr Boots": 1,
+      "The Flame of Keld": 1,
+      "Captain America's Shield": 1,
+      "Gleaming Splendor": 1,
+      "Take the Bait": 1,
+      "Seize the Day": 1,
+      "Combat Celebrant": 1,
+      "Chromatic Orrery": 1,
+      "Fated Clash": 1,
+      "Tin Street Market": 1,
+      "Nazg\u00fbl Battle-Mace": 1,
+      "Teyo, Geometric Tactician": 1,
+      "Monument to Endurance": 1,
+      "Courageous Resolve": 1,
       "Relentless Assault": 1,
-      "Nahiri, the Lithomancer": 1,
-      "Armistice": 1,
-      "Fists of Flame": 1,
+      "Ultima Weapon": 1,
+      "Sarkhan, Fireblood": 1,
+      "Gate to the Afterlife": 1,
+      "Daily Bugle Newspaper": 1,
+      "Quintorius, History Chaser": 1,
+      "Blossoming Calm": 1,
+      "Brilliant Wings": 1,
+      "Teyo, the Shieldmage": 1,
+      "Krovod Haunch": 1,
+      "Caduceus, Staff of Hermes": 1,
+      "Dungeoneer's Pack": 1,
+      "Enduring Renewal": 1,
       "Enter the Avatar State": 1,
-      "Mountain": 16,
-      "Plains": 8,
-      "Faith's Shield": 1,
-      "Orbs of Warding": 1,
-      "Lightning Blast": 1
+      "Shadowspear": 1,
+      "Beamtown Beatstick": 1,
+      "Witch's Mark": 1,
+      "Sheltering Prayers": 1,
+      "Seraphic Greatsword": 1,
+      "Reckoner Bankbuster": 1,
+      "Crown of Awe": 1,
+      "Everybody Lives!": 1,
+      "Mountain": 3,
+      "Plains": 1,
+      "Tempt with Bunnies": 1,
+      "Wedding Announcement // Wedding Festivity": 1,
+      "Hook Swords": 1,
+      "Eldritch Immunity": 1
     },
     "identity": [
       "R",
@@ -96,34 +116,40 @@
     "archetype": "voltron",
     "last_delta": {},
     "candidate_pool": {
-      "Devout Harpist": 2,
-      "Miracle Worker": 2,
-      "Piety Charm": 2,
-      "Crown of the Ages": 2,
-      "Daybreak Coronet": 2,
-      "Kor Spiritdancer": 2,
-      "Aura Barbs": 2,
-      "Graceblade Artisan": 2,
-      "Three Dog, Galaxy News DJ": 2,
-      "Umbra Mystic": 2,
-      "Kitsune Mystic // Autumn-Tail, Kitsune Sage": 2,
+      "Devout Harpist": 1,
+      "Miracle Worker": 1,
+      "Piety Charm": 1,
+      "Crown of the Ages": 1,
+      "Daybreak Coronet": 1,
+      "Kor Spiritdancer": 1,
+      "Aura Barbs": 1,
+      "Graceblade Artisan": 1,
+      "Three Dog, Galaxy News DJ": 1,
+      "Umbra Mystic": 1,
+      "Kitsune Mystic // Autumn-Tail, Kitsune Sage": 1,
       "Basri, Tomorrow's Champion": 1,
       "Blacksmith's Skill": 2,
-      "Blossoming Calm": 2,
-      "Bofur, Reliable Guardian // Concerted Care": 2,
+      "Blossoming Calm": 1,
+      "Bofur, Reliable Guardian // Concerted Care": 1,
       "Dragonfire Blade": 2,
       "Kytheon, Hero of Akros // Gideon, Battle-Forged": 1,
-      "Sheltering Light": 3,
-      "Burdened Stoneback": 2,
-      "Ephemeral Shields": 2,
-      "Manhole Cover": 1,
+      "Shield of Kaldra": 2,
+      "Adamant Will": 1,
+      "Aethershield Artificer": 1,
+      "Ajani's Presence": 1,
+      "Angelheart Protector": 1,
+      "Beaming Defiance": 1,
+      "Benevolent Blessing": 1,
+      "Black Ward": 1,
+      "Blessed Hippogriff // Tyr's Blessing": 1,
+      "Sheltering Light": 2,
+      "Burdened Stoneback": 1,
+      "Ephemeral Shields": 1,
       "Valorous Stance": 2,
-      "Blessed Hippogriff // Tyr's Blessing": 2,
       "Deathless Angel": 2,
-      "Stonecoil Serpent": 1,
+      "Stonecoil Serpent": 2,
       "Alseid of Life's Bounty": 1,
       "Benevolent Bodyguard": 1,
-      "Black Ward": 1,
       "Blessed Breath": 1,
       "Blue Ward": 1,
       "Brave the Elements": 1,
@@ -132,405 +158,498 @@
       "Death Speakers": 2,
       "Devoted Caretaker": 1,
       "Dragon Hunter": 2,
-      "Great Train Heist": 1,
-      "Fear of Missing Out": 1,
-      "Aggravated Assault": 1,
-      "Combat Celebrant": 2,
-      "Raph & Leo, Sibling Rivals": 1,
-      "Breath of Fury": 2,
-      "Raiyuu, Storm's Edge": 1,
-      "Relentless Assault": 1,
-      "Seize the Day": 1,
-      "Take the Bait": 2,
-      "Zariel, Archduke of Avernus": 1,
-      "Karlach, Fury of Avernus": 2,
-      "Desert Were-Worm": 2,
-      "Hellkite Charger": 2,
-      "Raphael, Tag Team Tough": 2,
-      "Scourge of the Throne": 2,
-      "Rograkh, Son of Rohgahh": 1,
-      "Stonehewer Giant": 1,
-      "Arc Lightning": 2,
-      "Rolling Thunder": 2,
-      "Boltwave": 1,
-      "SOLDIER Military Program": 1,
-      "Trove of Temptation": 1,
-      "Kinsbaile Courier": 1,
-      "Rivals' Duel": 1,
-      "Fire Giant's Fury": 1,
-      "Invasion of Kylem // Valor's Reach Tag Team": 1,
-      "Lightning Javelin": 2,
-      "Swarming of Moria": 1,
-      "Three Dreams": 1,
-      "Anafenza, Unyielding Lineage": 1,
-      "Slash the Ranks": 1,
-      "Brimaz, King of Oreskos": 1,
-      "Storm of Steel": 1,
-      "Scuzzback Scrounger": 1,
-      "Empty the Warrens": 1,
-      "Akroma, Angel of Wrath": 1,
-      "Elspeth, Sun's Nemesis": 1,
-      "Heroic Reinforcements": 1,
-      "Fire Nation Attacks": 1,
-      "Kayla's Command": 1,
-      "Vexilus Praetor": 1,
-      "Purphoros's Intervention": 1,
-      "Finale of Glory": 1,
-      "Gut, True Soul Zealot": 1,
-      "Seize the Storm": 1,
-      "Chandra, Flamecaller": 1,
-      "The Birth of Meletis": 1,
-      "Lae'zel, Vlaakith's Champion": 1,
-      "Captain's Call": 1,
-      "Righteous Confluence": 1,
-      "Origin of Captain America": 1,
-      "Jagged Lightning": 1,
-      "Jeska's Will": 1,
-      "Ganax, Astral Hunter": 1,
-      "Lightning, Security Sergeant": 1,
-      "Lightning Bolt": 1,
-      "Ballroom Brawlers": 1,
-      "Radiating Lightning": 1,
-      "Lightning Storm": 1,
-      "Harnessed Lightning": 1,
-      "Lightning Helix": 1,
-      "Glorious Enforcer": 1,
-      "Team Tactics": 1,
-      "Stolen Vitality": 1,
-      "Emeritus of Conflict // Lightning Bolt": 1,
-      "Rhystic Lightning": 1,
-      "Rally Maneuver": 1,
-      "True Conviction": 1,
-      "Dreadmaw's Ire": 1,
-      "Assault Strobe": 3,
-      "Ticked Off": 3,
-      "Lyra Dawnbringer": 1,
-      "Burst Lightning": 1,
-      "Blind Fury": 1,
-      "Barbed Lightning": 1,
-      "Fists of Flame": 2,
-      "Forked Lightning": 1,
-      "Cleaver Riot": 1,
-      "Chain Lightning": 1,
-      "Homing Lightning": 1,
-      "Frantic Confrontation": 1,
-      "Lunar Frenzy": 1,
-      "Hope Charm": 2,
-      "Twinblade Blessing": 1,
-      "Smashing Spree": 1,
-      "Swift Justice": 1,
-      "Thunderbolt": 1,
-      "The One Ring": 1,
-      "Moonring Mirror": 2,
-      "Grafted Skullcap": 2,
-      "Avaricious Dragon": 2,
-      "The Immortal Sun": 2,
-      "Moonveil Regent": 2,
-      "Staff of Nin": 2,
-      "Eye of Vecna": 2,
-      "Mindstorm Crown": 2,
-      "Scrawling Crawler": 2,
-      "Case of the Crimson Pulse": 2,
-      "Relic Vial": 2,
-      "Thopter Shop": 2,
-      "Smuggler's Share": 2,
-      "Contested Game Ball": 2,
-      "Battle Angels of Tyr": 2,
-      "Vault 21: House Gambit": 1,
-      "Sage's Reverie": 3,
-      "Pursuit of Knowledge": 2,
-      "Demand Answers": 2,
-      "Seize the Spoils": 2,
-      "Big Score": 2,
-      "Pirate's Pillage": 2,
-      "Unexpected Windfall": 2,
-      "Faithless Looting": 2,
-      "Witch's Mark": 2,
-      "Collector's Vault": 2,
-      "Daily Bugle Newspaper": 2,
-      "Highway Robbery": 2,
-      "Pursue the Past": 2,
-      "Sigarda's Splendor": 2,
-      "Negative Zone Portal": 1,
-      "Honor the God-Pharaoh": 2,
-      "Avarice Amulet": 1,
-      "Electric Revelation": 2,
-      "Laughing Mad": 2,
-      "Rent Is Due": 1,
-      "Happily Ever After": 2,
+      "Moonring Mirror": 1,
+      "Moonveil Regent": 1,
+      "Staff of Nin": 1,
+      "Eye of Vecna": 1,
+      "Mindstorm Crown": 1,
+      "Case of the Crimson Pulse": 1,
+      "Relic Vial": 1,
+      "Smuggler's Share": 1,
+      "Battle Angels of Tyr": 1,
+      "Fists of Flame": 1,
+      "Pursuit of Knowledge": 1,
+      "Demand Answers": 1,
+      "Seize the Spoils": 1,
+      "Big Score": 1,
+      "Pirate's Pillage": 1,
+      "Unexpected Windfall": 1,
+      "Faithless Looting": 1,
+      "Highway Robbery": 1,
+      "Pursue the Past": 1,
+      "Electric Revelation": 1,
+      "Honor the God-Pharaoh": 1,
+      "Laughing Mad": 1,
       "Grab the Prize": 1,
+      "Collector's Vault": 1,
+      "Sigarda's Splendor": 1,
+      "Negative Zone Portal": 1,
+      "Avarice Amulet": 1,
       "Quarrel's End": 1,
+      "Rent Is Due": 1,
       "Romantic Rendezvous": 1,
+      "Tamiyo's Journal": 1,
+      "Lashknife Barrier": 1,
       "Dangerous Wager": 1,
-      "Environmental Sciences": 2,
-      "Pyretic Ritual": 1,
-      "Seething Song": 1,
-      "Inner Fire": 1,
-      "Journeyer's Kite": 2,
-      "Battle Hymn": 1,
-      "Mana Geyser": 1,
-      "Weathered Wayfarer": 1,
-      "Geosurge": 1,
-      "Mox Jasper": 1,
-      "Reflecting Pool": 1,
-      "Ticket Turbotubes": 1,
-      "Arcane Signet": 1,
-      "Honored Heirloom": 1,
-      "Fellwar Stone": 1,
-      "Letter of Acceptance": 1,
-      "Spinning Wheel": 1,
-      "Salvaged Manaworker": 1,
-      "Patriar's Seal": 1,
-      "Mox Amber": 1,
-      "Commander's Sphere": 1,
-      "Intelligence Bobblehead": 1,
-      "Relic of Legends": 1,
-      "Fountain of Ichor": 1,
-      "Scuttlemutt": 1,
-      "Bonder's Ornament": 1,
-      "Network Terminal": 1,
-      "Potioner's Trove": 1,
-      "Smokebraider": 1,
-      "Stark Industries Executive": 1,
-      "Blood Moon": 1,
-      "Magus of the Moon": 1,
-      "Sheltering Prayers": 1,
-      "Kree Sentinel": 1,
-      "Dimensional Exile": 1,
-      "Ossification": 1,
-      "Planar Birth": 1,
-      "Uncontrolled Infestation": 1,
-      "Sowing Salt": 1,
-      "From the Ashes": 1,
-      "Lava Blister": 1,
-      "Excavator": 1,
-      "Trailblazer's Boots": 1,
-      "Volcanic Offering": 1,
-      "Dwarven Blastminer": 1,
-      "Multiversal Passage": 1,
-      "Burning Earth": 1,
-      "Fiery Fall": 1,
-      "Energybending": 1,
-      "Crumble to Dust": 1,
-      "Fall to Earth": 1,
-      "Escape Tunnel": 1,
-      "Hobbit Hole": 1,
-      "Scion of Draco": 1,
-      "Marvelous Melee": 1,
-      "Draco": 1,
-      "Thalia, Heretic Cathar": 1,
-      "Fabled Passage": 1,
-      "Magmatic Hellkite": 1,
-      "Thr\u00f3r's Map": 1,
-      "Leyline Binding": 1,
-      "Barbed Battlegear": 1,
-      "Bonesplitter": 1,
-      "Ogre's Cleaver": 1,
-      "Trusty Machete": 1,
-      "Gorgon's Head": 1,
-      "Murderer's Axe": 1,
-      "Bladed Pinions": 1,
-      "Demonmail Hauberk": 1,
-      "Viridian Claw": 1,
-      "Prowler's Helm": 1,
-      "Civic Saber": 1,
-      "Siren Song Lyre": 1,
-      "Chariot of Victory": 1,
-      "Paradise Mantle": 1,
-      "Empyrial Plate": 1,
-      "Hedron Matrix": 1,
-      "Runed Stalactite": 1,
-      "Peregrine Mask": 1,
-      "Loxodon Warhammer": 1,
-      "Tormentor's Trident": 1,
-      "Echo Circlet": 1,
-      "Dwarven Mauler": 1,
-      "Slayer's Cleaver": 1,
-      "Unstable Molecule Suit": 1,
+      "Island Sanctuary": 1,
+      "Tataru Taru": 1,
+      "Words of War": 1,
+      "Hoofprints of the Stag": 1,
+      "Discerning Financier": 1,
+      "Blood Sun": 1,
+      "G'raha Tia": 1,
+      "Dragon Mantle": 1,
+      "Ritual of Steel": 1,
+      "Mask of Memory": 1,
+      "Stormshriek Feral // Flush Out": 1,
       "Skullclamp": 1,
-      "Aettir and Priwen": 1,
-      "Silverskin Armor": 1,
-      "Sylvok Lifestaff": 1,
-      "Hulkbuster Armor": 1,
-      "Sword of Vengeance": 1,
-      "Bearded Axe": 1,
-      "Blackblade Reforged": 1,
-      "Team Pennant": 1,
-      "Butcher's Cleaver": 1,
-      "Lightning Greaves": 1,
-      "Argentum Armor": 1,
-      "Sharpened Pitchfork": 1,
-      "Stone Haven Outfitter": 1,
-      "Bureau Headmaster": 1,
-      "Hero's Heirloom": 1,
-      "Pyramids": 1,
-      "Songbirds' Blessing": 1,
-      "Shielded by Faith": 1,
-      "Mantle of the Ancients": 1,
-      "Burden of Guilt": 1,
-      "Strip Bare": 1,
-      "Unquenchable Fury": 1,
-      "Lightform": 1,
-      "Sigarda's Aid": 1,
-      "Felidar Umbra": 1,
-      "Tenuous Truce": 1,
-      "Gift of Immortality": 1,
-      "Brilliant Wings": 1,
-      "Detainment Spell": 1,
-      "Cessation": 1,
-      "Unfinished Business": 1,
-      "Prison Term": 1,
-      "Inventory Management": 1,
-      "Gauntlets of Chaos": 1,
-      "Retether": 1,
-      "Sheltered by Ghosts": 1,
-      "Conquer": 1,
-      "Remove Enchantments": 1,
-      "Steam Vines": 1,
-      "Spirit Loop": 1,
-      "Demonic Ruckus": 1,
-      "Valgavoth's Lair": 1,
-      "General Ferrous Rokiric": 1,
-      "Aegis of the Gods": 1,
-      "Keen-Eared Sentry": 1,
-      "Spirit of the Hearth": 1,
-      "Everybody Lives!": 1,
-      "Survey Mechan": 1,
-      "Swiftfoot Boots": 1,
-      "Leonin Abunas": 1,
-      "Metropolis Reformer": 1,
-      "Syr Ginger, the Meal Ender": 1,
-      "Surge of Salvation": 1,
-      "Mirror Shield": 1,
-      "Ring of Evos Isle": 1,
-      "Glaring Spotlight": 1,
-      "Mask of Avacyn": 1,
-      "Crystal Barricade": 1,
-      "Enduring Angel // Angelic Enforcer": 1,
-      "Loran's Escape": 1,
-      "Beaming Defiance": 1,
-      "Restoration Magic": 1,
-      "Patriot, Shield Wielder": 1,
-      "Witchbane Orb": 1,
-      "Knight of Grace": 1,
-      "Breaker of Creation": 1,
-      "Champion's Helm": 1,
-      "Deification": 1,
-      "Family Reunion": 1,
-      "Karametra's Blessing": 1,
-      "Unnatural Speed": 2,
-      "Accelerate": 2,
-      "Expedite": 2,
-      "Impolite Entrance": 2,
-      "Stave Off": 2,
-      "Raking Claws": 2,
-      "Lightning Blow": 2,
-      "Double Cleave": 2,
-      "Leap of Faith": 2,
-      "Might of the Meek": 2,
-      "Whip Sergeant": 2,
-      "Axgard Cavalry": 2,
-      "Bloodlust Inciter": 2,
-      "Goblin Motivator": 2,
-      "Akki Drillmaster": 2,
-      "Predator, Flagship": 2,
-      "Ancestral Anger": 2,
-      "Barreling Attack": 2,
-      "How to Start a Riot": 2,
-      "Temur Battle Rage": 2,
-      "Wishmonger": 2,
-      "Drop Tower": 2,
-      "Boros Guildmage": 2,
-      "Soulbright Flamekin": 1,
-      "Critical Hit": 2,
-      "Noble Steeds": 2,
-      "Arcum's Sleigh": 2,
-      "Fyndhorn Bow": 2,
-      "Icatian Scout": 2,
-      "Iron Lance": 2,
-      "Jabari's Banner": 1,
-      "War Chariot": 1,
-      "Flying Carpet": 1,
-      "Taxi Driver": 1,
-      "Pale Wayfarer": 1,
-      "Fever Charm": 1,
-      "Amaranthine Wall": 1,
+      "Spark Rupture": 1,
+      "Master of Ceremonies": 1,
+      "Rogue's Gloves": 1,
+      "Rune of Sustenance": 1,
+      "Rune of Speed": 1,
+      "Union of the Third Path": 1,
+      "Inheritance": 1,
+      "Cut a Deal": 1,
+      "Aggressive Mining": 1,
+      "Bitter Reunion": 1,
+      "Convalescent Care": 1,
+      "Thrill of Possibility": 1,
+      "Tormenting Voice": 1,
+      "Wild Guess": 1,
       "Repentant Blacksmith": 1,
       "Vulshok Refugee": 1,
       "Guma": 1,
       "Midnight Duelist": 1,
       "Beloved Chaplain": 1,
+      "Vision of Love": 1,
       "Guardian of the Guildpact": 1,
+      "Magmatic Insight": 1,
+      "Bonesplitter": 1,
       "Kitsune Riftwalker": 1,
+      "Trusty Machete": 1,
+      "Gorgon's Head": 1,
+      "Humble Defector": 1,
+      "Urabrask, Heretic Praetor": 1,
+      "Bazaar of Baghdad": 1,
+      "Viridian Claw": 1,
+      "Prowler's Helm": 1,
+      "Blitzball": 1,
+      "Civic Saber": 1,
+      "Siren Song Lyre": 1,
+      "Chariot of Victory": 1,
+      "Runed Stalactite": 1,
+      "Peregrine Mask": 1,
+      "Buster Sword": 1,
       "Disciple of Law": 1,
       "Disciple of Grace": 1,
+      "Echo Circlet": 1,
       "Wildfire Emissary": 1,
       "Kor Firewalker": 1,
       "Devout Lightcaster": 1,
+      "Dwarven Mauler": 1,
+      "Unstable Molecule Suit": 1,
+      "Stone Haven Outfitter": 1,
       "Crimson Acolyte": 1,
       "Crusading Knight": 1,
       "Subterranean Spirit": 1,
+      "Aettir and Priwen": 1,
       "Auriok Champion": 1,
       "Obsidian Acolyte": 1,
+      "Silverskin Armor": 1,
+      "Bearded Axe": 1,
       "Soldier of the Pantheon": 1,
+      "Team Pennant": 1,
       "Soltari Priest": 1,
+      "Butcher's Cleaver": 1,
       "Soltari Monk": 1,
+      "The Mountain-king's Return": 1,
+      "Sharpened Pitchfork": 1,
       "Beasts of Bogardan": 1,
+      "Environmental Sciences": 1,
+      "Taii Wakeen, Perfect Shot": 1,
+      "Whispersilk Cloak": 1,
+      "Silver-Inlaid Dagger": 1,
+      "Unpredictable Cyclone": 1,
+      "+2 Mace": 1,
+      "Bone Saw": 1,
+      "Bronze Sword": 1,
+      "Cobbled Wings": 1,
+      "Cultist's Staff": 1,
+      "Greataxe": 1,
+      "Greatsword": 1,
+      "Kite Shield": 1,
+      "Marauder's Axe": 1,
+      "Neurok Hoversail": 1,
+      "Riot Gear": 1,
+      "Shuko": 1,
+      "Torch Gauntlet": 1,
+      "Vulshok Battlegear": 1,
+      "Vulshok Morningstar": 1,
+      "Stoneforge Masterwork": 1,
+      "Spy Kit": 1,
+      "Bargaining Table": 1,
+      "Umbral Mantle": 1,
+      "Urza's Tome": 1,
       "Hand of Honor": 1,
+      "Blight Sickle": 1,
+      "Stormrider Rig": 1,
+      "Fool's Tome": 1,
       "Ivory Guardians": 1,
+      "Fleetfeather Sandals": 1,
+      "Lightning Spear": 1,
       "Skirk Fire Marshal": 1,
+      "General Ferrous Rokiric": 1,
+      "Scroll of Origins": 1,
+      "Boots of Speed": 1,
+      "Crystal Slipper": 1,
       "White Shield Crusader": 1,
+      "Improvised Arsenal": 1,
+      "Copper Carapace": 1,
+      "D\u00fanedain Blade": 1,
+      "Mask of Avacyn": 1,
+      "Kor Halberd": 1,
+      "Colossus Hammer": 1,
+      "Heirloom Epic": 1,
+      "Thinking Cap": 1,
+      "Long-Lost Lances": 1,
       "Order of Leitbur": 1,
       "Order of the White Shield": 1,
+      "Runechanter's Pike": 1,
+      "No-Dachi": 1,
+      "Blood Moon": 1,
+      "Magus of the Moon": 1,
+      "Prosthetic Injector": 1,
+      "Haunted Cloak": 1,
+      "Ghostfire Blade": 1,
+      "Grappling Hook": 1,
+      "Panther Habit": 1,
       "Foothill Guide": 1,
       "Pilgrim of Justice": 1,
+      "Mox Jasper": 1,
+      "Reflecting Pool": 1,
+      "Ticket Turbotubes": 1,
+      "Arcane Signet": 1,
+      "Honored Heirloom": 1,
+      "Vectis Gloves": 1,
+      "Fellwar Stone": 1,
+      "Spinning Wheel": 1,
+      "Redrock Sentinel": 1,
+      "Salvaged Manaworker": 1,
+      "Helm of the Gods": 1,
+      "Witches' Eye": 1,
+      "Golem-Skin Gauntlets": 1,
+      "Patriar's Seal": 1,
+      "Mox Amber": 1,
       "Pilgrim of Virtue": 1,
+      "Slayer's Plate": 1,
+      "Wrecking Ball Arm": 1,
+      "Livewire Lash": 1,
+      "Bloodforged Battle-Axe": 1,
+      "Captain's Claws": 1,
       "Mystic Crusader": 1,
+      "Heavy Arbalest": 1,
+      "Quietus Spike": 1,
+      "Blazing Sunsteel": 1,
+      "Nightmare Lash": 1,
+      "Intelligence Bobblehead": 1,
+      "Viridian Longbow": 1,
+      "Relic of Legends": 1,
+      "Urn of Godfire": 1,
+      "Hammer of Ruin": 1,
+      "Fountain of Ichor": 1,
+      "Skyblinder Staff": 1,
+      "Scuttlemutt": 1,
+      "Vorrac Battlehorns": 1,
+      "Sorcerer's Wand": 1,
+      "Bonder's Ornament": 1,
+      "Tocasia's Welcome": 1,
+      "Spidersilk Net": 1,
       "Apostle of Purifying Light": 1,
+      "Screaming Shield": 1,
+      "Neglected Heirloom // Ashmouth Blade": 1,
+      "Mishra's Command": 1,
+      "Potioner's Trove": 1,
+      "Avacyn's Collar": 1,
+      "Emmessi Tome": 1,
+      "Dragon Throne of Tarkir": 1,
+      "The Reaver Cleaver": 1,
+      "Raven Wings": 1,
+      "Tarrian's Soulcleaver": 1,
+      "Deathrender": 1,
+      "Fiendlash": 1,
+      "Champion's Helm": 1,
+      "Heartseeker": 1,
+      "Ace's Baseball Bat": 1,
+      "Barrels of Blasting Jelly": 1,
+      "Gate Smasher": 1,
+      "Hot Soup": 1,
       "Resilient Roadrunner": 1,
+      "Fireshrieker": 1,
       "Unchained Berserker": 1,
+      "Norn's Wellspring": 1,
+      "Cloak and Dagger": 1,
+      "Holy Avenger": 1,
+      "Sceptre of Eternal Glory": 1,
+      "Gravestone Strider": 1,
+      "Jalum Tome": 1,
+      "Arc Spitter": 1,
+      "All-Fates Scroll": 1,
+      "Sparring Collar": 1,
+      "Jodah's Codex": 1,
+      "Uba Mask": 1,
+      "Trusty Boomerang": 1,
+      "Bladed Bracers": 1,
+      "Sword of the Meek": 1,
+      "Phyrexian Atlas": 1,
+      "Lavaspur Boots": 1,
+      "Hearth Elemental // Stoke Genius": 1,
+      "Hunter's Blowgun": 1,
+      "Conqueror's Flail": 1,
+      "Aegis of the Gods": 1,
+      "Dagger of the Worthy": 1,
+      "Ronin Warclub": 1,
+      "Slagwurm Armor": 1,
+      "Strength Bobblehead": 1,
+      "Alloy Myr": 1,
+      "Manalith": 1,
+      "Opaline Unicorn": 1,
+      "Prismite": 1,
+      "Tormentor's Helm": 1,
+      "Captain's Hook": 1,
+      "Charisma Bobblehead": 1,
+      "Dimensional Exile": 1,
+      "Robe of Stars": 1,
+      "True-Faith Censer": 1,
+      "Cultivator's Caravan": 1,
+      "Bladegraft Aspirant": 1,
+      "Grabby Giant // That's Mine": 1,
+      "Journeyer's Kite": 1,
+      "Warmonger's Chariot": 1,
+      "Sting, the Glinting Dagger": 1,
+      "Sigil of Distinction": 1,
+      "Hawkeye's Bow": 1,
+      "Blinding Powder": 1,
+      "Lothl\u00f3rien Blade": 1,
+      "Ossification": 1,
+      "Scythe of the Wretched": 1,
+      "Armory of Iroas": 1,
+      "Spectrum Sentinel": 1,
       "Goblin Piledriver": 1,
+      "Mystic Skull // Mystic Monstrosity": 1,
+      "Brawler's Plate": 1,
+      "Orcrist, Goblin-cleaver": 1,
+      "Blessed Wine": 1,
+      "Veteran's Armaments": 1,
+      "Faithless Salvaging": 1,
+      "Planar Birth": 1,
+      "Gorgon Flail": 1,
       "Knight of Glory": 1,
-      "Full Throttle": 1,
-      "False Peace": 1,
-      "Empty City Ruse": 1,
-      "Crawlspace": 1,
-      "Moment of Silence": 1,
-      "Holy Day": 1,
-      "Settle the Wreckage": 1,
-      "Angel of the Dire Hour": 1,
-      "Telim'Tor": 1,
-      "Militia Rallier": 1,
-      "Samite Alchemist": 1,
-      "Preacher": 1,
-      "Sunstrike Legionnaire": 1,
-      "Vizier of the True": 1,
-      "Ice Floe": 1,
-      "Goblin Grappler": 1,
-      "Arbalest Elite": 1,
-      "Maze of Ith": 1,
-      "Goblin Rock Sled": 1,
-      "Chained Brute": 1,
-      "Goblin Sharpshooter": 1,
-      "Oketra's Avenger": 1,
-      "Deep-Slumber Titan": 1,
-      "Pearlspear Courier": 1,
-      "Bazaar Krovod": 1,
-      "Dauntless Aven": 1,
-      "Lowland Tracker": 1,
-      "Deftblade Elite": 1,
-      "Mage-Ring Responder": 1,
-      "Smoke": 1,
-      "Midnight Guard": 1,
-      "Swooping Talon": 1,
-      "Thousand Moons Infantry": 1,
-      "Endbringer": 1,
-      "Altar Golem": 1,
-      "Eldritch Immunity": 1,
+      "Sword of the Squeak": 1,
+      "Mirror of Galadriel": 1,
+      "Orbs of Warding": 1,
+      "Pugnacious Pugilist": 1,
+      "Infantry Shield": 1,
+      "Mace of the Valiant": 1,
+      "Your Temple Is Under Attack": 1,
+      "Keen-Eared Sentry": 1,
+      "Leather Armor": 1,
+      "Luxior, Giada's Gift": 1,
+      "Well-Worn Spatula": 1,
+      "Stitcher's Graft": 1,
+      "Executioner's Hood": 1,
+      "Gimli's Axe": 1,
+      "Delver's Torch": 1,
+      "Needlebug": 1,
+      "Meteor Sword": 1,
+      "Wooden Stake": 1,
+      "Aetheric Amplifier": 1,
+      "Four Knocks": 1,
+      "O-Naginata": 1,
+      "Goblin Morningstar": 1,
+      "Barbed Spike": 1,
+      "Uncontrolled Infestation": 1,
+      "Reckless Lackey": 1,
+      "Golden Egg": 1,
+      "Elsewhere Flask": 1,
+      "Barrow-Blade": 1,
+      "Scarecrow Guide": 1,
+      "Errand-Rider of Gondor": 1,
+      "Sleeper Dart": 1,
+      "Wings of Hubris": 1,
+      "Dissection Tools": 1,
+      "Mirror Shield": 1,
+      "Cliffhaven Kitesail": 1,
+      "Sword of Kaldra": 1,
+      "Sanctifier en-Vec": 1,
+      "Rocket-Powered Goblin Glider": 1,
+      "Sokka, Swordmaster": 1,
+      "Worldslayer": 1,
+      "Oathkeeper, Takeno's Daisho": 1,
+      "Scavenged Blade": 1,
+      "Pyramid of the Pantheon": 1,
+      "Glaive of the Guildpact": 1,
+      "Banshee's Blade": 1,
+      "Conformer Shuriken": 1,
+      "Cement Shoes": 1,
+      "Bride's Gown": 1,
+      "Sonic Screwdriver": 1,
+      "Blade of Selves": 1,
+      "Human Torch, Johnny Storm": 1,
+      "Dependable Quinjet": 1,
+      "Luck Bobblehead": 1,
+      "Glimmerlight": 1,
+      "Dwarven Hammer": 1,
+      "Greatsword of Tyr": 1,
+      "Magnetic Theft": 1,
+      "Defender of Chaos": 1,
+      "S.H.I.E.L.D. Spy Kit": 1,
+      "Helm of Kaldra": 1,
+      "Bronzeplate Boar": 1,
+      "Mistmeadow Skulk": 1,
+      "Glider Staff": 1,
+      "Coalition Relic": 1,
+      "Valkyrie's Sword": 1,
+      "Maul of the Skyclaves": 1,
+      "Guild Globe": 1,
+      "Dwarven Shortsword": 1,
+      "Weatherlight Compleated": 1,
+      "Swiftfoot Boots": 1,
+      "Endurance Bobblehead": 1,
+      "Lantern of Revealing": 1,
+      "Kyoshi Battle Fan": 1,
+      "Explorer's Scope": 1,
+      "Fall of the First Civilization": 1,
+      "Spirit of the Hearth": 1,
+      "Haunted Plate Mail": 1,
+      "Squire's Lightblade": 1,
+      "Ring of Valkas": 1,
+      "Concealed Weapon": 1,
+      "Multiclass Baldric": 1,
+      "Nine Lives": 1,
+      "Sowing Salt": 1,
+      "Defender of Law": 1,
+      "Zhao, the Moon Slayer": 1,
+      "Phial of Galadriel": 1,
+      "Trailblazer's Torch": 1,
+      "Origin of Thor": 1,
+      "Psychic Paper": 1,
+      "Shire Scarecrow": 1,
+      "Rebel Salvo": 1,
+      "Headsplitter": 1,
+      "Hookblade": 1,
+      "Dueling Rapier": 1,
+      "Inventor's Axe": 1,
+      "Agility Bobblehead": 1,
+      "Archon of Absolution": 1,
+      "Paladin en-Vec": 1,
+      "Angelic Curator": 1,
+      "Commander Eesha": 1,
+      "Dream-Thief's Bandana": 1,
+      "Pin Collection": 1,
+      "Exploding Barrel": 1,
+      "Infinity Formula": 1,
+      "Possessed Portal": 1,
+      "Hankyu": 1,
+      "Shining Armor": 1,
+      "Mirrormind Crown": 1,
+      "Mox Opal": 1,
+      "Foreboding Statue // Forsaken Thresher": 1,
+      "Iconic Shield": 1,
+      "Heirloom Blade": 1,
+      "Solar Array": 1,
+      "Hidden Blade": 1,
+      "Sigrid, God-Favored": 1,
+      "Adaptive Omnitool": 1,
+      "Fishing Gear": 1,
+      "Kor Blademaster": 1,
+      "Chainsaw": 1,
+      "From the Ashes": 1,
+      "Potion of Healing": 1,
+      "Dragonstalker": 1,
+      "Lava Blister": 1,
+      "Raven Clan War-Axe": 1,
+      "Sparring Regimen": 1,
+      "Bottled Cloister": 1,
+      "Cloudsteel Kirin": 1,
+      "Plasma Caster": 1,
+      "Flywheel Racer": 1,
+      "Culling Dais": 1,
+      "Excavator": 1,
+      "Cori-Steel Cutter": 1,
+      "Javelin of Lightning": 1,
+      "Sigarda's Aid": 1,
+      "Quick-Draw Katana": 1,
+      "Stalactite Dagger": 1,
+      "Replicating Ring": 1,
+      "Nuka-Nuke Launcher": 1,
+      "Daredevil's Billy Club": 1,
+      "Thran Power Suit": 1,
+      "Hero in Training": 1,
+      "Illusionist's Bracers": 1,
+      "Rover Blades": 1,
+      "Perception Bobblehead": 1,
+      "Strata Scythe": 1,
+      "H.E.R.B.I.E. Scout Unit": 1,
+      "Duskrider Falcon": 1,
+      "Melesse Spirit": 1,
+      "Nightwind Glider": 1,
+      "Voice of Duty": 1,
+      "Voice of Grace": 1,
+      "Voice of Truth": 1,
+      "Masterwork of Ingenuity": 1,
+      "Quick-Draw Dagger": 1,
+      "The Masamune": 1,
+      "Rhystic Cave": 1,
+      "Twin Blades": 1,
+      "Fishing Pole": 1,
+      "Kazuul's Toll Collector": 1,
+      "Skeleton Key": 1,
+      "Glamdring": 1,
+      "Misty Knight, Hero for Hire": 1,
+      "Umezawa's Jitte": 1,
+      "Field-Tested Frying Pan": 1,
+      "Basri's Lieutenant": 1,
+      "Conjurer's Mantle": 1,
+      "Pili-Pala": 1,
+      "Fasting": 1,
+      "Voice of Reason": 1,
+      "Celestial Prism": 1,
+      "Mana Cylix": 1,
+      "Ring of Evos Isle": 1,
+      "Laser Screwdriver": 1,
+      "Neko-Te": 1,
+      "Flayer Husk": 1,
+      "Sickleslicer": 1,
+      "Necropouncer": 1,
+      "Strandwalker": 1,
+      "Skinwing": 1,
+      "Karmic Guide": 1,
+      "Leonin Shikari": 1,
+      "Dragonwing Glider": 1,
+      "Information Booth": 1,
+      "Bronze Cudgels": 1,
+      "Batterbone": 1,
+      "Swashbuckler's Whip": 1,
+      "Abbey Gargoyles": 1,
+      "Freewind Falcon": 1,
+      "Thermal Glider": 1,
+      "Voice of Law": 1,
+      "Cho-Manno's Blessing": 1,
+      "Consecrate Land": 1,
+      "Consul's Shieldguard": 1,
+      "Darksteel Mutation": 1,
+      "Darksteel Plate": 1,
+      "Divine Resilience": 1,
+      "Favorable Destiny": 1,
+      "Fight as One": 1,
       "Emerge Unscathed": 1,
       "Empty-Shrine Kannushi": 1,
-      "Swiftblade Vindicator": 1,
-      "Lightning Strike": 1
+      "Faith's Shield": 1,
+      "Tivadar of Thorn": 1,
+      "Mishra, Excavation Prodigy": 1,
+      "Wyleth, Soul of Steel": 1,
+      "Fey Steed": 1
     },
     "price_cap_new_only": true,
     "baseline_cards": {},
@@ -544,11 +663,23 @@
     "slot_count": 99,
     "complete": true
   },
-  "query": "Build me a full Boros voltron Commander deck for Lightning, Army of One with heavy protection for the commander. Want something based on extra combat turns and damage to multiple oponents at once",
+  "query": "Build me a full 99-card Boros voltron. Extra combat is required. Equip and protect the commander with hexproof and indestructible.",
   "supervisor_decision": "APPROVED",
   "validation": {
     "valid": true,
     "complete": true,
+    "ontology_interaction": {
+      "answers": {
+        "graveyard": 2,
+        "board": 1,
+        "creature": 1
+      },
+      "protects": {
+        "commander": 9,
+        "board": 5
+      },
+      "queried": true
+    },
     "commander": "Lightning, Army of One",
     "commander_identity": [
       "R",
@@ -556,27 +687,27 @@
     ],
     "slot_count": 99,
     "target_slots": 99,
-    "budget_used": 495.38,
+    "budget_used": 512.07,
     "budget_cap": null,
     "max_card_price": null,
     "currency": "usd",
     "curve": {
-      "0": 1,
-      "1": 10,
-      "2": 9,
-      "3": 9,
-      "4": 10,
-      "5": 12,
-      "6": 9,
+      "0": 0,
+      "1": 12,
+      "2": 17,
+      "3": 17,
+      "4": 8,
+      "5": 4,
+      "6": 4,
       "7+": 2
     },
-    "land_count": 37,
+    "land_count": 35,
     "land_alert": {
       "status": "ok",
-      "count": 37,
+      "count": 35,
       "quota": [
-        37,
-        39
+        35,
+        37
       ],
       "delta": 0,
       "pct": 0.0,
@@ -614,8 +745,10 @@
       "ontology_forge_records": "33666",
       "ontology_model_config": "data/ontology/model_config_v1.json",
       "ontology_forge_matches": "33760",
-      "ontology_model_rebuilt_at": "2026-08-29T20:35:42Z",
-      "collection_schema_version": "4"
+      "collection_schema_version": "5",
+      "ontology_mapping_reapplied_at": "2026-09-02T04:57:58Z",
+      "ontology_model_rebuilt_at": "2026-09-02T05:10:34Z",
+      "ontology_predicate_rows": "83113"
     }
   },
   "solver_report": {
@@ -626,53 +759,143 @@
       "ok": true,
       "added": [
         {
-          "name": "Thaumatic Compass // Spires of Orazca",
-          "score": 8.4916,
+          "name": "Tarnished Citadel",
+          "score": 8.4883,
           "source": "greedy"
         },
         {
-          "name": "Ash Barrens",
-          "score": 7.7459,
+          "name": "Fountainport",
+          "score": 7.9604,
           "source": "greedy"
         },
         {
-          "name": "Great Train Heist",
-          "score": 5.6337,
+          "name": "Fear of Missing Out",
+          "score": 6.4062,
+          "source": "greedy"
+        },
+        {
+          "name": "Maelstrom of the Spirit Dragon",
+          "score": 11.5201,
+          "source": "greedy"
+        },
+        {
+          "name": "Ally Encampment",
+          "score": 11.2785,
+          "source": "greedy"
+        },
+        {
+          "name": "Haven of the Spirit Dragon",
+          "score": 11.1169,
           "source": "greedy"
         },
         {
           "name": "Lotus Field",
-          "score": 9.8585,
-          "source": "greedy"
-        },
-        {
-          "name": "Fire Nation Palace",
-          "score": 9.365,
+          "score": 9.721,
           "source": "greedy"
         },
         {
           "name": "Forbidden Orchard",
-          "score": 9.1592,
+          "score": 9.5982,
+          "source": "greedy"
+        },
+        {
+          "name": "Hall of Tagsin",
+          "score": 9.4542,
+          "source": "greedy"
+        },
+        {
+          "name": "Castle Doom",
+          "score": 9.4105,
           "source": "greedy"
         },
         {
           "name": "Rainbow Vale",
-          "score": 9.1036,
+          "score": 9.3395,
           "source": "greedy"
         },
         {
-          "name": "Planar Nexus",
-          "score": 9.0103,
+          "name": "Daily Bugle Building",
+          "score": 9.279,
           "source": "greedy"
         },
         {
-          "name": "Pillar of the Paruns",
-          "score": 8.9826,
+          "name": "The Mycosynth Gardens",
+          "score": 9.2489,
+          "source": "greedy"
+        },
+        {
+          "name": "Jasmine Dragon Tea Shop",
+          "score": 9.2263,
+          "source": "greedy"
+        },
+        {
+          "name": "Heap Gate",
+          "score": 9.2097,
+          "source": "greedy"
+        },
+        {
+          "name": "Study Hall",
+          "score": 9.1655,
+          "source": "greedy"
+        },
+        {
+          "name": "The Seedcore",
+          "score": 9.1208,
+          "source": "greedy"
+        },
+        {
+          "name": "Mech Hangar",
+          "score": 9.1163,
+          "source": "greedy"
+        },
+        {
+          "name": "Abundant Countryside",
+          "score": 9.106,
+          "source": "greedy"
+        },
+        {
+          "name": "Guildmages' Forum",
+          "score": 9.0953,
           "source": "greedy"
         },
         {
           "name": "Undiscovered Paradise",
-          "score": 8.959,
+          "score": 9.0941,
+          "source": "greedy"
+        },
+        {
+          "name": "Captivating Cave",
+          "score": 9.0769,
+          "source": "greedy"
+        },
+        {
+          "name": "Sliver Hive",
+          "score": 9.0736,
+          "source": "greedy"
+        },
+        {
+          "name": "Command Tower",
+          "score": 9.0527,
+          "source": "greedy"
+        },
+        {
+          "name": "Pillar of the Paruns",
+          "score": 9.0249,
+          "source": "greedy"
+        },
+        {
+          "name": "Brotherhood Headquarters",
+          "score": 8.9512,
+          "source": "greedy"
+        },
+        {
+          "name": "Turtle Lair",
+          "score": 8.9362,
+          "source": "greedy"
+        },
+        {
+          "name": "Hall of Oracles",
+          "score": 8.9267,
           "source": "greedy"
         },
         {
@@ -681,323 +904,333 @@
           "source": "greedy"
         },
         {
-          "name": "Command Tower",
-          "score": 8.8027,
-          "source": "greedy"
-        },
-        {
-          "name": "Abandoned Air Temple",
-          "score": 8.4986,
+          "name": "White Lotus Hideout",
+          "score": 7.6389,
           "source": "greedy"
         },
         {
           "name": "Ancient Ziggurat",
-          "score": 8.3674,
+          "score": 7.4174,
           "source": "greedy"
         },
         {
-          "name": "Fear of Missing Out",
-          "score": 5.488,
+          "name": "Great Train Heist",
+          "score": 6.2858,
           "source": "greedy"
         },
         {
           "name": "Breath of Fury",
-          "score": 5.1326,
+          "score": 5.8826,
+          "source": "greedy"
+        },
+        {
+          "name": "Cave of Temptation",
+          "score": 8.2328,
           "source": "greedy"
         },
         {
           "name": "Zariel, Archduke of Avernus",
-          "score": 5.0563,
+          "score": 5.8063,
           "source": "greedy"
         },
         {
-          "name": "Brightstone Ritual",
-          "score": 4.71,
+          "name": "Charming Scoundrel",
+          "score": 5.5366,
           "source": "greedy"
         },
         {
-          "name": "Zhao, the Moon Slayer",
-          "score": 4.6709,
+          "name": "Mishra, Excavation Prodigy",
+          "score": 5.4119,
           "source": "greedy"
         },
         {
-          "name": "Swiftblade Vindicator",
-          "score": 4.6592,
+          "name": "Currency Converter",
+          "score": 5.6445,
           "source": "greedy"
         },
         {
-          "name": "Soulbright Flamekin",
-          "score": 4.609,
+          "name": "Tivadar of Thorn",
+          "score": 4.9812,
           "source": "greedy"
         },
         {
-          "name": "Urn of Godfire",
-          "score": 4.597,
+          "name": "Wyleth, Soul of Steel",
+          "score": 4.9526,
           "source": "greedy"
         },
         {
-          "name": "Spectrum Sentinel",
-          "score": 4.594,
-          "source": "greedy"
-        },
-        {
-          "name": "Battle Angels of Tyr",
-          "score": 4.554,
-          "source": "greedy"
-        },
-        {
-          "name": "Bloodthirster",
-          "score": 4.5352,
-          "source": "greedy"
-        },
-        {
-          "name": "Rite of Flame",
-          "score": 4.5145,
-          "source": "greedy"
-        },
-        {
-          "name": "Godo, Bandit Warlord",
-          "score": 4.4473,
-          "source": "greedy"
-        },
-        {
-          "name": "Genji Glove",
-          "score": 5.1873,
-          "source": "greedy"
-        },
-        {
-          "name": "Overpowering Attack",
-          "score": 5.0922,
-          "source": "greedy"
-        },
-        {
-          "name": "Alpine Moon",
-          "score": 4.4397,
-          "source": "greedy"
-        },
-        {
-          "name": "Akki Battle Squad",
-          "score": 4.3571,
-          "source": "greedy"
-        },
-        {
-          "name": "The One Ring",
-          "score": 4.2738,
-          "source": "greedy"
-        },
-        {
-          "name": "Manhole Cover",
-          "score": 4.2549,
-          "source": "greedy"
-        },
-        {
-          "name": "Bilbo's Ring",
-          "score": 4.181,
-          "source": "greedy"
-        },
-        {
-          "name": "Vault 21: House Gambit",
-          "score": 4.167,
-          "source": "greedy"
-        },
-        {
-          "name": "Drumbellower",
-          "score": 3.0183,
-          "source": "greedy"
-        },
-        {
-          "name": "Combat Celebrant",
-          "score": 2.909,
-          "source": "greedy"
-        },
-        {
-          "name": "Raph & Leo, Sibling Rivals",
-          "score": 2.8595,
-          "source": "greedy"
-        },
-        {
-          "name": "Jangling Automaton",
-          "score": 2.7921,
-          "source": "greedy"
-        },
-        {
-          "name": "Aggravated Assault",
-          "score": 2.6418,
-          "source": "greedy"
-        },
-        {
-          "name": "Nine Lives",
-          "score": 2.1802,
-          "source": "greedy"
-        },
-        {
-          "name": "Benevolent Blessing",
-          "score": 2.1775,
+          "name": "Fey Steed",
+          "score": 4.8558,
           "source": "greedy"
         },
         {
           "name": "Raphael, Tag Team Tough",
-          "score": 2.1689,
+          "score": 4.825,
           "source": "greedy"
         },
         {
-          "name": "Lightning Strike",
-          "score": 2.1434,
+          "name": "Bilbo's Ring",
+          "score": 4.7039,
           "source": "greedy"
         },
         {
-          "name": "Teyo, the Shieldmage",
-          "score": 2.1397,
+          "name": "Arm-Mounted Anchor",
+          "score": 4.6798,
           "source": "greedy"
         },
         {
-          "name": "Spectacular Tactics",
-          "score": 2.0218,
+          "name": "Sticky Fingers",
+          "score": 4.6271,
           "source": "greedy"
         },
         {
-          "name": "Brilliant Wings",
-          "score": 2.001,
+          "name": "Vault 21: House Gambit",
+          "score": 4.5776,
           "source": "greedy"
         },
         {
-          "name": "Response // Resurgence",
-          "score": 1.9977,
+          "name": "Contested Game Ball",
+          "score": 4.5306,
+          "source": "greedy"
+        },
+        {
+          "name": "Bounty Board",
+          "score": 4.5218,
           "source": "greedy"
         },
         {
           "name": "Raiyuu, Storm's Edge",
-          "score": 1.9814,
+          "score": 4.1013,
           "source": "greedy"
         },
         {
-          "name": "Grim Reaper's Sprint",
-          "score": 1.9412,
-          "source": "greedy"
-        },
-        {
-          "name": "Lightning Runner",
-          "score": 1.9274,
-          "source": "greedy"
-        },
-        {
-          "name": "Reveille Squad",
-          "score": 1.92,
-          "source": "greedy"
-        },
-        {
-          "name": "Scourge of the Throne",
-          "score": 1.8711,
-          "source": "greedy"
-        },
-        {
-          "name": "\u00c9omer, Marshal of Rohan",
-          "score": 1.8181,
+          "name": "Raph & Leo, Sibling Rivals",
+          "score": 3.5443,
           "source": "greedy"
         },
         {
           "name": "Karlach, Fury of Avernus",
-          "score": 1.7608,
+          "score": 3.2608,
           "source": "greedy"
         },
         {
-          "name": "Hexplate Wallbreaker",
-          "score": 1.746,
+          "name": "Aggravated Assault",
+          "score": 3.2458,
           "source": "greedy"
         },
         {
-          "name": "Port Razer",
-          "score": 1.6581,
+          "name": "Scourge of the Throne",
+          "score": 2.6211,
           "source": "greedy"
         },
         {
-          "name": "Savage Beating",
-          "score": 1.6109,
-          "source": "greedy"
-        },
-        {
-          "name": "Seize the Day",
-          "score": 1.568,
-          "source": "greedy"
-        },
-        {
-          "name": "Rally the Troops",
-          "score": 1.5522,
-          "source": "greedy"
-        },
-        {
-          "name": "Take the Bait",
-          "score": 1.4903,
-          "source": "greedy"
-        },
-        {
-          "name": "World at War",
-          "score": 1.4709,
-          "source": "greedy"
-        },
-        {
-          "name": "Fury of the Horde",
-          "score": 2.1441,
-          "source": "greedy"
-        },
-        {
-          "name": "Moraug, Fury of Akoum",
-          "score": 1.7925,
-          "source": "greedy"
-        },
-        {
-          "name": "Aurelia, the Warleader",
-          "score": 1.7,
-          "source": "greedy"
-        },
-        {
-          "name": "Hellkite Charger",
-          "score": 1.6196,
-          "source": "greedy"
-        },
-        {
-          "name": "Desert Were-Worm",
-          "score": 1.5418,
-          "source": "greedy"
-        },
-        {
-          "name": "Swinging Ship",
-          "score": 1.4166,
-          "source": "greedy"
-        },
-        {
-          "name": "Waves of Aggression",
-          "score": 1.2964,
+          "name": "Manhole Cover",
+          "score": 2.5826,
           "source": "greedy"
         },
         {
           "name": "Eater of Virtue",
-          "score": 1.1765,
+          "score": 2.4265,
+          "source": "greedy"
+        },
+        {
+          "name": "Omni-Cheese Pizza",
+          "score": 2.4177,
+          "source": "greedy"
+        },
+        {
+          "name": "Cool but Rude",
+          "score": 2.404,
+          "source": "greedy"
+        },
+        {
+          "name": "Hellkite Charger",
+          "score": 2.3696,
+          "source": "greedy"
+        },
+        {
+          "name": "Desert Were-Worm",
+          "score": 2.3435,
+          "source": "greedy"
+        },
+        {
+          "name": "Zephyr Boots",
+          "score": 2.2894,
+          "source": "greedy"
+        },
+        {
+          "name": "The Flame of Keld",
+          "score": 2.2817,
+          "source": "greedy"
+        },
+        {
+          "name": "Captain America's Shield",
+          "score": 2.2723,
+          "source": "greedy"
+        },
+        {
+          "name": "Gleaming Splendor",
+          "score": 2.2601,
+          "source": "greedy"
+        },
+        {
+          "name": "Take the Bait",
+          "score": 3.1381,
+          "source": "greedy"
+        },
+        {
+          "name": "Seize the Day",
+          "score": 3.068,
+          "source": "greedy"
+        },
+        {
+          "name": "Combat Celebrant",
+          "score": 2.2317,
+          "source": "greedy"
+        },
+        {
+          "name": "Chromatic Orrery",
+          "score": 2.1966,
+          "source": "greedy"
+        },
+        {
+          "name": "Fated Clash",
+          "score": 2.1942,
+          "source": "greedy"
+        },
+        {
+          "name": "Tin Street Market",
+          "score": 1.9398,
+          "source": "greedy"
+        },
+        {
+          "name": "Nazg\u00fbl Battle-Mace",
+          "score": 1.8746,
+          "source": "greedy"
+        },
+        {
+          "name": "Teyo, Geometric Tactician",
+          "score": 1.683,
+          "source": "greedy"
+        },
+        {
+          "name": "Monument to Endurance",
+          "score": 1.6682,
+          "source": "greedy"
+        },
+        {
+          "name": "Courageous Resolve",
+          "score": 1.6269,
           "source": "greedy"
         },
         {
           "name": "Relentless Assault",
-          "score": 1.1211,
+          "score": 1.6211,
           "source": "greedy"
         },
         {
-          "name": "Nahiri, the Lithomancer",
-          "score": 0.9879,
+          "name": "Ultima Weapon",
+          "score": 1.5415,
           "source": "greedy"
         },
         {
-          "name": "Armistice",
-          "score": 0.7837,
+          "name": "Sarkhan, Fireblood",
+          "score": 1.4758,
           "source": "greedy"
         },
         {
-          "name": "Fists of Flame",
-          "score": 0.7764,
+          "name": "Gate to the Afterlife",
+          "score": 1.2949,
+          "source": "greedy"
+        },
+        {
+          "name": "Daily Bugle Newspaper",
+          "score": 1.2897,
+          "source": "greedy"
+        },
+        {
+          "name": "Quintorius, History Chaser",
+          "score": 1.0505,
+          "source": "greedy"
+        },
+        {
+          "name": "Blossoming Calm",
+          "score": 0.8927,
+          "source": "greedy"
+        },
+        {
+          "name": "Brilliant Wings",
+          "score": 0.851,
+          "source": "greedy"
+        },
+        {
+          "name": "Teyo, the Shieldmage",
+          "score": 0.8379,
+          "source": "greedy"
+        },
+        {
+          "name": "Krovod Haunch",
+          "score": 0.8002,
+          "source": "greedy"
+        },
+        {
+          "name": "Caduceus, Staff of Hermes",
+          "score": 0.7937,
+          "source": "greedy"
+        },
+        {
+          "name": "Dungeoneer's Pack",
+          "score": 0.7645,
+          "source": "greedy"
+        },
+        {
+          "name": "Enduring Renewal",
+          "score": 0.7585,
           "source": "greedy"
         },
         {
           "name": "Enter the Avatar State",
-          "score": 0.7359,
+          "score": 0.7525,
+          "source": "greedy"
+        },
+        {
+          "name": "Shadowspear",
+          "score": 0.7143,
+          "source": "greedy"
+        },
+        {
+          "name": "Beamtown Beatstick",
+          "score": 0.7029,
+          "source": "greedy"
+        },
+        {
+          "name": "Witch's Mark",
+          "score": 0.6974,
+          "source": "greedy"
+        },
+        {
+          "name": "Sheltering Prayers",
+          "score": 0.6871,
+          "source": "greedy"
+        },
+        {
+          "name": "Seraphic Greatsword",
+          "score": 0.6771,
+          "source": "greedy"
+        },
+        {
+          "name": "Reckoner Bankbuster",
+          "score": 0.6732,
+          "source": "greedy"
+        },
+        {
+          "name": "Crown of Awe",
+          "score": 0.6257,
+          "source": "greedy"
+        },
+        {
+          "name": "Everybody Lives!",
+          "score": 0.6222,
           "source": "greedy"
         },
         {
@@ -1016,142 +1249,22 @@
           "source": "basic"
         },
         {
-          "name": "Mountain",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
-          "name": "Mountain",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
-          "name": "Mountain",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
           "name": "Plains",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
-          "name": "Mountain",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
-          "name": "Plains",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
-          "name": "Mountain",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
-          "name": "Plains",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
-          "name": "Mountain",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
-          "name": "Plains",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
-          "name": "Mountain",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
-          "name": "Plains",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
-          "name": "Mountain",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
-          "name": "Plains",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
-          "name": "Mountain",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
-          "name": "Plains",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
-          "name": "Mountain",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
-          "name": "Mountain",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
-          "name": "Plains",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
-          "name": "Mountain",
-          "score": 0.0,
-          "source": "basic"
-        },
-        {
-          "name": "Mountain",
           "score": 0.0,
           "source": "basic"
         }
       ],
       "skipped": [
         {
+          "name": "Bazaar of Baghdad",
+          "reason": "land produces no mana"
+        },
+        {
           "name": "Reflecting Pool",
           "reason": "land produces no mana"
         },
         {
-          "name": "Multiversal Passage",
-          "reason": "land produces no mana"
-        },
-        {
-          "name": "Escape Tunnel",
-          "reason": "land produces no mana"
-        },
-        {
-          "name": "Hobbit Hole",
-          "reason": "land produces no mana"
-        },
-        {
-          "name": "Fabled Passage",
-          "reason": "land produces no mana"
-        },
-        {
-          "name": "Valgavoth's Lair",
-          "reason": "land produces no mana"
-        },
-        {
-          "name": "Ice Floe",
-          "reason": "land produces no mana"
-        },
-        {
-          "name": "Maze of Ith",
+          "name": "Rhystic Cave",
           "reason": "land produces no mana"
         },
         {
@@ -1207,10 +1320,6 @@
           "reason": "land slots reserved"
         },
         {
-          "name": "Blossoming Calm",
-          "reason": "land slots reserved"
-        },
-        {
           "name": "Bofur, Reliable Guardian // Concerted Care",
           "reason": "land slots reserved"
         },
@@ -1220,6 +1329,42 @@
         },
         {
           "name": "Kytheon, Hero of Akros // Gideon, Battle-Forged",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Shield of Kaldra",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Adamant Will",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Aethershield Artificer",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Ajani's Presence",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Angelheart Protector",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Beaming Defiance",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Benevolent Blessing",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Black Ward",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Blessed Hippogriff // Tyr's Blessing",
           "reason": "land slots reserved"
         },
         {
@@ -1239,10 +1384,6 @@
           "reason": "land slots reserved"
         },
         {
-          "name": "Blessed Hippogriff // Tyr's Blessing",
-          "reason": "land slots reserved"
-        },
-        {
           "name": "Deathless Angel",
           "reason": "land slots reserved"
         },
@@ -1256,10 +1397,6 @@
         },
         {
           "name": "Benevolent Bodyguard",
-          "reason": "land slots reserved"
-        },
-        {
-          "name": "Black Ward",
           "reason": "land slots reserved"
         },
         {
@@ -1277,42 +1414,42 @@
         {
           "name": "Burrenton Forge-Tender",
           "reason": "land slots reserved"
-        },
-        {
-          "name": "Commander's Plate",
-          "reason": "land slots reserved"
         }
       ],
       "slot_count": 99,
       "remaining_slots": 0,
-      "pool_count": 542
+      "pool_count": 544
     },
     "cut": {
       "ok": true,
       "removed": [],
       "swapped": [
         {
-          "out": "Swiftblade Vindicator",
-          "in": "Faith's Shield"
+          "out": "Tivadar of Thorn",
+          "in": "Tempt with Bunnies"
         },
         {
-          "out": "Battle Angels of Tyr",
-          "in": "Orbs of Warding"
+          "out": "Mishra, Excavation Prodigy",
+          "in": "Wedding Announcement // Wedding Festivity"
         },
         {
-          "out": "Lightning Strike",
-          "in": "Lightning Blast"
+          "out": "Wyleth, Soul of Steel",
+          "in": "Hook Swords"
+        },
+        {
+          "out": "Fey Steed",
+          "in": "Eldritch Immunity"
         }
       ],
       "slot_count": 99,
-      "pool_count": 542
+      "pool_count": 544
     },
     "land_alert": {
       "status": "ok",
-      "count": 37,
+      "count": 35,
       "quota": [
-        37,
-        39
+        35,
+        37
       ],
       "delta": 0,
       "pct": 0.0,
@@ -1323,7 +1460,7 @@
     "removed": [],
     "added": [
       {
-        "name": "Abandoned Air Temple",
+        "name": "Abundant Countryside",
         "quantity": 1
       },
       {
@@ -1331,11 +1468,7 @@
         "quantity": 1
       },
       {
-        "name": "Akki Battle Squad",
-        "quantity": 1
-      },
-      {
-        "name": "Alpine Moon",
+        "name": "Ally Encampment",
         "quantity": 1
       },
       {
@@ -1343,19 +1476,11 @@
         "quantity": 1
       },
       {
-        "name": "Armistice",
+        "name": "Arm-Mounted Anchor",
         "quantity": 1
       },
       {
-        "name": "Ash Barrens",
-        "quantity": 1
-      },
-      {
-        "name": "Aurelia, the Warleader",
-        "quantity": 1
-      },
-      {
-        "name": "Benevolent Blessing",
+        "name": "Beamtown Beatstick",
         "quantity": 1
       },
       {
@@ -1363,7 +1488,11 @@
         "quantity": 1
       },
       {
-        "name": "Bloodthirster",
+        "name": "Blossoming Calm",
+        "quantity": 1
+      },
+      {
+        "name": "Bounty Board",
         "quantity": 1
       },
       {
@@ -1371,11 +1500,39 @@
         "quantity": 1
       },
       {
-        "name": "Brightstone Ritual",
+        "name": "Brilliant Wings",
         "quantity": 1
       },
       {
-        "name": "Brilliant Wings",
+        "name": "Brotherhood Headquarters",
+        "quantity": 1
+      },
+      {
+        "name": "Caduceus, Staff of Hermes",
+        "quantity": 1
+      },
+      {
+        "name": "Captain America's Shield",
+        "quantity": 1
+      },
+      {
+        "name": "Captivating Cave",
+        "quantity": 1
+      },
+      {
+        "name": "Castle Doom",
+        "quantity": 1
+      },
+      {
+        "name": "Cave of Temptation",
+        "quantity": 1
+      },
+      {
+        "name": "Charming Scoundrel",
+        "quantity": 1
+      },
+      {
+        "name": "Chromatic Orrery",
         "quantity": 1
       },
       {
@@ -1387,11 +1544,39 @@
         "quantity": 1
       },
       {
+        "name": "Contested Game Ball",
+        "quantity": 1
+      },
+      {
+        "name": "Cool but Rude",
+        "quantity": 1
+      },
+      {
+        "name": "Courageous Resolve",
+        "quantity": 1
+      },
+      {
+        "name": "Crown of Awe",
+        "quantity": 1
+      },
+      {
+        "name": "Currency Converter",
+        "quantity": 1
+      },
+      {
+        "name": "Daily Bugle Building",
+        "quantity": 1
+      },
+      {
+        "name": "Daily Bugle Newspaper",
+        "quantity": 1
+      },
+      {
         "name": "Desert Were-Worm",
         "quantity": 1
       },
       {
-        "name": "Drumbellower",
+        "name": "Dungeoneer's Pack",
         "quantity": 1
       },
       {
@@ -1399,7 +1584,19 @@
         "quantity": 1
       },
       {
+        "name": "Eldritch Immunity",
+        "quantity": 1
+      },
+      {
+        "name": "Enduring Renewal",
+        "quantity": 1
+      },
+      {
         "name": "Enter the Avatar State",
+        "quantity": 1
+      },
+      {
+        "name": "Everybody Lives!",
         "quantity": 1
       },
       {
@@ -1407,7 +1604,7 @@
         "quantity": 1
       },
       {
-        "name": "Faith's Shield",
+        "name": "Fated Clash",
         "quantity": 1
       },
       {
@@ -1415,27 +1612,19 @@
         "quantity": 1
       },
       {
-        "name": "Fire Nation Palace",
-        "quantity": 1
-      },
-      {
-        "name": "Fists of Flame",
-        "quantity": 1
-      },
-      {
         "name": "Forbidden Orchard",
         "quantity": 1
       },
       {
-        "name": "Fury of the Horde",
+        "name": "Fountainport",
         "quantity": 1
       },
       {
-        "name": "Genji Glove",
+        "name": "Gate to the Afterlife",
         "quantity": 1
       },
       {
-        "name": "Godo, Bandit Warlord",
+        "name": "Gleaming Splendor",
         "quantity": 1
       },
       {
@@ -1443,7 +1632,23 @@
         "quantity": 1
       },
       {
-        "name": "Grim Reaper's Sprint",
+        "name": "Guildmages' Forum",
+        "quantity": 1
+      },
+      {
+        "name": "Hall of Oracles",
+        "quantity": 1
+      },
+      {
+        "name": "Hall of Tagsin",
+        "quantity": 1
+      },
+      {
+        "name": "Haven of the Spirit Dragon",
+        "quantity": 1
+      },
+      {
+        "name": "Heap Gate",
         "quantity": 1
       },
       {
@@ -1451,11 +1656,11 @@
         "quantity": 1
       },
       {
-        "name": "Hexplate Wallbreaker",
+        "name": "Hook Swords",
         "quantity": 1
       },
       {
-        "name": "Jangling Automaton",
+        "name": "Jasmine Dragon Tea Shop",
         "quantity": 1
       },
       {
@@ -1463,11 +1668,7 @@
         "quantity": 1
       },
       {
-        "name": "Lightning Blast",
-        "quantity": 1
-      },
-      {
-        "name": "Lightning Runner",
+        "name": "Krovod Haunch",
         "quantity": 1
       },
       {
@@ -1475,31 +1676,31 @@
         "quantity": 1
       },
       {
+        "name": "Maelstrom of the Spirit Dragon",
+        "quantity": 1
+      },
+      {
         "name": "Manhole Cover",
         "quantity": 1
       },
       {
-        "name": "Moraug, Fury of Akoum",
+        "name": "Mech Hangar",
+        "quantity": 1
+      },
+      {
+        "name": "Monument to Endurance",
         "quantity": 1
       },
       {
         "name": "Mountain",
-        "quantity": 16
+        "quantity": 3
       },
       {
-        "name": "Nahiri, the Lithomancer",
+        "name": "Nazg\u00fbl Battle-Mace",
         "quantity": 1
       },
       {
-        "name": "Nine Lives",
-        "quantity": 1
-      },
-      {
-        "name": "Orbs of Warding",
-        "quantity": 1
-      },
-      {
-        "name": "Overpowering Attack",
+        "name": "Omni-Cheese Pizza",
         "quantity": 1
       },
       {
@@ -1508,14 +1709,10 @@
       },
       {
         "name": "Plains",
-        "quantity": 8
-      },
-      {
-        "name": "Planar Nexus",
         "quantity": 1
       },
       {
-        "name": "Port Razer",
+        "name": "Quintorius, History Chaser",
         "quantity": 1
       },
       {
@@ -1527,10 +1724,6 @@
         "quantity": 1
       },
       {
-        "name": "Rally the Troops",
-        "quantity": 1
-      },
-      {
         "name": "Raph & Leo, Sibling Rivals",
         "quantity": 1
       },
@@ -1539,23 +1732,15 @@
         "quantity": 1
       },
       {
+        "name": "Reckoner Bankbuster",
+        "quantity": 1
+      },
+      {
         "name": "Relentless Assault",
         "quantity": 1
       },
       {
-        "name": "Response // Resurgence",
-        "quantity": 1
-      },
-      {
-        "name": "Reveille Squad",
-        "quantity": 1
-      },
-      {
-        "name": "Rite of Flame",
-        "quantity": 1
-      },
-      {
-        "name": "Savage Beating",
+        "name": "Sarkhan, Fireblood",
         "quantity": 1
       },
       {
@@ -1567,19 +1752,27 @@
         "quantity": 1
       },
       {
-        "name": "Soulbright Flamekin",
+        "name": "Seraphic Greatsword",
         "quantity": 1
       },
       {
-        "name": "Spectacular Tactics",
+        "name": "Shadowspear",
         "quantity": 1
       },
       {
-        "name": "Spectrum Sentinel",
+        "name": "Sheltering Prayers",
         "quantity": 1
       },
       {
-        "name": "Swinging Ship",
+        "name": "Sliver Hive",
+        "quantity": 1
+      },
+      {
+        "name": "Sticky Fingers",
+        "quantity": 1
+      },
+      {
+        "name": "Study Hall",
         "quantity": 1
       },
       {
@@ -1587,15 +1780,43 @@
         "quantity": 1
       },
       {
+        "name": "Tarnished Citadel",
+        "quantity": 1
+      },
+      {
+        "name": "Tempt with Bunnies",
+        "quantity": 1
+      },
+      {
+        "name": "Teyo, Geometric Tactician",
+        "quantity": 1
+      },
+      {
         "name": "Teyo, the Shieldmage",
         "quantity": 1
       },
       {
-        "name": "Thaumatic Compass // Spires of Orazca",
+        "name": "The Flame of Keld",
         "quantity": 1
       },
       {
-        "name": "The One Ring",
+        "name": "The Mycosynth Gardens",
+        "quantity": 1
+      },
+      {
+        "name": "The Seedcore",
+        "quantity": 1
+      },
+      {
+        "name": "Tin Street Market",
+        "quantity": 1
+      },
+      {
+        "name": "Turtle Lair",
+        "quantity": 1
+      },
+      {
+        "name": "Ultima Weapon",
         "quantity": 1
       },
       {
@@ -1603,19 +1824,19 @@
         "quantity": 1
       },
       {
-        "name": "Urn of Godfire",
-        "quantity": 1
-      },
-      {
         "name": "Vault 21: House Gambit",
         "quantity": 1
       },
       {
-        "name": "Waves of Aggression",
+        "name": "Wedding Announcement // Wedding Festivity",
         "quantity": 1
       },
       {
-        "name": "World at War",
+        "name": "White Lotus Hideout",
+        "quantity": 1
+      },
+      {
+        "name": "Witch's Mark",
         "quantity": 1
       },
       {
@@ -1623,11 +1844,7 @@
         "quantity": 1
       },
       {
-        "name": "Zhao, the Moon Slayer",
-        "quantity": 1
-      },
-      {
-        "name": "\u00c9omer, Marshal of Rohan",
+        "name": "Zephyr Boots",
         "quantity": 1
       }
     ],

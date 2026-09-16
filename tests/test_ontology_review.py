@@ -21,18 +21,16 @@ from enrich_ontology import (  # noqa: E402
 from mine_forge import mine_cardsfolder  # noqa: E402
 from ontology.model_config import build_model_facts  # noqa: E402
 from service.handlers.ontology import (  # noqa: E402
-    export_gold_set,
     get_ontology_card,
     list_ontology_cards,
     ontology_stats,
-    save_ontology_review,
 )
 
 
 FIXTURES = ROOT / "tests" / "fixtures" / "forge"
 
 
-class OntologyReviewTests(unittest.TestCase):
+class OntologyCatalogTests(unittest.TestCase):
     def setUp(self):
         handle = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         handle.close()
@@ -76,7 +74,7 @@ class OntologyReviewTests(unittest.TestCase):
     def tearDown(self):
         os.unlink(self.db)
 
-    def test_enrichment_and_review_export(self):
+    def test_enrichment_and_catalog_join(self):
         with tempfile.TemporaryDirectory() as directory:
             forge_path = Path(directory) / "forge.jsonl"
             rows = mine_cardsfolder(FIXTURES)
@@ -91,42 +89,22 @@ class OntologyReviewTests(unittest.TestCase):
             self.assertEqual(detail["model_facts"]["source"], "configured-model")
             self.assertEqual(detail["model_facts"]["card"]["keywords"], ["Menace"])
             self.assertIn("effects", detail["model_facts"]["mechanics"])
+            self.assertNotIn("review", detail)
+            self.assertEqual(
+                detail["resolved_facts"]["card"]["color_identity"], ["R"]
+            )
+            self.assertEqual(
+                detail["resolved_facts"]["card"]["keywords"], ["Menace"]
+            )
+            self.assertNotIn("front", detail["resolved_facts"])
+            self.assertEqual(detail["resolved_facts"]["source"], "scryfall+forge")
 
             stats = ontology_stats(self.db)
             self.assertEqual(stats["forge_matched"], 1)
+            self.assertNotIn("reviews", stats)
             cards = list_ontology_cards(query="treasure", db_path=self.db)
             self.assertEqual(cards["total"], 1)
-            card_id = cards["cards"][0]["id"]
-
-            reviewed = save_ontology_review(
-                card_id,
-                "accepted",
-                ["produces(treasure)"],
-                "Forge and Oracle agree.",
-                "resolved",
-                {"keywords": True, "color_identity": True},
-                self.db,
-            )
-            self.assertEqual(reviewed["review"]["status"], "accepted")
-            self.assertEqual(reviewed["review"]["selected_source"], "resolved")
-            self.assertTrue(reviewed["review"]["field_checks"]["keywords"])
-            self.assertEqual(
-                reviewed["resolved_facts"]["card"]["color_identity"], ["R"]
-            )
-            self.assertEqual(
-                reviewed["resolved_facts"]["card"]["keywords"], ["Menace"]
-            )
-            self.assertNotIn("front", reviewed["resolved_facts"])
-            self.assertEqual(reviewed["resolved_facts"]["source"], "scryfall+forge")
-            self.assertEqual(get_ontology_card(card_id, self.db)["review"]["labels"], ["produces(treasure)"])
-
-            output = Path(directory) / "gold_set.jsonl"
-            exported = export_gold_set(self.db, output)
-            self.assertEqual(exported["count"], 1)
-            record = json.loads(output.read_text(encoding="utf-8"))
-            self.assertEqual(record["status"], "accepted")
-            self.assertEqual(record["field_checks"]["keywords"], True)
-            self.assertEqual(record["scryfall"]["id"], "engine")
+            self.assertNotIn("review_status", cards["cards"][0])
 
 
 def _insert_card(db_path: str, card_id: str, name: str, scryfall: dict, **columns):

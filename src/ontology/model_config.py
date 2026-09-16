@@ -1,6 +1,6 @@
 """Global contract for constructing the final card model.
 
-This is deliberately separate from per-card review.  A model configuration is
+This is a global mapping, not a per-card overlay. A model configuration is
 selected once, saved, and then applied to every ontology card.
 """
 

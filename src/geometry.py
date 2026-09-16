@@ -10,7 +10,11 @@ from __future__ import annotations
 import json
 import os
 
+from typing import Iterable, Mapping
+
 import numpy as np
+
+from ontology.graph import predicate_signature, signature_tokens
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(os.path.dirname(SCRIPT_DIR), "data")
@@ -115,24 +119,52 @@ def knn_indices(vectors: np.ndarray, k: int = 8) -> np.ndarray:
     return np.argpartition(-sim, kth=k - 1, axis=1)[:, :k]
 
 
+def encode_predicate_views(
+    ids: list[str],
+    by_card_id: Mapping[str, Mapping[str, Iterable[str]]] | None,
+    vocab: list[str] | None = None,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Multi-hot matrix aligned to `ids`. Vocab is sorted `bucket:value` tokens."""
+    source = by_card_id or {}
+    if vocab is None:
+        tokens: set[str] = set()
+        for sets in source.values():
+            tokens.update(signature_tokens(sets))
+        vocab = sorted(tokens)
+    index = {token: i for i, token in enumerate(vocab)}
+    matrix = np.zeros((len(ids), len(vocab)), dtype=np.uint8)
+    for row, card_id in enumerate(ids):
+        for bucket, value in predicate_signature(source.get(card_id) or {}):
+            col = index.get(f"{bucket}:{value}")
+            if col is not None:
+                matrix[row, col] = 1
+    return matrix, np.asarray(vocab, dtype=object)
+
+
 def save_card_views(
     ids: list[str],
-    oracle,
-    type_vecs,
+    oracle=None,
+    type_vecs=None,
     path: str = VIEWS_PATH,
     keywords=None,
     mana=None,
+    predicates=None,
+    predicate_vocab=None,
 ):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    payload = {
-        "ids": np.asarray(ids, dtype=object),
-        "oracle": np.asarray(oracle, dtype=np.float16),
-        "type": np.asarray(type_vecs, dtype=np.float16),
-    }
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    payload = {"ids": np.asarray(ids, dtype=object)}
+    if oracle is not None:
+        payload["oracle"] = np.asarray(oracle, dtype=np.float16)
+    if type_vecs is not None:
+        payload["type"] = np.asarray(type_vecs, dtype=np.float16)
     if keywords is not None:
         payload["keywords"] = np.asarray(keywords, dtype=np.float16)
     if mana is not None:
         payload["mana"] = np.asarray(mana, dtype=np.float16)
+    if predicates is not None:
+        payload["predicates"] = np.asarray(predicates, dtype=np.uint8)
+    if predicate_vocab is not None:
+        payload["predicate_vocab"] = np.asarray(predicate_vocab, dtype=object)
     np.savez_compressed(path, **payload)
 
 
@@ -140,13 +172,14 @@ def load_card_views(path: str = VIEWS_PATH) -> dict | None:
     if not os.path.exists(path):
         return None
     data = np.load(path, allow_pickle=True)
-    ids = [str(i) for i in data["ids"]]
-    store = {
-        "index": {card_id: i for i, card_id in enumerate(ids)},
-        "oracle": data["oracle"],
-        "type": data["type"],
-    }
-    for key in ("keywords", "mana"):
-        if key in data.files:
-            store[key] = data[key]
-    return store
+    try:
+        ids = [str(i) for i in data["ids"]]
+        store: dict = {"index": {card_id: i for i, card_id in enumerate(ids)}}
+        for key in ("oracle", "type", "keywords", "mana", "predicates"):
+            if key in data.files:
+                store[key] = np.array(data[key], copy=True)
+        if "predicate_vocab" in data.files:
+            store["predicate_vocab"] = [str(token) for token in data["predicate_vocab"]]
+        return store
+    finally:
+        data.close()

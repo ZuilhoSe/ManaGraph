@@ -29,7 +29,8 @@ class ManagerAgent:
         Use search_cards to find synergies. Tools return JSON.
         search_cards compiles natural language into ontology predicates
         (produces, consumes, emits, rewards, enables, answers, tutors, recurs, protects).
-        Prefer mechanic language or explicit predicate:value over hoping oracle wording matches.
+        Prefer mechanic language or explicit predicate=value / predicate:value
+        over hoping oracle wording matches. Never search "good COMMANDER cards".
         The Forge predicate index is the mechanic search; Oracle lexical/embedding is a harness,
         so \"draw a card\" still finds Phyrexian Arena.
         Example: \"extra combat\" compiles to enables:extra_combat and finds Karlach even if
@@ -115,10 +116,18 @@ class ManagerAgent:
           the same way you would otherwise.
 
         SEARCH STRATEGY:
-        - Prefer mechanic language ("extra combat", "sac outlet") or explicit
-          `enables:extra_combat` over hoping oracle wording matches.
-        - Oracle harness still runs, so "draw a card" / "destroy all creatures" still work.
-        - If a search is empty, retry with synonyms or search_predicates on the compiled clauses.
+        - Do not search "good X cards", "best cards for COMMANDER", or other vibe strings.
+        - If suggested_searches is non-empty, call those query strings first
+          (e.g. search_cards(query="rewards=etb, cmc<=3", colors=...)).
+          You may instead pass filter kwargs (rewards="etb") plus cmc_max from the same row.
+        - ontology_queries are the same predicates without cmc (`enables:sac_outlet`)
+          for search_predicates / a second pass.
+        - Prefer explicit `predicate=value` (colon form is the same) and cmc bounds
+          from curve_gaps. curve 2 low → cmc_max=3 on the predicate search, not "2-mana goblin".
+        - Filter kwargs AND-match: search_cards(query="goblin", rewards="etb") only
+          returns cards that reward ETB. Empty query plus filters is valid.
+        - Oracle harness still runs for Stage 3.5 role gaps ("draw a card", "add {R}").
+        - If a search is empty, retry with a synonym family or search_predicates on the compiled clauses.
         - Honor identity, owned_only, max_card_price, and budget_cap from the current deck JSON.
         - When improving, search relative to cards already in the deck, not a blank commander primer.
 
@@ -149,7 +158,11 @@ class ManagerAgent:
         DIAGNOSIS:
         - The user message includes a symbolic diagnosis (lands, curve, pips vs sources, role gaps, deficits).
         - Trust those numbers. Do not count lands, pips, or the mana curve yourself.
-        - Search in a gap-shaped way: curve 2 low → "2-mana goblin"; sources R low → "add {R}"; draw low → "draw a card".
+        - Search in a gap-shaped way: curve 2 low → cmc_max=3 on a predicate query;
+          sources R low → "add {R}"; draw low → "draw a card".
+        - suggested_searches are ready-to-run search_cards queries (`rewards=etb, cmc<=3`).
+          Call them before inventing a query. Do not invent "good Krenko cards".
+        - ontology_deficits / ontology_flow.orphans are unmatched supply/demand, not flavour.
         - You may call diagnose_deck_json if the injected block is missing. Do not invent synergy scores or a 99-card list.
         """
 

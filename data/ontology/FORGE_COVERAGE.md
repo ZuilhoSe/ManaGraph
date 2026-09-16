@@ -36,12 +36,11 @@ O cardsfolder local existe (33 666 `.txt`, igual a `forge_records`). Os nomes 
 | `data/ontology/FORGE_COVERAGE.md` | Este inventário |
 | `data/ontology/forge_raw_v1.jsonl` | Artefato minerado (um JSON por carta Forge) |
 | `data/ontology/forge_scryfall_v1.jsonl` | Join Scryfall↔Forge emitido pelo enrich |
-| `data/ontology/gold_set_v1.jsonl` | Export declarado do validador; **ainda não existe** (reviews = 0) |
 | `src/ontology/schema.py` | Enums + loader YAML (`ObjectName`, `EventName`, `PredicateName`, `Capability`, `ThreatClass`, `Selector`, `TargetClass`, `Zone`) |
 | `src/ontology/model_config.py` | Constrói Final: Scryfall card facts + Forge mechanics; **strip de SVar** em `mechanics.effects` |
 | `src/ontology/search.py` | `flatten_candidates` → `ontology_predicates`; `rebuild_predicate_index`; busca por cláusula. Compiler NL neste módulo está fora de escopo |
 | `src/ontology/__init__.py` | Reexporta schema (não exporta `Selector` / `TargetClass` / `Zone`) |
-| `src/ontology/patterns.py` | **Não existe** (tier-2 Oracle grammar, planejado) |
+| `src/ontology/patterns.py` | Gramática Oracle (tier 2); entra no índice via `rebuild_predicate_index` |
 | `src/ontology/annotate.py` | **Não existe** |
 | `src/ontology/graph.py` | **Não existe** |
 | `src/ontology/diagnose.py` | Déficits tipados; `diagnose_deck` e `rules_validator` leem o índice |
@@ -49,11 +48,11 @@ O cardsfolder local existe (33 666 `.txt`, igual a `forge_records`). Os nomes 
 | `scripts/enrich_ontology.py` | Join Scryfall↔Forge; `--reapply-mapping` reescreve candidates sem remine; chama `rebuild_predicate_index` |
 | `scripts/_pred_counts.py` | Helper local de QA de counts (não é passo de pipeline) |
 | `src/catalog.py` | DDL: `ontology_cards`, `forge_records`, `ontology_reviews`, `ontology_predicates` + índices |
-| `src/service/handlers/ontology.py` | API do validador: stats, card, review, gold export, rebuild Final |
-| `src/service/api.py` | Serve `/ontology-validator` e rotas de review |
-| `data/ontology_validator.html` | UI de revisão humana (abas Scryfall / Forge / Final) |
+| `src/service/handlers/ontology.py` | API do inspector: stats, card list/detail, rebuild Final |
+| `src/service/api.py` | Serve `/ontology-validator` e rotas de catálogo |
+| `data/ontology_validator.html` | UI de inspeção (abas Scryfall / Forge / Final) |
 | `src/hybrid_search.py` | **Lê** `ontology_predicates` via `search_ontology_clauses` |
-| `src/solver.py` | Pool de fill chama `search_ontology_clauses`. `_score_parts` lê o índice (`ontology_pair`) |
+| `src/solver.py` | Pool de fill chama `search_ontology_clauses`. `_score_parts` lê o índice (`ontology_pair`, `ontology_repair`, redundância por assinatura) |
 | `ONTOLOGY.md` | Contrato de estágio + Appendix A (Forge). Declara consumers que ainda não leem o índice |
 | `zuilho_plans/ontology-first-roadmap.md` | Roadmap (não é contrato executável) |
 | `tests/test_ontology_schema.py` | Loader + enums + Forge não é runtime dep |
@@ -72,7 +71,7 @@ O cardsfolder local existe (33 666 `.txt`, igual a `forge_records`). Os nomes 
 | `ontology_cards` | Uma linha por carta Scryfall: join Forge + quatro camadas JSON (`canonical`, `resolved`, `model`, `forge`) + `forge_candidates_json` |
 | `forge_records` | Uma linha por script Forge: `record_json`, `candidates_json`, match |
 | `ontology_predicates` | Índice achatado (uma linha por `predicate`+`arg_key`+`arg_value`). **Pula** `validation_only` |
-| `ontology_reviews` | Reviews humanas (0 linhas) |
+| `ontology_reviews` | DDL legado; o produto não grava reviews |
 | `catalog_meta` | Proveniência e contagens de enrich |
 
 `model_facts_json` é a vista Final para o validador. O índice de predicados **não** lê Final: lê `forge_candidates_json` / `candidates_json`.
@@ -368,7 +367,6 @@ Exemplos: Lightning Greaves (`K:Hexproof` no equipped via static) → `protects(
 | forge matched / unmatched | 33 609 / 57 |
 | ontology_cards com candidates | 22 977 |
 | candidates predicado / validation_only | 30 415 / 12 779 |
-| `ontology_reviews` | 0 |
 
 Cartas matched sem predicado indexado ≈ 33 760 − 20 218 ≈ **13 5xx** (Forge casou mas mapping não emitiu predicado, ou só validation_only).
 
@@ -560,8 +558,7 @@ Quem mais lê o índice: `search_ontology_clauses`, `hybrid_search`, pool de fil
 - **Food / Clue / Powerstone como `treasure`** — decisão 9: Treasure só por TokenScript explícito.
 - **AddPhase não-Combat** — não é `extra_combat`.
 - **ETB de criatura “normal”** — ainda não `emits(etb)` (só Token / ChangeZone→BF / CopyPermanent). `rewards(etb)` >> `emits(etb)` no sentido inverso agora (emits etb 5 717 ≈ rewards 5 702).
-- **`src/ontology/graph.py` / `patterns.py` / `annotate.py`** — ainda não existem. `diagnose.py` passou a existir.
-- **Gold set** — reviews = 0.
+- **`src/ontology/annotate.py`** — ainda não existe. `graph.py`, `diagnose.py` e `patterns.py` existem.
 
 ### DSL ainda sem ação própria (e sem predicado honesto)
 

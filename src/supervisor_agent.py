@@ -27,7 +27,11 @@ def flatten_errors(validation: dict) -> list[str]:
 
 
 def deterministic_gate(validation: dict | None) -> dict:
-    """Approve only when the symbolic validator reports no hard errors."""
+    """Approve only when the symbolic validator reports no hard errors.
+
+    Warnings (including an incomplete 99 when require_complete is false) do
+    not reject. size_errors from a full-build incomplete list do.
+    """
     validation = validation or {}
     reasons = flatten_errors(validation)
     valid = bool(validation.get("valid")) and not reasons

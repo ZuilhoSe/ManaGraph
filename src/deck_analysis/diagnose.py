@@ -188,6 +188,10 @@ def diagnose(
             report["budget_slack"] = round(float(budget_cap) - float(budget_used), 2)
     report.setdefault("ontology_counts", {})
     report.setdefault("ontology_deficits", [])
+    report.setdefault("ontology_deficit_records", [])
+    report.setdefault("ontology_flow", {})
+    report.setdefault("ontology_queries", [])
+    report.setdefault("suggested_searches", [])
     return report
 
 

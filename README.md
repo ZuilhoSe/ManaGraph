@@ -45,7 +45,7 @@ The core intelligence. Agents get tools to interact with the data layer from the
 ### Epic 3.6: Combinatorial solver (Stage 2)
 
 - [x] **Fill:** greedy select into remaining slots from `candidate_pool` (+ optional RAG), under identity, singleton, legality, *P*<sub>max</sub>, and *B*. Basics fill holes.
-- [x] **Cut:** drop over-budget / over-99 cards; swap weak 99 slots for better pool cards using text synergy, role quotas, and redundancy. Committed list stays ≤ 99.
+- [x] **Cut:** drop over-budget / over-99 cards; swap weak 99 slots for better pool cards using text synergy, role quotas, and predicate-signature redundancy. Committed list stays ≤ 99.
 - [x] **Graph node:** Architect → Inventory → **Solver** → Supervisor.
 
 ### Epic 3.7: Geometry score (Stage 3 v1)
@@ -63,9 +63,9 @@ Legal 99 is not enough: fill still uses CMC as a single number, a crude curve ca
 - [x] **Mana algebra** (`src/mana.py`): parse costs and produced mana; deck pip vs source report. Soft score, not an LLM count.
 - [x] **Plan-aware curve** in fill/cut: `fast` / `mid` / `high` from commander + ramp/cheat density. Soft `shape` term.
 - [x] **Roles from keywords** (Scryfall) plus oracle classes: token producer vs token payoff. Search filters: `cmc_min` / `cmc_max` / `role`.
-- [x] **Tools:** `diagnose_deck_json`, `score_card_json`. Diagnosis is injected into the Architect. `search_cards` accepts `cmc_min` / `cmc_max` / `role`.
+- [x] **Tools:** `diagnose_deck_json`, `score_card_json`. Diagnosis is injected into the Architect. `search_cards` accepts `cmc_min` / `cmc_max` / `role` and AND-filters `emits` / `rewards` / `answers` / `enables` / `protects`.
 - [x] **Prompts consume `deficits`.** Gap-shaped search queries. The model does not emit a 99 or compute pips.
-- [x] **Embedding views:** keywords + mana-cost string in `card_views.npz` (offline). Rebuild with `python src/vectorize_cards.py --views-only`.
+- [x] **Embedding views:** keywords + mana-cost string in `card_views.npz` (offline). Rebuild with `python src/vectorize_cards.py --views-only`. Predicate multi-hot: `python src/vectorize_cards.py --predicates-only` (no MiniLM).
 
 ### Epic 4: Interface and Usability (Local Deploy)
 
@@ -80,7 +80,7 @@ After Stage 3.5. Charts display the diagnosis; they do not replace it.
 After Stage 3.5. Topology is a solver prior, not a notebook.
 
 - [ ] **Topological synergy analysis (TDA):** Islands and dense clusters **change which 99 cards are picked** (Stage 4).
-- [x] **Cut algorithm (v1 greedy):** Drop worst slots by text redundancy, role quotas, curve, and synergy-per-dollar. TDA-informed cut comes in Stage 4.
+- [x] **Cut algorithm (v1 greedy):** Drop worst slots by predicate-signature redundancy (text Jaccard only when a card has no ontology claim), role quotas, curve, and synergy-per-dollar. TDA-informed cut comes in Stage 4.
 
 ---
 
@@ -147,7 +147,7 @@ pip install -r requirements.txt
 python src/build_dataset.py
 ```
 
-This runs, in order: Scryfall download → Chroma oracle index → metadata stamp (color-identity bits, cmc) → multi-view file `data/card_views.npz` (oracle, type, keywords, mana) → test inventory if the collection is empty.
+This runs, in order: Scryfall download → Chroma oracle index → metadata stamp (color-identity bits, cmc) → multi-view file `data/card_views.npz` (oracle, type, keywords, mana, predicates) → test inventory if the collection is empty.
 
 MiniLM encoding uses **CUDA** when PyTorch sees a GPU (batch size 256). If `torch.cuda.is_available()` is false, it falls back to CPU and prints a warning.
 
@@ -249,18 +249,18 @@ ficam exploráveis na página local de validação:
 
 ```bash
 python scripts/enrich_ontology.py
+python scripts/enrich_ontology.py --rebuild-predicates
 python -m uvicorn service.api:app --app-dir src --reload --port 8000
 ```
 
 Abra `http://localhost:8000/ontology-validator`. A página permite pesquisar e
-filtrar cartas, consultar o registro completo do Scryfall, os fatos
-normalizados e a DSL do Forge, marcar `accepted`, `rejected` ou `uncertain`,
-comparar as abas Scryfall, Forge e Final, confirmar cada campo semântico,
-selecionar a fonte adotada por carta, adicionar labels/observações e exportar
-`data/ontology/gold_set_v1.jsonl`. A exportação registra essas escolhas para
-reprocessamento posterior.
-O cruzamento cria as tabelas aditivas `ontology_cards`, `forge_records` e
-`ontology_reviews`; a tabela legada `cards` não é substituída.
+filtrar cartas e consultar o registro Scryfall, os fatos normalizados e a DSL
+do Forge nas abas Scryfall, Forge e Final.
+O cruzamento cria as tabelas aditivas `ontology_cards` e `forge_records`;
+a tabela legada `cards` não é substituída. `ontology_reviews` permanece no
+schema por compatibilidade e não é usada pelo produto.
+`--rebuild-predicates` reconstrói `ontology_predicates` a partir do Forge
+já gravado mais os templates Oracle (Tier 2), sem reminar.
 
 After changing the embedding document format (e.g. dropping card names from Chroma text), rebuild the index:
 
@@ -286,6 +286,8 @@ Run the deterministic full-deck selection benchmark:
 
 ```bash
 python scripts/eval_selection.py
+python scripts/eval_selection.py --row E
+python scripts/eval_selection.py --all-rows
 ```
 
 5. **Run the multi-agent loop** (JSON delta → inventory → fill/cut → symbolic supervisor):

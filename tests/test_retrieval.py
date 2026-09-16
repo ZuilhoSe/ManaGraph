@@ -299,6 +299,16 @@ class RetrievalTextTests(unittest.TestCase):
         # Strong lexical can outrank a weak embedding blend.
         self.assertIn(merged[0]["name"], {"Night's Whisper", "Phyrexian Arena"})
 
+    def test_merge_ontology_duplicates_without_embedding(self):
+        lexical = []
+        ontology = [
+            {"name": "Krenko, Mob Boss", "distance": 0.10, "source": "ontology"},
+            {"name": "Krenko, Mob Boss", "distance": 0.12, "source": "ontology"},
+        ]
+        merged = merge_hit_maps(merge_hit_maps([], lexical), ontology)
+        self.assertEqual(len(merged), 1)
+        self.assertEqual(merged[0]["name"], "Krenko, Mob Boss")
+
 
 if __name__ == "__main__":
     unittest.main()

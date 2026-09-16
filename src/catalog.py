@@ -67,6 +67,11 @@ def mana_cost_from_scryfall(card: dict) -> str:
 
 def ensure_schema(conn: sqlite3.Connection):
     db_file = conn.execute("PRAGMA database_list").fetchone()[2] or ""
+    # Anonymous :memory: connections do not share a file. Caching "" would skip
+    # CREATE TABLE on the next independent in-memory database in this process.
+    if not db_file:
+        _migrate_schema(conn)
+        return
     with _schema_ensured_lock:
         if db_file in _schema_ensured:
             return
@@ -268,6 +273,8 @@ def _migrate_schema(conn: sqlite3.Connection) -> None:
             FOREIGN KEY (matched_card_id) REFERENCES cards(id)
         );
 
+        -- Leftover gold-set table. The product no longer writes reviews;
+        -- keep the DDL so existing databases do not need a destructive drop.
         CREATE TABLE IF NOT EXISTS ontology_reviews (
             card_id TEXT PRIMARY KEY,
             status TEXT NOT NULL DEFAULT 'unreviewed',

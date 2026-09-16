@@ -1,0 +1,2098 @@
+{
+  "deck": {
+    "schema_version": "1",
+    "commander": "Marina Vendrell",
+    "revision": 2,
+    "cards": {
+      "Sythis, Harvest's Hand": 1,
+      "Mesa Enchantress": 1,
+      "Satyr Enchanter": 1,
+      "Setessan Champion": 1,
+      "Jukai Naturalist": 1,
+      "Inquisitive Glimmer": 1,
+      "Sterling Grove": 1,
+      "Sphere of Safety": 1,
+      "Chromatic Lantern": 1,
+      "Farseek": 1,
+      "Nature's Lore": 1,
+      "Cultivate": 1,
+      "Beast Within": 1,
+      "Swords to Plowshares": 1,
+      "Anguished Unmaking": 1,
+      "Cyclonic Rift": 1,
+      "Rush of Inspiration // Crackling Falls": 1,
+      "Aclazotz, Deepest Betrayal // Temple of the Dead": 1,
+      "The Everflowing Well // The Myriad Pools": 1,
+      "Midgar, City of Mako // Reactor Raid": 1,
+      "Fountainport": 1,
+      "Undiscovered Paradise": 1,
+      "Ancient Ziggurat": 1,
+      "Rainbow Vale": 1,
+      "Command Tower": 1,
+      "Exotic Orchard": 1,
+      "Pillar of the Paruns": 1,
+      "Currency Converter": 1,
+      "Charming Scoundrel": 1,
+      "Sticky Fingers": 1,
+      "Greed's Gambit": 1,
+      "Stern Lesson": 1,
+      "Sarkhan Unbroken": 1,
+      "Lord Windgrace": 1,
+      "Smoky Lounge // Misty Salon": 1,
+      "Kaya, Intangible Slayer": 1,
+      "Mordenkainen": 1,
+      "Daretti, Scrap Savant": 1,
+      "Vraska, Golgari Queen": 1,
+      "Bottomless Pool // Locker Room": 1,
+      "The Bath Song": 1,
+      "Three Steps Ahead": 1,
+      "Demonic Pact": 1,
+      "Heightened Awareness": 1,
+      "Battle Angels of Tyr": 1,
+      "Mary Read and Anne Bonny": 1,
+      "Sorcerer Class": 1,
+      "Tataru Taru": 1,
+      "The Royal Scions": 1,
+      "Monument to Endurance": 1,
+      "Kiora, Behemoth Beckoner": 1,
+      "Teferi, Timebender": 1,
+      "Funeral Room // Awakening Hall": 1,
+      "Lost Isle Calling": 1,
+      "Gate to the Afterlife": 1,
+      "Sarkhan, Fireblood": 1,
+      "Tamiyo, Field Researcher": 1,
+      "Tezzeret, Artifice Master": 1,
+      "Lord Skitter's Blessing": 1,
+      "Sphinx's Tutelage": 1,
+      "Bandit's Talent": 1,
+      "Vault 21: House Gambit": 1,
+      "Daily Bugle Newspaper": 1,
+      "Ad Nauseam": 1,
+      "Monastery Siege": 1,
+      "Fisher's Talent": 1,
+      "Glimmerburst": 1,
+      "Scion of Halaster": 1,
+      "Midnight Oil": 1,
+      "Gleaming Splendor": 1,
+      "Breakthrough": 1,
+      "Grand Entryway // Elegant Rotunda": 1,
+      "Grafted Skullcap": 1,
+      "Jared Carthalion": 1,
+      "Island": 5,
+      "Plains": 5,
+      "Swamp": 5,
+      "Mountain": 5,
+      "Forest": 4,
+      "Jadzi, Steward of Fate // Oracle's Gift": 1
+    },
+    "identity": [
+      "B",
+      "G",
+      "R",
+      "U",
+      "W"
+    ],
+    "owned_only": false,
+    "require_complete": true,
+    "currency": "usd",
+    "max_card_price": null,
+    "budget_cap": null,
+    "owned_cost_zero": true,
+    "intent": "build",
+    "archetype": "enchantments",
+    "last_delta": {
+      "added": [
+        {
+          "name": "Sythis, Harvest's Hand",
+          "quantity": 1
+        },
+        {
+          "name": "Mesa Enchantress",
+          "quantity": 1
+        },
+        {
+          "name": "Satyr Enchanter",
+          "quantity": 1
+        },
+        {
+          "name": "Setessan Champion",
+          "quantity": 1
+        },
+        {
+          "name": "Jukai Naturalist",
+          "quantity": 1
+        },
+        {
+          "name": "Inquisitive Glimmer",
+          "quantity": 1
+        },
+        {
+          "name": "Sterling Grove",
+          "quantity": 1
+        },
+        {
+          "name": "Sphere of Safety",
+          "quantity": 1
+        },
+        {
+          "name": "Chromatic Lantern",
+          "quantity": 1
+        },
+        {
+          "name": "Farseek",
+          "quantity": 1
+        },
+        {
+          "name": "Nature's Lore",
+          "quantity": 1
+        },
+        {
+          "name": "Cultivate",
+          "quantity": 1
+        },
+        {
+          "name": "Beast Within",
+          "quantity": 1
+        },
+        {
+          "name": "Swords to Plowshares",
+          "quantity": 1
+        },
+        {
+          "name": "Anguished Unmaking",
+          "quantity": 1
+        },
+        {
+          "name": "Cyclonic Rift",
+          "quantity": 1
+        }
+      ],
+      "removed": [],
+      "substituted": [],
+      "operations": [
+        {
+          "kind": "add",
+          "card": "Sythis, Harvest's Hand",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "add",
+          "card": "Mesa Enchantress",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "add",
+          "card": "Satyr Enchanter",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "add",
+          "card": "Setessan Champion",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "add",
+          "card": "Jukai Naturalist",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "add",
+          "card": "Inquisitive Glimmer",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "add",
+          "card": "Sterling Grove",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "add",
+          "card": "Sphere of Safety",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "add",
+          "card": "Chromatic Lantern",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "add",
+          "card": "Farseek",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "add",
+          "card": "Nature's Lore",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "add",
+          "card": "Cultivate",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "add",
+          "card": "Beast Within",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "add",
+          "card": "Swords to Plowshares",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "add",
+          "card": "Anguished Unmaking",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "add",
+          "card": "Cyclonic Rift",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Bottomless Pool // Locker Room",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Central Elevator // Promising Stairs",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Charred Foyer // Warped Space",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Cramped Vents // Access Maze",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Dazzling Theater // Prop Room",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Defiled Crypt // Cadaver Lab",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Derelict Attic // Widow's Walk",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Dollmaker's Shop // Porcelain Gallery",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Experimental Lab // Staff Room",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Funeral Room // Awakening Hall",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Glassworks // Shattered Yard",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Grand Entryway // Elegant Rotunda",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Greenhouse // Rickety Gazebo",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Meat Locker // Drowned Diner",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Mirror Room // Fractured Realm",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Eidolon of Blossoms",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Enchantress's Presence",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Sylvan Library",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Rhystic Study",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        },
+        {
+          "kind": "candidate",
+          "card": "Smothering Tithe",
+          "out": null,
+          "in": null,
+          "quantity": 1,
+          "reason": ""
+        }
+      ]
+    },
+    "candidate_pool": {
+      "Central Elevator // Promising Stairs": 1,
+      "Charred Foyer // Warped Space": 1,
+      "Cramped Vents // Access Maze": 1,
+      "Dazzling Theater // Prop Room": 1,
+      "Defiled Crypt // Cadaver Lab": 1,
+      "Derelict Attic // Widow's Walk": 2,
+      "Dollmaker's Shop // Porcelain Gallery": 1,
+      "Experimental Lab // Staff Room": 1,
+      "Glassworks // Shattered Yard": 1,
+      "Greenhouse // Rickety Gazebo": 1,
+      "Meat Locker // Drowned Diner": 1,
+      "Mirror Room // Fractured Realm": 1,
+      "Eidolon of Blossoms": 1,
+      "Enchantress's Presence": 1,
+      "Sylvan Library": 2,
+      "Rhystic Study": 2,
+      "Smothering Tithe": 1,
+      "Painter's Studio // Defaced Gallery": 1,
+      "Underwater Tunnel // Slimy Aquarium": 1,
+      "Surgical Suite // Hospital Room": 1,
+      "Polluted Cistern // Dim Oubliette": 1,
+      "Roaring Furnace // Steaming Sauna": 1,
+      "Argothian Enchantress": 1,
+      "Verduran Enchantress": 1,
+      "Sanctum Weaver": 1,
+      "Destiny Spinner": 1,
+      "Greater Auramancy": 1,
+      "Ghostly Prison": 1,
+      "Propaganda": 1,
+      "Aura Shards": 1,
+      "Calix, Guided by Fate": 1,
+      "Sigil of the Empty Throne": 2,
+      "Starfield of Nyx": 1,
+      "Hallowed Haunting": 1,
+      "Wild Growth": 1,
+      "Utopia Sprawl": 1,
+      "Fertile Ground": 1,
+      "Overgrowth": 1,
+      "Wolfwillow Haven": 1,
+      "Sol Ring": 1,
+      "Arcane Signet": 2,
+      "Fellwar Stone": 2,
+      "Mind Stone": 1,
+      "Kodama's Reach": 1,
+      "Three Visits": 1,
+      "Open the Gates": 2,
+      "Arixmethes, Slumbering Isle": 1,
+      "Composer of Spring": 1,
+      "Moon-Blessed Cleric": 1,
+      "Idyllic Tutor": 1,
+      "Enlightened Tutor": 1,
+      "Replenish": 1,
+      "Open the Vaults": 1,
+      "Resurgent Belief": 1,
+      "Bear Umbra": 1,
+      "Banishing Light": 1,
+      "Grasp of Fate": 1,
+      "Darksteel Mutation": 1,
+      "Kenrith's Transformation": 1,
+      "Rhythm of the Wild": 1,
+      "Hardened Scales": 1,
+      "Branching Evolution": 1,
+      "Pious Wayfarer": 1,
+      "Sage of Mysteries": 1,
+      "Nessian Wanderer": 1,
+      "Protean Thaumaturge": 1,
+      "Setessan Skirmisher": 1,
+      "Strength from the Fallen": 1,
+      "Underworld Coinsmith": 1,
+      "Eidolon of Astral Winds": 1,
+      "Eutropia the Twice-Favored": 1,
+      "Favored of Iroas": 1,
+      "Grim Guardian": 1,
+      "Harvestguard Alseids": 1,
+      "Aura Finesse": 1,
+      "Hateful Eidolon": 2,
+      "Light-Paws, Emperor's Voice": 1,
+      "Dawn Evangel": 1,
+      "A Little Chat": 1,
+      "Aang's Defense": 1,
+      "Abandon Attachments": 2,
+      "Abeyance": 1,
+      "Abundance": 2,
+      "Abundant Growth": 2,
+      "Abundant Harvest": 1,
+      "Abzan Banner": 1,
+      "Abzan Beastmaster": 1,
+      "Abzan Charm": 2,
+      "Academy Elite": 1,
+      "Academy Raider": 1,
+      "Evermind": 1,
+      "Bequeathal": 1,
+      "Careful Study": 2,
+      "Corrupted Conviction": 2,
+      "Desperate Measures": 2,
+      "Faithless Looting": 2,
+      "Falkenrath Pit Fighter": 1,
+      "Infiltration Lens": 1,
+      "Key to the Side-Door": 1,
+      "Magmatic Insight": 2,
+      "Sewer-veillance Cam": 1,
+      "Skullclamp": 2,
+      "Three Steps Ahead": 1,
+      "Inspiring Refrain": 1,
+      "Moonring Mirror": 1,
+      "Jacob Hauken, Inspector // Hauken's Insight": 1,
+      "Mind Unbound": 1,
+      "Black Market Connections": 1,
+      "Dusk Urchins": 1,
+      "Vogar, Necropolis Tyrant": 1,
+      "Struggle for Project Purity": 1,
+      "Mindstorm Crown": 1,
+      "Case of the Crimson Pulse": 1,
+      "Toluz, Clever Conductor": 1,
+      "Primal Empathy": 1,
+      "Well of Ideas": 1,
+      "Smuggler's Share": 1,
+      "Dragon Appeasement": 1,
+      "Gorbag of Minas Morgul": 1,
+      "Contested Game Ball": 1,
+      "Sage's Reverie": 1,
+      "Teferi's Ageless Insight": 1,
+      "Ob Nixilis Reignited": 1,
+      "Deadly Dispute": 1,
+      "Altar's Reap": 1,
+      "Skulltap": 1,
+      "Village Rites": 1,
+      "Merciless Resolve": 1,
+      "Costly Plunder": 1,
+      "Demand Answers": 1,
+      "Eviscerator's Insight": 1,
+      "Fanatical Offering": 1,
+      "Nasty End": 1,
+      "Reckoner's Bargain": 1,
+      "My Precious // Allure of Power": 1,
+      "Pirate's Prize": 1,
+      "Seize the Spoils": 1,
+      "Big Score": 1,
+      "Pirate's Pillage": 1,
+      "Unexpected Windfall": 1,
+      "Night's Whisper": 1,
+      "Succumb to Temptation": 1,
+      "Risky Shortcut": 1,
+      "Crushing Disappointment": 1,
+      "Demon's Due": 1,
+      "Read the Bones": 1,
+      "Cruel Truths": 1,
+      "Diresight": 1,
+      "Risky Research": 1,
+      "Live Fast": 1,
+      "Funeral Rites": 1,
+      "Infectious Inquiry": 1,
+      "Bad Deal": 1,
+      "Visions of Villainy": 1,
+      "Hoarder's Greed": 1,
+      "Gruesome Realization": 1,
+      "Decode Transmissions": 1,
+      "Counsel of the Soratami": 1,
+      "Divination": 1,
+      "Quick Study": 1,
+      "Touch of Brilliance": 1,
+      "Weave Fate": 1,
+      "Chemister's Insight": 1,
+      "Foresee": 1,
+      "Tamiyo's Epiphany": 1,
+      "Coastal Discovery": 1,
+      "Tezzeret's Gambit": 1,
+      "Catalog": 1,
+      "Perilous Research": 1,
+      "Behold the Multiverse": 1,
+      "Ghastly Discovery": 1,
+      "Glimmer of Genius": 1,
+      "Words of Wisdom": 1,
+      "Mindculling": 1,
+      "Artificer's Epiphany": 1,
+      "Desperate Ravings": 1,
+      "Frantic Search": 1,
+      "Chart a Course": 1,
+      "Notion Rain": 1,
+      "Case the Joint": 1,
+      "See Beyond": 1,
+      "Spellgyre": 1,
+      "Eureka Moment": 1,
+      "Faithful Mending": 1,
+      "Jace's Triumph": 1,
+      "Highway Robbery": 1,
+      "Pursue the Past": 1,
+      "Electric Revelation": 1,
+      "Honor the God-Pharaoh": 1,
+      "Laughing Mad": 1,
+      "Sphinx's Insight": 1,
+      "Tragic Lesson": 1,
+      "Plunder the Trollshaws": 1,
+      "Contact Other Plane": 1,
+      "Tainted Indulgence": 1,
+      "Commence the Endgame": 1,
+      "Hypothesizzle": 1,
+      "Dihada's Ploy": 1,
+      "Mysteries of the Deep": 1,
+      "Witch's Mark": 1,
+      "Pulse of the Grid": 1,
+      "Teachings of the Archaics": 1,
+      "Witherbloom Charm": 1,
+      "Grab the Prize": 1,
+      "Ill-Timed Explosion": 1,
+      "Ribbons of the Reikai": 1,
+      "Theft of Dreams": 1,
+      "Necropotence": 1,
+      "Avaricious Dragon": 1,
+      "Overbeing of Myth": 1,
+      "The Immortal Sun": 1,
+      "Necrodominance": 1,
+      "Graveborn Muse": 1,
+      "Scrawling Crawler": 1,
+      "Oath of Jace": 1,
+      "Liliana's Contract": 1,
+      "Collector's Vault": 1,
+      "Teval's Judgment": 1,
+      "Zedruu the Greathearted": 1,
+      "Esper Charm": 1,
+      "Ceta Sanctuary": 1,
+      "Cloud, Ex-SOLDIER": 1,
+      "Psychic Possession": 1,
+      "Murder of Crows": 1,
+      "Quarrel's End": 1,
+      "Vraska, Betrayal's Sting": 1,
+      "Plagon, Lord of the Beach": 1,
+      "Thought Reflection": 1,
+      "Romantic Rendezvous": 1,
+      "Lat-Nam's Legacy": 1,
+      "Tamiyo's Journal": 1,
+      "Armor Wars": 1,
+      "Delightful Discovery": 1,
+      "Phyrexian Espionage": 1,
+      "Roiling Dragonstorm": 1,
+      "Dangerous Wager": 1,
+      "Jace Beleren": 1,
+      "Shadow the Hedgehog": 1,
+      "Field Research": 1,
+      "Traumatic Critique": 1,
+      "Disinformation Campaign": 1,
+      "Lithoform Blight": 1,
+      "Hoofprints of the Stag": 1,
+      "Ground Seal": 1,
+      "Ob Nixilis, the Hate-Twisted": 1,
+      "Mari, the Killing Quill": 1,
+      "Discerning Financier": 1,
+      "Eloise, Nephalia Sleuth": 1,
+      "Tempest Hart // Scan the Clouds": 1,
+      "Grisly Transformation": 1,
+      "Sephiroth, Fabled SOLDIER // Sephiroth, One-Winged Angel": 1,
+      "Observed Stasis": 1,
+      "Bugenhagen, Wise Elder": 1,
+      "Future Flight": 1,
+      "Phyrexian Tyranny": 1,
+      "Calamitous Tide": 1,
+      "Blood Sun": 1,
+      "Stormfist Crusader": 1,
+      "Pilfered Plans": 1,
+      "Nylea's Presence": 1,
+      "Bloodgift Demon": 1,
+      "G'raha Tia": 1,
+      "Edgar, King of Figaro": 1,
+      "Abomination of Gudul": 1,
+      "Underworld Dreams": 1,
+      "Goggles of Night": 1,
+      "Dragon Mantle": 1,
+      "Krovikan Fetish": 1,
+      "Ritual of Steel": 1,
+      "Fate Unraveler": 1,
+      "Treacherous Blessing": 1,
+      "Mask of Memory": 1,
+      "Stormshriek Feral // Flush Out": 1,
+      "Rousing Read": 1,
+      "Pygmy Kavu": 1,
+      "Trial of Knowledge": 1,
+      "New Perspectives": 1,
+      "Hystrodon": 1,
+      "Secrets of the Golden City": 1,
+      "Ashling, Rekindled // Ashling, Rimebound": 1,
+      "Urban Utopia": 1,
+      "Acquisition Octopus": 1,
+      "Agent Venom": 1,
+      "Demonic Lore": 1,
+      "Confusticate and Bebother": 1,
+      "Master of Ceremonies": 1,
+      "Fate Foretold": 1,
+      "Ophidian": 1,
+      "Sylvan Echoes": 1,
+      "Rogue's Gloves": 1,
+      "Defacing Duskmage // Vandal's Edit": 1,
+      "Mu Yanling": 1,
+      "You Find the Villains' Lair": 1,
+      "Vampirism": 1,
+      "Pointed Discussion": 1,
+      "Nerd Rage": 1,
+      "Rune of Sustenance": 1,
+      "Dawnhart Geist": 1,
+      "Curse of Fool's Wisdom": 1,
+      "Bident of Thassa": 1,
+      "Oracle's Insight": 1,
+      "Generous Visitor": 1,
+      "Visions of Beyond": 1,
+      "Glint-Eye Nephilim": 1,
+      "Starwinder": 1,
+      "Cut a Deal": 1,
+      "Zephyr Boots": 1,
+      "Blightcaster": 1,
+      "Dungeoneer's Pack": 1,
+      "Fear of Missing Out": 1,
+      "Flight of Fancy": 1,
+      "Accumulated Knowledge": 1,
+      "Aggressive Mining": 1,
+      "Midnight Entourage": 1,
+      "Bitter Reunion": 1,
+      "Wicked Visitor": 1,
+      "Sultai Charm": 1,
+      "Mind Spring": 1,
+      "Survivor of the Unseen": 1,
+      "Convalescent Care": 1,
+      "Tidings": 1,
+      "Brilliant Plan": 1,
+      "Concentrate": 1,
+      "Harmonize": 1,
+      "Jace's Ingenuity": 1,
+      "Thrill of Possibility": 1,
+      "Tormenting Voice": 1,
+      "Wild Guess": 1,
+      "Uncover the Moon-Letters": 1,
+      "Hieroglyphic Illumination": 1,
+      "Meltstrider Eulogist": 1,
+      "Pearl of Wisdom": 1,
+      "Reconnaissance Mission": 1,
+      "Master of the Feast": 1,
+      "Vision of Love": 1,
+      "Snow Day": 1,
+      "Zur's Weirding": 1,
+      "Knight of Doves": 1,
+      "Pull from Tomorrow": 1,
+      "Glimpse of Freedom": 1,
+      "Ancestral Reminiscence": 1,
+      "Enhanced Awareness": 1,
+      "Rain of Revelation": 1,
+      "Sift": 1,
+      "Prying Eyes": 1,
+      "Thoughtflare": 1,
+      "Meditate": 1,
+      "Obsessive Search": 1,
+      "Humble Defector": 1,
+      "Thassa's Bounty": 1,
+      "Weight of Memory": 1,
+      "Barrin's Codex": 1,
+      "Urabrask, Heretic Praetor": 1,
+      "Control of the Court": 1,
+      "Goblin Lore": 1,
+      "Cruel Bargain": 1,
+      "Infernal Contract": 1,
+      "Bazaar of Baghdad": 1,
+      "Magus of the Bazaar": 1,
+      "Farm // Market": 1,
+      "Soul Read": 1,
+      "Contaminated Drink": 1,
+      "Sanctum of Calm Waters": 1,
+      "Urban Evolution": 1,
+      "Pore Over the Pages": 1,
+      "Blitzball": 1,
+      "Academy Loremaster": 1,
+      "Rapturous Moment": 1,
+      "Tezzeret's Ambition": 1,
+      "Spellbook Seeker // Careful Study": 1,
+      "Greed": 1,
+      "Robe of the Archmagi": 1,
+      "Rhystic Scrying": 1,
+      "Disturbing Mirth": 1,
+      "Blessed Spirits": 1,
+      "Winged Words": 1,
+      "Sidequest: Card Collection // Magicked Card": 1,
+      "Bringer of the Blue Dawn": 1,
+      "Celestial Ancient": 1,
+      "April, Reporter of the Weird": 1,
+      "Deepfathom Skulker": 1,
+      "Ideas Unbound": 1,
+      "Mystic Meditation": 1,
+      "Thirst for Identity": 1,
+      "Thirst for Knowledge": 1,
+      "Amass the Components": 1,
+      "Bewildering Blizzard": 1,
+      "Lucid Dreams": 1,
+      "Thirst for Meaning": 1,
+      "Embrace the Paradox": 1,
+      "Lessons from Life": 1,
+      "Practical Research": 1,
+      "Brainsurge": 1,
+      "Brainstorm": 1,
+      "Lay of the Land": 1,
+      "Izzet Charm": 1,
+      "Gravestorm": 1,
+      "Natural Connection": 1,
+      "Read the Runes": 1,
+      "Shared Roots": 1,
+      "Untamed Wilds": 1,
+      "Unexplained Vision": 1,
+      "Thunder of Unity": 1,
+      "Rampant Growth": 1,
+      "West Coast Expansion": 1,
+      "Squee's Revenge": 1,
+      "Reckoner Bankbuster": 1,
+      "Savior of the Sleeping": 1,
+      "Environmental Sciences": 1,
+      "Species Specialist": 1,
+      "Taii Wakeen, Perfect Shot": 1,
+      "Scarscale Ritual": 1,
+      "Arm-Mounted Anchor": 1,
+      "Mercurial Chemister": 1,
+      "Back to Basics": 1,
+      "Thoughtcast": 1,
+      "Bargaining Table": 1,
+      "Precognitive Perception": 1,
+      "Asmodeus the Archfiend": 1,
+      "Of One Mind": 1,
+      "Mind into Matter": 1,
+      "Dream Cache": 1,
+      "Ondu Spiritdancer": 1,
+      "Arwen's Gift": 1,
+      "Into the Fae Court": 1,
+      "Slumbering Keepguard": 1,
+      "Distorted Curiosity": 1,
+      "Rimefur Reindeer": 1,
+      "Mystery Key": 1,
+      "Attune with Aether": 1,
+      "Ajani's Chosen": 1,
+      "Blood Scrivener": 1,
+      "The Sackville-Bagginses": 1,
+      "Minions' Murmurs": 1,
+      "Vodalian Wave-Knight": 1,
+      "Blood Moon": 1,
+      "Magus of the Moon": 1,
+      "Dryad Sophisticate": 1,
+      "Lich's Mastery": 1,
+      "Gush": 1,
+      "Harbinger of the Seas": 1,
+      "Fevered Visions": 1,
+      "Ambition's Cost": 1,
+      "Ancient Craving": 1,
+      "Vivisurgeon's Insight": 1,
+      "Occult Epiphany": 1,
+      "Arcanis the Omnipotent": 1,
+      "Naga Vitalist": 1,
+      "Reflecting Pool": 1,
+      "Ticket Turbotubes": 1,
+      "Honored Heirloom": 1,
+      "Quirion Explorer": 1,
+      "Redrock Sentinel": 1,
+      "Salvage Drone": 1,
+      "Salvaged Manaworker": 1,
+      "Song of Creation": 1,
+      "Patriar's Seal": 1,
+      "Mox Amber": 1,
+      "Subterfuge": 1,
+      "Kefka, Court Mage // Kefka, Ruler of Ruin": 1,
+      "Sheltering Prayers": 1,
+      "Xira, the Golden Sting": 1,
+      "Feed the Infection": 1,
+      "Intelligence Bobblehead": 1,
+      "Relic of Legends": 1,
+      "Urn of Godfire": 1,
+      "Foulmire Knight // Profane Insight": 1,
+      "Attunement": 1,
+      "Fountain of Ichor": 1,
+      "Scuttlemutt": 1,
+      "Bonder's Ornament": 1,
+      "Overgrown Zealot": 1,
+      "First Family": 1,
+      "Summon: Anima": 1,
+      "Accomplished Alchemist": 1,
+      "Stinging Study": 1,
+      "Atzocan Seer": 1,
+      "Draconic Disciple": 1,
+      "Landscape Painter // Vibrant Idea": 1,
+      "Great Intelligence's Plan": 1,
+      "Tocasia's Welcome": 1,
+      "Casting of Bones": 1,
+      "Harvester of Souls": 1,
+      "Mishra's Command": 1,
+      "Ilysian Caryatid": 1,
+      "Ixalli's Lorekeeper": 1,
+      "Emmessi Tome": 1,
+      "Hermitic Herbalist": 1,
+      "Guy in the Chair": 1,
+      "Rosethorn Acolyte // Seasonal Ritual": 1,
+      "Research the Deep": 1,
+      "Mystic Remora": 1,
+      "Waterbending Lesson": 1,
+      "Third Path Savant": 1,
+      "Arbor Adherent": 1,
+      "Snake Umbra": 1,
+      "Skyclave Shadowcat": 1,
+      "Gravestone Strider": 1,
+      "Coming Attraction": 1,
+      "All-Fates Scroll": 1,
+      "Jodah's Codex": 1,
+      "Sprouting Vines": 1,
+      "Phyrexian Atlas": 1,
+      "Cult Healer": 1,
+      "Animal Attendant": 1,
+      "Dashing Bloodsucker": 1,
+      "Redtooth Vanguard": 1,
+      "Gremlin Tamer": 1,
+      "Hearth Elemental // Stoke Genius": 1,
+      "Oasis Ritualist": 1,
+      "Optimistic Scavenger": 1,
+      "Growth Spasm": 1,
+      "Rampaging Growth": 1,
+      "Many Partings": 1,
+      "Balemurk Leech": 1,
+      "Sanguimancy": 1,
+      "Strength Bobblehead": 1,
+      "Dreams of Laguna": 1,
+      "Great Forest Druid": 1,
+      "Lifespring Druid": 1,
+      "Manalith": 1,
+      "Orochi Leafcaller": 1,
+      "Utopia Tree": 1,
+      "Curious Obsession": 1,
+      "Charisma Bobblehead": 1,
+      "Scrabbling Skullcrab": 1,
+      "Steelclad Spirit": 1,
+      "Dimensional Exile": 1,
+      "Prishe's Wanderings": 1,
+      "Cultivator's Caravan": 1,
+      "Grabby Giant // That's Mine": 1,
+      "Llanowar Loamspeaker": 1,
+      "Journeyer's Kite": 1,
+      "Deep Reconnaissance": 1,
+      "Loreseeker's Stone": 1,
+      "Mask of Griselbrand": 1,
+      "Rayne, Academy Chancellor": 1,
+      "Alpharael, Dreaming Acolyte": 1,
+      "Verdant Crescendo": 1,
+      "Wharf Infiltrator": 1,
+      "Mystic Skull // Mystic Monstrosity": 1,
+      "Donatello's Technique": 1,
+      "Dismantling Blow": 1,
+      "Font of Fortunes": 1,
+      "Map the Wastes": 1,
+      "Warehouse Tabby": 1,
+      "Caravan Vigil": 1,
+      "High-Society Hunter": 1,
+      "Faithless Salvaging": 1,
+      "Planar Birth": 1,
+      "Brilliant Spectrum": 1,
+      "Nexus Wardens": 1,
+      "Oakheart Dryads": 1,
+      "Agent of Erebos": 1,
+      "Archon of Sun's Grace": 1,
+      "Daxos's Torment": 1,
+      "Forgeborn Oreads": 1,
+      "Triton Waverider": 1,
+      "Eidolon of Countless Battles": 1,
+      "Eriette of the Charmed Apple": 1,
+      "Killian, Decisive Mentor": 1,
+      "Pearl-Ear, Imperial Advisor": 1,
+      "Siona, Captain of the Pyleas": 1,
+      "Tanglespan Lookout": 1,
+      "Eriette, the Beguiler": 1,
+      "Kaima, the Fractured Calm": 1,
+      "Mazzy, Truesword Paladin": 1,
+      "Accelerate": 1,
+      "Acclaimed Contender": 1,
+      "Accumulate Wisdom": 1,
+      "Acolyte Hybrid": 1,
+      "Acrobatic Maneuver": 1,
+      "Action News Crew": 1,
+      "Adaptive Omnitool": 1,
+      "Adrestia": 1,
+      "Advancing the Spirit": 1,
+      "Adventure Awaits": 1,
+      "Trash the Town": 1,
+      "Happily Ever After": 1
+    },
+    "price_cap_new_only": true,
+    "baseline_cards": {},
+    "mana_strategy": "hypergeometric",
+    "card_pool": {},
+    "pool_only": false,
+    "commander_by_pool_fit": false,
+    "preferred_land_types": [],
+    "theme_types": [
+      "Room"
+    ],
+    "land_types_strict": false,
+    "slot_count": 99,
+    "complete": true
+  },
+  "query": "Build me a full 99-card Rooms deck. Theme is Room enchantments. Unlock doors, play rooms, and use enchantress draw.",
+  "supervisor_decision": "APPROVED",
+  "validation": {
+    "valid": true,
+    "complete": true,
+    "ontology_interaction": {
+      "answers": {
+        "creature": 3,
+        "graveyard": 1,
+        "enchantment": 1,
+        "board": 1,
+        "stack": 1
+      },
+      "protects": {
+        "board": 1
+      },
+      "queried": true
+    },
+    "commander": "Marina Vendrell",
+    "commander_identity": [
+      "B",
+      "G",
+      "R",
+      "U",
+      "W"
+    ],
+    "slot_count": 99,
+    "target_slots": 99,
+    "budget_used": 316.82,
+    "budget_cap": null,
+    "max_card_price": null,
+    "currency": "usd",
+    "curve": {
+      "0": 0,
+      "1": 5,
+      "2": 17,
+      "3": 17,
+      "4": 11,
+      "5": 8,
+      "6": 3,
+      "7+": 3
+    },
+    "land_count": 35,
+    "land_alert": {
+      "status": "ok",
+      "count": 35,
+      "quota": [
+        35,
+        37
+      ],
+      "delta": 0,
+      "pct": 0.0,
+      "severity": "none"
+    },
+    "commander_errors": [],
+    "color_errors": [],
+    "singleton_errors": [],
+    "format_errors": [],
+    "size_errors": [],
+    "owned_errors": [],
+    "pool_errors": [],
+    "price_errors": [],
+    "unknown_cards": [],
+    "warnings": [],
+    "catalog_meta": {
+      "dataset:moxfield:37d951146a8123bc97bc:sha256": "37d951146a8123bc97bc545b02a6737b35aae1c960611544cc6b1c86bfe749c3",
+      "dataset:moxfield:37d951146a8123bc97bc:collected_at": "2026-08-28T14:58:46Z",
+      "dataset:moxfield:d11528c5f7be8d1eafb5:sha256": "d11528c5f7be8d1eafb55a3bf6ef39dbed667e5de2d7af9e057dfd9cca987f54",
+      "dataset:moxfield:d11528c5f7be8d1eafb5:collected_at": "2026-08-28T21:44:55Z",
+      "forge_path": "C:\\Users\\segun\\Documents\\forge",
+      "forge_cardsfolder": "C:\\Users\\segun\\Documents\\forge\\forge-gui\\res\\cardsfolder",
+      "forge_release": "daily-snapshots",
+      "forge_commit": "2416d71ab4988b365b5bb0a006897c757a1d59d7",
+      "forge_mined_artifact": "data/ontology/forge_raw_v1.jsonl",
+      "forge_mined_records": "33666",
+      "forge_mined_at": "2026-08-29T03:52:35.153295+00:00",
+      "price_snapshot_at": "2026-08-29T04:20:50Z",
+      "scryfall_bulk_type": "oracle_cards",
+      "card_count": "38626",
+      "dataset:scryfall:oracle_cards:sha256": "1f798bf1cae3129f46219d71fc9e0b04e593430f8c6b0acde0711b9c1ca679df",
+      "dataset:scryfall:oracle_cards:byte_size": "24530420",
+      "ontology_enriched_at": "2026-08-29T11:14:32Z",
+      "ontology_scryfall_cards": "38651",
+      "ontology_forge_records": "33666",
+      "ontology_model_config": "data/ontology/model_config_v1.json",
+      "ontology_forge_matches": "33760",
+      "collection_schema_version": "5",
+      "ontology_mapping_reapplied_at": "2026-09-02T04:57:58Z",
+      "ontology_model_rebuilt_at": "2026-09-02T05:10:34Z",
+      "ontology_predicate_rows": "83113"
+    }
+  },
+  "solver_report": {
+    "stripped": {
+      "removed": []
+    },
+    "fill": {
+      "ok": true,
+      "added": [
+        {
+          "name": "Rush of Inspiration // Crackling Falls",
+          "score": 12.9686,
+          "source": "greedy"
+        },
+        {
+          "name": "Aclazotz, Deepest Betrayal // Temple of the Dead",
+          "score": 13.3739,
+          "source": "greedy"
+        },
+        {
+          "name": "The Everflowing Well // The Myriad Pools",
+          "score": 13.013,
+          "source": "greedy"
+        },
+        {
+          "name": "Midgar, City of Mako // Reactor Raid",
+          "score": 12.9587,
+          "source": "greedy"
+        },
+        {
+          "name": "Fountainport",
+          "score": 12.7744,
+          "source": "greedy"
+        },
+        {
+          "name": "Undiscovered Paradise",
+          "score": 9.5478,
+          "source": "greedy"
+        },
+        {
+          "name": "Ancient Ziggurat",
+          "score": 9.4169,
+          "source": "greedy"
+        },
+        {
+          "name": "Rainbow Vale",
+          "score": 9.2614,
+          "source": "greedy"
+        },
+        {
+          "name": "Command Tower",
+          "score": 9.2043,
+          "source": "greedy"
+        },
+        {
+          "name": "Exotic Orchard",
+          "score": 9.143,
+          "source": "greedy"
+        },
+        {
+          "name": "Pillar of the Paruns",
+          "score": 8.7211,
+          "source": "greedy"
+        },
+        {
+          "name": "Currency Converter",
+          "score": 6.3138,
+          "source": "greedy"
+        },
+        {
+          "name": "Charming Scoundrel",
+          "score": 6.1729,
+          "source": "greedy"
+        },
+        {
+          "name": "Sticky Fingers",
+          "score": 5.9499,
+          "source": "greedy"
+        },
+        {
+          "name": "Greed's Gambit",
+          "score": 5.9344,
+          "source": "greedy"
+        },
+        {
+          "name": "Stern Lesson",
+          "score": 5.9084,
+          "source": "greedy"
+        },
+        {
+          "name": "Sarkhan Unbroken",
+          "score": 5.7056,
+          "source": "greedy"
+        },
+        {
+          "name": "Lord Windgrace",
+          "score": 5.477,
+          "source": "greedy"
+        },
+        {
+          "name": "Smoky Lounge // Misty Salon",
+          "score": 5.3536,
+          "source": "greedy"
+        },
+        {
+          "name": "Kaya, Intangible Slayer",
+          "score": 5.3044,
+          "source": "greedy"
+        },
+        {
+          "name": "Mordenkainen",
+          "score": 5.046,
+          "source": "greedy"
+        },
+        {
+          "name": "Daretti, Scrap Savant",
+          "score": 5.0186,
+          "source": "greedy"
+        },
+        {
+          "name": "Vraska, Golgari Queen",
+          "score": 4.9815,
+          "source": "greedy"
+        },
+        {
+          "name": "Bottomless Pool // Locker Room",
+          "score": 3.4332,
+          "source": "greedy"
+        },
+        {
+          "name": "The Bath Song",
+          "score": 3.1304,
+          "source": "greedy"
+        },
+        {
+          "name": "Three Steps Ahead",
+          "score": 2.9446,
+          "source": "greedy"
+        },
+        {
+          "name": "Demonic Pact",
+          "score": 2.9407,
+          "source": "greedy"
+        },
+        {
+          "name": "Heightened Awareness",
+          "score": 2.9006,
+          "source": "greedy"
+        },
+        {
+          "name": "Battle Angels of Tyr",
+          "score": 2.8323,
+          "source": "greedy"
+        },
+        {
+          "name": "Mary Read and Anne Bonny",
+          "score": 2.4071,
+          "source": "greedy"
+        },
+        {
+          "name": "Sorcerer Class",
+          "score": 2.3675,
+          "source": "greedy"
+        },
+        {
+          "name": "Tataru Taru",
+          "score": 2.2803,
+          "source": "greedy"
+        },
+        {
+          "name": "The Royal Scions",
+          "score": 2.3573,
+          "source": "greedy"
+        },
+        {
+          "name": "Monument to Endurance",
+          "score": 2.2943,
+          "source": "greedy"
+        },
+        {
+          "name": "Kiora, Behemoth Beckoner",
+          "score": 2.2041,
+          "source": "greedy"
+        },
+        {
+          "name": "Teferi, Timebender",
+          "score": 2.0782,
+          "source": "greedy"
+        },
+        {
+          "name": "Funeral Room // Awakening Hall",
+          "score": 2.0682,
+          "source": "greedy"
+        },
+        {
+          "name": "Lost Isle Calling",
+          "score": 2.0271,
+          "source": "greedy"
+        },
+        {
+          "name": "Gate to the Afterlife",
+          "score": 2.0191,
+          "source": "greedy"
+        },
+        {
+          "name": "Happily Ever After",
+          "score": 1.9524,
+          "source": "greedy"
+        },
+        {
+          "name": "Sarkhan, Fireblood",
+          "score": 1.9423,
+          "source": "greedy"
+        },
+        {
+          "name": "Tamiyo, Field Researcher",
+          "score": 1.9357,
+          "source": "greedy"
+        },
+        {
+          "name": "Tezzeret, Artifice Master",
+          "score": 1.9264,
+          "source": "greedy"
+        },
+        {
+          "name": "Lord Skitter's Blessing",
+          "score": 1.8509,
+          "source": "greedy"
+        },
+        {
+          "name": "Sphinx's Tutelage",
+          "score": 1.8463,
+          "source": "greedy"
+        },
+        {
+          "name": "Bandit's Talent",
+          "score": 1.8156,
+          "source": "greedy"
+        },
+        {
+          "name": "Vault 21: House Gambit",
+          "score": 1.7371,
+          "source": "greedy"
+        },
+        {
+          "name": "Daily Bugle Newspaper",
+          "score": 1.7361,
+          "source": "greedy"
+        },
+        {
+          "name": "Ad Nauseam",
+          "score": 1.7148,
+          "source": "greedy"
+        },
+        {
+          "name": "Monastery Siege",
+          "score": 1.6963,
+          "source": "greedy"
+        },
+        {
+          "name": "Fisher's Talent",
+          "score": 1.6846,
+          "source": "greedy"
+        },
+        {
+          "name": "Glimmerburst",
+          "score": 1.6719,
+          "source": "greedy"
+        },
+        {
+          "name": "Scion of Halaster",
+          "score": 1.6718,
+          "source": "greedy"
+        },
+        {
+          "name": "Midnight Oil",
+          "score": 1.5986,
+          "source": "greedy"
+        },
+        {
+          "name": "Gleaming Splendor",
+          "score": 1.5706,
+          "source": "greedy"
+        },
+        {
+          "name": "Breakthrough",
+          "score": 1.5498,
+          "source": "greedy"
+        },
+        {
+          "name": "Grand Entryway // Elegant Rotunda",
+          "score": 1.5261,
+          "source": "greedy"
+        },
+        {
+          "name": "Grafted Skullcap",
+          "score": 1.4929,
+          "source": "greedy"
+        },
+        {
+          "name": "Jared Carthalion",
+          "score": 1.4449,
+          "source": "greedy"
+        },
+        {
+          "name": "Island",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Plains",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Swamp",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Mountain",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Island",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Plains",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Swamp",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Forest",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Mountain",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Island",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Plains",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Swamp",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Forest",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Mountain",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Island",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Plains",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Swamp",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Forest",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Mountain",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Island",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Plains",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Swamp",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Forest",
+          "score": 0.0,
+          "source": "basic"
+        },
+        {
+          "name": "Island",
+          "score": 0.0,
+          "source": "basic"
+        }
+      ],
+      "skipped": [
+        {
+          "name": "Bazaar of Baghdad",
+          "reason": "land produces no mana"
+        },
+        {
+          "name": "Reflecting Pool",
+          "reason": "land produces no mana"
+        },
+        {
+          "name": "Central Elevator // Promising Stairs",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Charred Foyer // Warped Space",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Cramped Vents // Access Maze",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Dazzling Theater // Prop Room",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Defiled Crypt // Cadaver Lab",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Derelict Attic // Widow's Walk",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Dollmaker's Shop // Porcelain Gallery",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Experimental Lab // Staff Room",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Glassworks // Shattered Yard",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Greenhouse // Rickety Gazebo",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Meat Locker // Drowned Diner",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Mirror Room // Fractured Realm",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Eidolon of Blossoms",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Enchantress's Presence",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Sylvan Library",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Rhystic Study",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Smothering Tithe",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Painter's Studio // Defaced Gallery",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Underwater Tunnel // Slimy Aquarium",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Surgical Suite // Hospital Room",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Polluted Cistern // Dim Oubliette",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Roaring Furnace // Steaming Sauna",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Argothian Enchantress",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Verduran Enchantress",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Sanctum Weaver",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Destiny Spinner",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Greater Auramancy",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Ghostly Prison",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Propaganda",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Aura Shards",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Calix, Guided by Fate",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Sigil of the Empty Throne",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Starfield of Nyx",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Hallowed Haunting",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Wild Growth",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Utopia Sprawl",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Fertile Ground",
+          "reason": "land slots reserved"
+        },
+        {
+          "name": "Overgrowth",
+          "reason": "land slots reserved"
+        }
+      ],
+      "slot_count": 99,
+      "remaining_slots": 0,
+      "pool_count": 597,
+      "color_basic_rebalance": [
+        {
+          "out": "Island",
+          "in": "Mountain",
+          "reason": "color_basic_split"
+        }
+      ]
+    },
+    "cut": {
+      "ok": true,
+      "removed": [],
+      "swapped": [
+        {
+          "out": "Happily Ever After",
+          "in": "Jadzi, Steward of Fate // Oracle's Gift"
+        }
+      ],
+      "slot_count": 99,
+      "pool_count": 597
+    },
+    "land_alert": {
+      "status": "ok",
+      "count": 35,
+      "quota": [
+        35,
+        37
+      ],
+      "delta": 0,
+      "pct": 0.0,
+      "severity": "none"
+    }
+  },
+  "deck_diff": {
+    "removed": [],
+    "added": [
+      {
+        "name": "Aclazotz, Deepest Betrayal // Temple of the Dead",
+        "quantity": 1
+      },
+      {
+        "name": "Ad Nauseam",
+        "quantity": 1
+      },
+      {
+        "name": "Ancient Ziggurat",
+        "quantity": 1
+      },
+      {
+        "name": "Anguished Unmaking",
+        "quantity": 1
+      },
+      {
+        "name": "Bandit's Talent",
+        "quantity": 1
+      },
+      {
+        "name": "Battle Angels of Tyr",
+        "quantity": 1
+      },
+      {
+        "name": "Beast Within",
+        "quantity": 1
+      },
+      {
+        "name": "Bottomless Pool // Locker Room",
+        "quantity": 1
+      },
+      {
+        "name": "Breakthrough",
+        "quantity": 1
+      },
+      {
+        "name": "Charming Scoundrel",
+        "quantity": 1
+      },
+      {
+        "name": "Chromatic Lantern",
+        "quantity": 1
+      },
+      {
+        "name": "Command Tower",
+        "quantity": 1
+      },
+      {
+        "name": "Cultivate",
+        "quantity": 1
+      },
+      {
+        "name": "Currency Converter",
+        "quantity": 1
+      },
+      {
+        "name": "Cyclonic Rift",
+        "quantity": 1
+      },
+      {
+        "name": "Daily Bugle Newspaper",
+        "quantity": 1
+      },
+      {
+        "name": "Daretti, Scrap Savant",
+        "quantity": 1
+      },
+      {
+        "name": "Demonic Pact",
+        "quantity": 1
+      },
+      {
+        "name": "Exotic Orchard",
+        "quantity": 1
+      },
+      {
+        "name": "Farseek",
+        "quantity": 1
+      },
+      {
+        "name": "Fisher's Talent",
+        "quantity": 1
+      },
+      {
+        "name": "Forest",
+        "quantity": 4
+      },
+      {
+        "name": "Fountainport",
+        "quantity": 1
+      },
+      {
+        "name": "Funeral Room // Awakening Hall",
+        "quantity": 1
+      },
+      {
+        "name": "Gate to the Afterlife",
+        "quantity": 1
+      },
+      {
+        "name": "Gleaming Splendor",
+        "quantity": 1
+      },
+      {
+        "name": "Glimmerburst",
+        "quantity": 1
+      },
+      {
+        "name": "Grafted Skullcap",
+        "quantity": 1
+      },
+      {
+        "name": "Grand Entryway // Elegant Rotunda",
+        "quantity": 1
+      },
+      {
+        "name": "Greed's Gambit",
+        "quantity": 1
+      },
+      {
+        "name": "Heightened Awareness",
+        "quantity": 1
+      },
+      {
+        "name": "Inquisitive Glimmer",
+        "quantity": 1
+      },
+      {
+        "name": "Island",
+        "quantity": 5
+      },
+      {
+        "name": "Jadzi, Steward of Fate // Oracle's Gift",
+        "quantity": 1
+      },
+      {
+        "name": "Jared Carthalion",
+        "quantity": 1
+      },
+      {
+        "name": "Jukai Naturalist",
+        "quantity": 1
+      },
+      {
+        "name": "Kaya, Intangible Slayer",
+        "quantity": 1
+      },
+      {
+        "name": "Kiora, Behemoth Beckoner",
+        "quantity": 1
+      },
+      {
+        "name": "Lord Skitter's Blessing",
+        "quantity": 1
+      },
+      {
+        "name": "Lord Windgrace",
+        "quantity": 1
+      },
+      {
+        "name": "Lost Isle Calling",
+        "quantity": 1
+      },
+      {
+        "name": "Mary Read and Anne Bonny",
+        "quantity": 1
+      },
+      {
+        "name": "Mesa Enchantress",
+        "quantity": 1
+      },
+      {
+        "name": "Midgar, City of Mako // Reactor Raid",
+        "quantity": 1
+      },
+      {
+        "name": "Midnight Oil",
+        "quantity": 1
+      },
+      {
+        "name": "Monastery Siege",
+        "quantity": 1
+      },
+      {
+        "name": "Monument to Endurance",
+        "quantity": 1
+      },
+      {
+        "name": "Mordenkainen",
+        "quantity": 1
+      },
+      {
+        "name": "Mountain",
+        "quantity": 5
+      },
+      {
+        "name": "Nature's Lore",
+        "quantity": 1
+      },
+      {
+        "name": "Pillar of the Paruns",
+        "quantity": 1
+      },
+      {
+        "name": "Plains",
+        "quantity": 5
+      },
+      {
+        "name": "Rainbow Vale",
+        "quantity": 1
+      },
+      {
+        "name": "Rush of Inspiration // Crackling Falls",
+        "quantity": 1
+      },
+      {
+        "name": "Sarkhan Unbroken",
+        "quantity": 1
+      },
+      {
+        "name": "Sarkhan, Fireblood",
+        "quantity": 1
+      },
+      {
+        "name": "Satyr Enchanter",
+        "quantity": 1
+      },
+      {
+        "name": "Scion of Halaster",
+        "quantity": 1
+      },
+      {
+        "name": "Setessan Champion",
+        "quantity": 1
+      },
+      {
+        "name": "Smoky Lounge // Misty Salon",
+        "quantity": 1
+      },
+      {
+        "name": "Sorcerer Class",
+        "quantity": 1
+      },
+      {
+        "name": "Sphere of Safety",
+        "quantity": 1
+      },
+      {
+        "name": "Sphinx's Tutelage",
+        "quantity": 1
+      },
+      {
+        "name": "Sterling Grove",
+        "quantity": 1
+      },
+      {
+        "name": "Stern Lesson",
+        "quantity": 1
+      },
+      {
+        "name": "Sticky Fingers",
+        "quantity": 1
+      },
+      {
+        "name": "Swamp",
+        "quantity": 5
+      },
+      {
+        "name": "Swords to Plowshares",
+        "quantity": 1
+      },
+      {
+        "name": "Sythis, Harvest's Hand",
+        "quantity": 1
+      },
+      {
+        "name": "Tamiyo, Field Researcher",
+        "quantity": 1
+      },
+      {
+        "name": "Tataru Taru",
+        "quantity": 1
+      },
+      {
+        "name": "Teferi, Timebender",
+        "quantity": 1
+      },
+      {
+        "name": "Tezzeret, Artifice Master",
+        "quantity": 1
+      },
+      {
+        "name": "The Bath Song",
+        "quantity": 1
+      },
+      {
+        "name": "The Everflowing Well // The Myriad Pools",
+        "quantity": 1
+      },
+      {
+        "name": "The Royal Scions",
+        "quantity": 1
+      },
+      {
+        "name": "Three Steps Ahead",
+        "quantity": 1
+      },
+      {
+        "name": "Undiscovered Paradise",
+        "quantity": 1
+      },
+      {
+        "name": "Vault 21: House Gambit",
+        "quantity": 1
+      },
+      {
+        "name": "Vraska, Golgari Queen",
+        "quantity": 1
+      }
+    ],
+    "commander_changed": null,
+    "removed_count": 0,
+    "added_count": 99
+  }
+}
