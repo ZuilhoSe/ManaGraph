@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import os
 import re
 import sqlite3
@@ -30,6 +31,7 @@ from deck_state import MAIN_DECK_SIZE, DeckState, _normalize_key
 from geometry import VIEW_WEIGHTS, cosine, load_card_views, multi_view_cosine
 from inventory import get_card as get_inventory_card
 from mana import cmc_bucket, diagnose, produces_mana, shape_bonus, strategy_from_name
+from deck_analysis.land_value import is_basic as _is_basic_name, land_delta, parse_land
 from roles import ROLE_QUOTAS, role_counts, role_need_bonus, token_classes
 from ontology.ablation import geometry_mode, ontology_score_enabled, resolve_ablation
 from ontology.diagnose import summarize_predicates, typed_deficit_records
@@ -75,17 +77,80 @@ def _union_pred_sets(
     return union
 
 
+# Matched flows (ONTOLOGY.md Layer 3): an emitter is worth something only while
+# there is an unmatched subscriber for it, and vice versa.
+FLOW_PAIRS = (("emits", "rewards"), ("produces", "consumes"))
+FLOW_KEYS = ("emits", "rewards", "produces", "consumes")
+
+
+def _flow_counts(
+    by_name: dict[str, dict[str, set[str]]],
+    quantities: dict[str, int] | None = None,
+) -> dict[str, dict[str, int]]:
+    """How many deck cards emit / reward / produce / consume each predicate."""
+    quantities = {k.lower(): int(v) for k, v in (quantities or {}).items()}
+    counts: dict[str, dict[str, int]] = {key: {} for key in FLOW_KEYS}
+    for name, sets in by_name.items():
+        qty = quantities.get(name.lower(), 1)
+        for key in FLOW_KEYS:
+            for pred in sets.get(key) or ():
+                counts[key][pred] = counts[key].get(pred, 0) + qty
+    return counts
+
+
+def _flow_objective(counts: dict[str, dict[str, int]]) -> float:
+    """Saturating matched flow over the deck's predicates.
+
+    The two currency families of ONTOLOGY.md behave differently under the rules:
+
+    * Objects (``produces`` -> ``consumes``) are rivalrous: a Treasure is spent
+      once. Value is ``min(supply, demand)``; a twelfth Treasure maker with no
+      outlet adds nothing.
+    * Events (``emits`` -> ``rewards``) are broadcast: one creature entering
+      triggers every ETB payoff. Interactions grow like ``e * r`` (the bilinear
+      "many artifacts + artifact payoffs" effect); mana and turns cap how much
+      of that a game can realise, so the term is the concave ``sqrt(e * r)``,
+      which equals ``min`` when ``e == r`` and has diminishing returns on the
+      larger side.
+    """
+    total = 0.0
+    supply = counts.get("produces") or {}
+    demand = counts.get("consumes") or {}
+    for pred in set(supply) & set(demand):
+        total += min(supply[pred], demand[pred])
+    emit = counts.get("emits") or {}
+    reward = counts.get("rewards") or {}
+    for pred in set(emit) & set(reward):
+        total += math.sqrt(emit[pred] * reward[pred])
+    return total
+
+
+def _shift_counts(
+    counts: dict[str, dict[str, int]],
+    card_sets: dict[str, set[str]],
+    sign: int,
+) -> dict[str, dict[str, int]]:
+    out = {key: dict(counts.get(key) or {}) for key in FLOW_KEYS}
+    for key in FLOW_KEYS:
+        for pred in card_sets.get(key) or ():
+            out[key][pred] = max(0, out[key].get(pred, 0) + sign)
+    return out
+
+
 def _ontology_pair_score(
     card_sets: dict[str, set[str]],
-    deck_sets: dict[str, set[str]],
+    flow_counts: dict[str, dict[str, int]],
+    skip_self: bool = False,
 ) -> float:
-    matched = (
-        len(card_sets.get("emits", set()) & deck_sets.get("rewards", set()))
-        + len(card_sets.get("rewards", set()) & deck_sets.get("emits", set()))
-        + len(card_sets.get("produces", set()) & deck_sets.get("consumes", set()))
-        + len(card_sets.get("consumes", set()) & deck_sets.get("produces", set()))
-    )
-    return ONTOLOGY_PAIR_WEIGHT * matched
+    """Marginal matched flow the card adds: Δ Σ min(supply, demand).
+
+    Replaces the old ``|card.emits ∩ deck.rewards|`` over the deck's union of
+    predicates, which never saturated (one payoff made every emitter "matched")
+    and rewarded wordy cards for the number of predicates they carry.
+    """
+    base = _shift_counts(flow_counts, card_sets, -1) if skip_self else flow_counts
+    gain = _flow_objective(_shift_counts(base, card_sets, +1)) - _flow_objective(base)
+    return ONTOLOGY_PAIR_WEIGHT * gain
 from symbolic_cards import (
     classify_card,
     requirement_families,
@@ -99,6 +164,9 @@ from rules_validator import (
 
 # Soft preference for lands whose type_line matches preferred_land_types.
 PREFERRED_LAND_BONUS = 1.2
+# A non-basic land is scored by its value over the basic it replaces
+# (deck_analysis.land_value). Weight in score units per basic-land-drop.
+LAND_DELTA_WEIGHT = 2.0
 THEME_TYPE_BONUS = 0.9
 # Leave room for Command Tower / fixers when not land_types_strict.
 PREFERRED_LAND_FIXER_RESERVE = 6
@@ -362,6 +430,7 @@ class DeckSolver:
             "mana": mana,
             "ontology_by_name": {},
             "ontology_deck": _empty_pred_sets(),
+            "ontology_flow": {key: {} for key in FLOW_KEYS},
             "ontology_repairs": [],
         }
         names = [card.get("name") for card in deck_cards if card.get("name")]
@@ -381,6 +450,7 @@ class DeckSolver:
             }
             if cmd and cmd.get("name"):
                 quantities.setdefault(cmd["name"], 1)
+            self._ctx["ontology_flow"] = _flow_counts(by_name, quantities)
             counts = summarize_predicates(rows, quantities)
             self._ctx["ontology_repairs"] = merge_deficit_records(
                 typed_deficit_records(counts),
@@ -487,6 +557,41 @@ class DeckSolver:
             self._rebuild_context(deck, query)
         if swapped:
             print(f"[Solver] land floor: {len(swapped)} add/swap(s) -> {self._land_count(deck)} lands")
+        return swapped
+
+    def _replace_bad_lands(self, deck: DeckState, query: str = "") -> list[dict]:
+        """Swap every non-basic land that does not beat a basic for the needed basic.
+
+        Lands the Architect just added this round are left alone; user-preferred
+        land types are exempt (see _land_worse_than_basic).
+        """
+        swapped: list[dict] = []
+        if not deck.commander:
+            return swapped
+        self._rebuild_context(deck, query)
+        protected = self._freshly_touched_names(deck)
+        for name in list(deck.card_list().keys()):
+            if name.lower() in protected:
+                continue
+            info = self._info(name) or {}
+            if not self._land_worse_than_basic(info, deck):
+                continue
+            delta = self._land_delta(info, deck)["delta"]
+            deck.remove_card(name, 1)
+            deck.add_to_pool(name, 1)
+            self._rebuild_context(deck, query)
+            basic = self._best_basic(deck, allow_overquota=True)
+            ok, _reason = self.can_add(deck, basic) if basic else (False, "no basic")
+            if not ok:
+                deck.take_from_pool(name, 1)
+                deck.add_card(name, 1)
+                self._rebuild_context(deck, query)
+                continue
+            self._commit_add(deck, basic, 1)
+            swapped.append({"out": name, "in": basic, "reason": "land_worse_than_basic", "delta": delta})
+            self._rebuild_context(deck, query)
+        if swapped:
+            print(f"[Solver] land quality: {len(swapped)} non-basic(s) swapped for basics")
         return swapped
 
     def _theme_count(self, deck: DeckState, fragment: str | None = None) -> int:
@@ -1177,6 +1282,11 @@ class DeckSolver:
             cut_report = self.cut(deck, query=query, max_swaps=max_swaps)
 
         if deck.commander and (fill_report or cut_report or fill_to_99 or deck.intent in ("build", "cut")):
+            basic_fix = self._replace_bad_lands(deck, query)
+            if basic_fix:
+                if fill_report is None:
+                    fill_report = {"ok": True, "added": [], "skipped": [], "slot_count": deck.slot_count(), "remaining_slots": deck.remaining_slots(), "pool_count": deck.pool_count()}
+                fill_report.setdefault("land_basic_swaps", basic_fix)
             land_fix = self._rebalance_lands(deck, query)
             color_fix = self._rebalance_color_basics(deck, query)
             if land_fix or color_fix:
@@ -1391,6 +1501,9 @@ class DeckSolver:
             allow_complete_basic = deck.require_complete and is_basic_land(tl)
             if self._land_count(deck) >= land_high and not allow_complete_basic:
                 return "land quota full"
+            if self._land_worse_than_basic(info, deck):
+                delta = self._land_delta(info, deck)["delta"]
+                return f"land worse than a basic (delta={delta:+.2f})"
         if deck.theme_types and self._matches_theme_type(info, deck):
             if self._theme_count(deck) >= THEME_HARD_CAP:
                 return "theme type cap"
@@ -1409,11 +1522,52 @@ class DeckSolver:
         """Utility land that never taps for mana — not a land-slot fill."""
         if "land" not in (info.get("type_line") or "").lower():
             return False
-        return not produces_mana(
+        if produces_mana(
             info.get("type_line") or "",
             info.get("oracle_text") or "",
             info.get("mana_cost") or "",
+        ):
+            return False
+        # Fetch lands add no mana themselves but put a mana source into play.
+        prof = parse_land(
+            info.get("name") or "",
+            info.get("type_line") or "",
+            info.get("oracle_text") or "",
+            None,
         )
+        return not prof.produces_mana()
+
+    def _land_delta(self, info: dict, deck: DeckState) -> dict:
+        """Value of a land over the basic it would replace (cached per context)."""
+        ctx = self._ctx or {}
+        cache = ctx.setdefault("_land_delta", {}) if self._ctx is not None else {}
+        key = (info.get("name") or "").lower()
+        if key in cache:
+            return cache[key]
+        pips = (ctx.get("mana") or {}).get("pips") or {}
+        result = land_delta(info, self._known_identity(deck) or [], pips)
+        cache[key] = result
+        return result
+
+    def _known_identity(self, deck: DeckState) -> list[str] | None:
+        """Deck identity, or the commander's; None when neither is known."""
+        if deck.identity:
+            return list(deck.identity)
+        cmd = (self._ctx or {}).get("cmd") or (self._info(deck.commander) if deck.commander else None)
+        if cmd is not None:
+            return list(cmd.get("color_identity") or [])
+        return None
+
+    def _land_worse_than_basic(self, info: dict, deck: DeckState) -> bool:
+        """Non-basic land that does not beat a basic. User-preferred land types are exempt."""
+        tl = info.get("type_line") or ""
+        if "land" not in tl.lower() or is_basic_land(tl) or _is_basic_name(info.get("name") or "", tl):
+            return False
+        if self._known_identity(deck) is None:
+            return False  # cannot price fixing without an identity
+        if deck.preferred_land_types and self._matches_preferred_land(info, deck):
+            return False
+        return self._land_delta(info, deck)["delta"] <= 0.0
 
     def _score_parts(
         self,
@@ -1561,23 +1715,38 @@ class DeckSolver:
         ontology_repair = 0.0
         if self._use_ontology_score(deck):
             card_sets = self._ontology_sets_for(info.get("name") or name)
-            deck_sets = ctx.get("ontology_deck") or _union_pred_sets(
-                ctx.get("ontology_by_name") or {}
-            )
-            if skip_self:
-                deck_sets = _union_pred_sets(
-                    ctx.get("ontology_by_name") or {},
-                    skip=info.get("name") or name,
-                )
-            ontology_pair = _ontology_pair_score(card_sets, deck_sets)
+            by_name = ctx.get("ontology_by_name") or {}
+            flow = ctx.get("ontology_flow") or _flow_counts(by_name)
+            in_deck = (info.get("name") or name).lower() in {k.lower() for k in by_name}
+            ontology_pair = _ontology_pair_score(card_sets, flow, skip_self=skip_self and in_deck)
             ontology_repair = ONTOLOGY_REPAIR_WEIGHT * repair_hit_count(
                 card_sets, ctx.get("ontology_repairs") or []
             )
 
+        land_value = None
+        if is_land:
+            # A land slot is a mana source: value over a basic, never text cosine
+            # with the commander (that is how Rainbow Vale beat Mountain).
+            land_value = self._land_delta(info, deck)
+            tribe = 0.0
+            token_align = 0.0
+            redundancy = 0.0
+            redundancy_with = None
+            symbolic_bonus = 0.0
+            ontology_pair = 0.0
+            ontology_repair = 0.0
+            land_bonus = float(shape["land_bonus"] or 0.0) + pref_land
+            shape = dict(shape, total=float(shape["land_bonus"] or 0.0), mana_bonus=0.0)
+            if self._land_worse_than_basic(info, deck):
+                land_urgent = 0.0
         unit = card_unit_price(info, deck.currency) or 0.0
-        value = synergy / (unit + 0.5) if deck.budget_cap is not None else 0.0
+        # Text synergy stays in the breakdown for inspection but never prices a land.
+        synergy_term = 0.0 if land_value else synergy
+        value = synergy_term / (unit + 0.5) if deck.budget_cap is not None else 0.0
+        land_term = LAND_DELTA_WEIGHT * land_value["delta"] if land_value else 0.0
         total = (
-            2.0 * synergy
+            land_term
+            + 2.0 * synergy_term
             + role_score
             + tribe
             + token_align
@@ -1647,6 +1816,8 @@ class DeckSolver:
             "symbolic_bonus": symbolic_bonus,
             "ontology_pair": ontology_pair,
             "ontology_repair": ontology_repair,
+            "land_delta": land_value["delta"] if land_value else None,
+            "land_parts": land_value["parts"] if land_value else None,
             "total": total,
             "info": info,
         }
@@ -1710,6 +1881,8 @@ class DeckSolver:
                 "symbolic_bonus": 0.0,
                 "ontology_pair": 0.0,
                 "ontology_repair": 0.0,
+                "land_delta": None,
+                "land_parts": None,
                 "total": -999.0,
                 "error": parts["error"],
             }
@@ -1767,6 +1940,8 @@ class DeckSolver:
             "symbolic_bonus": round(parts.get("symbolic_bonus") or 0.0, 4),
             "ontology_pair": round(parts.get("ontology_pair") or 0.0, 4),
             "ontology_repair": round(parts.get("ontology_repair") or 0.0, 4),
+            "land_delta": parts.get("land_delta"),
+            "land_parts": parts.get("land_parts"),
             "total": round(parts["total"], 4),
         }
 
