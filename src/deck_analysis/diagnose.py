@@ -233,5 +233,5 @@ def diagnose_deck(deck, db_path: str = DB_NAME, strategy: ManaTargetStrategy | N
     names = [*card_list.keys()]
     if deck.commander:
         names.append(deck.commander)
-    attach_ontology_deficits(report, names, db_path, card_list)
+    attach_ontology_deficits(report, names, db_path, card_list, deck.commander)
     return report

@@ -13,9 +13,11 @@ from typing import Iterable, Mapping
 
 from catalog import DB_NAME
 from ontology.graph import (
+    commander_plan_objects,
     flow_repair_records,
     flow_snapshot,
     merge_deficit_records,
+    pred_sets_from_rows,
     search_queries_from_records,
 )
 from ontology.search import predicates_for_names
@@ -68,14 +70,27 @@ def _repair(predicate: str, arg_key: str, arg_value: str) -> dict[str, str]:
     return {"predicate": predicate, "arg_key": arg_key, "arg_value": arg_value}
 
 
-def typed_deficit_records(counts: Mapping[str, int]) -> list[dict]:
+def _on_plan(plan_objects: Iterable[str] | None, obj: str) -> bool:
+    """Unknown commander signature means "assume on plan" — never invent junk."""
+    return plan_objects is None or obj in set(plan_objects)
+
+
+def typed_deficit_records(
+    counts: Mapping[str, int],
+    plan_objects: Iterable[str] | None = None,
+) -> list[dict]:
     """Typed mismatches plus the predicates that close them.
 
     Texts stay Stage 3.5-incompatible on purpose. `repairs` is what the solver
     consumes so cut can prefer a sac outlet over another cosine neighbour.
+
+    Supply-side rows (treasure, token) only fire for objects on the commander's
+    plan; off plan they are `flow_repair_records`' cut rows instead.
     """
     records: list[dict] = []
     treasures = int(counts.get("produces:treasure") or 0)
+    if not _on_plan(plan_objects, "treasure"):
+        treasures = 0
     outlets = int(counts.get("enables:sac_outlet") or 0)
     outlet_repairs = (
         _repair("enables", "capability", "sac_outlet"),
@@ -99,6 +114,8 @@ def typed_deficit_records(counts: Mapping[str, int]) -> list[dict]:
     tokens = int(counts.get("produces:token") or 0) + int(
         counts.get("emits:token_created") or 0
     )
+    if not _on_plan(plan_objects, "token"):
+        tokens = 0
     token_payoffs = int(counts.get("rewards:token_created") or 0)
     if tokens > 0 and token_payoffs == 0:
         records.append(
@@ -245,6 +262,7 @@ def attach_ontology_deficits(
     names: Iterable[str],
     db_path: str = DB_NAME,
     quantities: Mapping[str, int] | None = None,
+    commander: str | None = None,
 ) -> dict:
     """Mutate a diagnose report with predicate counts and typed deficits."""
     conn = sqlite3.connect(db_path)
@@ -255,9 +273,12 @@ def attach_ontology_deficits(
     finally:
         conn.close()
     counts = summarize_predicates(rows, quantities)
+    plan = commander_plan_objects(
+        (pred_sets_from_rows(rows) or {}).get(str(commander or "").lower())
+    )
     records = merge_deficit_records(
-        typed_deficit_records(counts),
-        flow_repair_records(counts),
+        typed_deficit_records(counts, plan),
+        flow_repair_records(counts, plan),
     )
     extra = [record["text"] for record in records]
     queries = search_queries_from_records(records)
@@ -265,7 +286,7 @@ def attach_ontology_deficits(
     report["ontology_counts"] = counts
     report["ontology_deficits"] = extra
     report["ontology_deficit_records"] = records
-    report["ontology_flow"] = flow_snapshot(counts)
+    report["ontology_flow"] = flow_snapshot(counts, plan)
     report["ontology_queries"] = queries
     report["suggested_searches"] = suggested_searches_from_queries(queries, cmc_max)
     existing = list(report.get("deficits") or [])

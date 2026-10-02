@@ -34,13 +34,17 @@ from roles import ROLE_QUOTAS, role_counts, role_need_bonus, token_classes
 from ontology.ablation import geometry_mode, ontology_score_enabled, resolve_ablation
 from ontology.diagnose import summarize_predicates, typed_deficit_records
 from ontology.graph import (
+    commander_plan_events,
+    commander_plan_objects,
     empty_pred_sets as _empty_pred_sets,
     flow_repair_records,
     merge_deficit_records,
+    offplan_hit_count,
     pred_sets_from_rows as _predicate_sets_from_rows,
     predicate_signature,
     repair_hit_count,
     search_queries_from_records,
+    serves_plan,
     signature_redundancy,
 )
 from ontology.search import (
@@ -54,6 +58,9 @@ ONTOLOGY_PAIR_WEIGHT = 0.25
 # Must beat a typical 2.0 * Jaccard name-overlap gap so a deficit repair, not
 # cosine/text resemblance, decides the swap.
 ONTOLOGY_REPAIR_WEIGHT = 2.0
+# A producer nobody in the deck (commander included) subscribes to is junk, so it
+# should lose the cut race to an on-plan card of equal text similarity.
+ONTOLOGY_OFFPLAN_WEIGHT = 1.5
 KNN_REDUNDANCY_K = 8
 
 
@@ -363,6 +370,8 @@ class DeckSolver:
             "ontology_by_name": {},
             "ontology_deck": _empty_pred_sets(),
             "ontology_repairs": [],
+            "ontology_plan": None,
+            "ontology_plan_events": frozenset(),
         }
         names = [card.get("name") for card in deck_cards if card.get("name")]
         if cmd and cmd.get("name"):
@@ -382,9 +391,13 @@ class DeckSolver:
             if cmd and cmd.get("name"):
                 quantities.setdefault(cmd["name"], 1)
             counts = summarize_predicates(rows, quantities)
+            cmd_sets = by_name.get(str((cmd or {}).get("name") or "").lower())
+            plan = commander_plan_objects(cmd_sets)
+            self._ctx["ontology_plan"] = plan
+            self._ctx["ontology_plan_events"] = commander_plan_events(cmd_sets)
             self._ctx["ontology_repairs"] = merge_deficit_records(
-                typed_deficit_records(counts),
-                flow_repair_records(counts),
+                typed_deficit_records(counts, plan),
+                flow_repair_records(counts, plan),
             )
         except sqlite3.Error:
             pass
@@ -1559,6 +1572,7 @@ class DeckSolver:
 
         ontology_pair = 0.0
         ontology_repair = 0.0
+        ontology_offplan = 0.0
         if self._use_ontology_score(deck):
             card_sets = self._ontology_sets_for(info.get("name") or name)
             deck_sets = ctx.get("ontology_deck") or _union_pred_sets(
@@ -1570,9 +1584,18 @@ class DeckSolver:
                     skip=info.get("name") or name,
                 )
             ontology_pair = _ontology_pair_score(card_sets, deck_sets)
+            records = ctx.get("ontology_repairs") or []
             ontology_repair = ONTOLOGY_REPAIR_WEIGHT * repair_hit_count(
-                card_sets, ctx.get("ontology_repairs") or []
+                card_sets, records
             )
+            # A land is in the deck for its mana, so the fuel it makes on the
+            # side never condemns it.
+            if not is_land and not serves_plan(
+                card_sets, ctx.get("ontology_plan_events")
+            ):
+                ontology_offplan = ONTOLOGY_OFFPLAN_WEIGHT * offplan_hit_count(
+                    card_sets, records
+                )
 
         unit = card_unit_price(info, deck.currency) or 0.0
         value = synergy / (unit + 0.5) if deck.budget_cap is not None else 0.0
@@ -1590,6 +1613,7 @@ class DeckSolver:
             + symbolic_bonus
             + ontology_pair
             + ontology_repair
+            - ontology_offplan
         )
         profile = ctx.get("profile") or profile_for(ctx.get("archetype"))
         cap = profile.max_creatures
@@ -1647,6 +1671,7 @@ class DeckSolver:
             "symbolic_bonus": symbolic_bonus,
             "ontology_pair": ontology_pair,
             "ontology_repair": ontology_repair,
+            "ontology_offplan": ontology_offplan,
             "total": total,
             "info": info,
         }
@@ -1710,6 +1735,7 @@ class DeckSolver:
                 "symbolic_bonus": 0.0,
                 "ontology_pair": 0.0,
                 "ontology_repair": 0.0,
+                "ontology_offplan": 0.0,
                 "total": -999.0,
                 "error": parts["error"],
             }
@@ -1767,6 +1793,7 @@ class DeckSolver:
             "symbolic_bonus": round(parts.get("symbolic_bonus") or 0.0, 4),
             "ontology_pair": round(parts.get("ontology_pair") or 0.0, 4),
             "ontology_repair": round(parts.get("ontology_repair") or 0.0, 4),
+            "ontology_offplan": round(parts.get("ontology_offplan") or 0.0, 4),
             "total": round(parts["total"], 4),
         }
 

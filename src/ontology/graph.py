@@ -13,6 +13,30 @@ from deck_analysis.curve import cmc_bucket
 _IGNORE_OBJECTS = frozenset({"mana"})
 _SIGNATURE_SKIP = frozenset({("produces", "mana")})
 _FLOW_CAP = 12
+# Their partner sits on the other side of the table, not in our 99: a Voltron
+# deck's protection is live with no matching emit/reward inside the deck.
+SELF_PAIRED_BUCKETS = ("protects", "answers")
+# Objects that go idle without a consumer. A permanent holds the board on its own.
+_FUEL_OBJECTS = frozenset(
+    {
+        "treasure",
+        "token",
+        "food",
+        "blood",
+        "clue",
+        "energy",
+        "card_in_graveyard",
+        "creature_in_graveyard",
+    }
+)
+# Objects whose supply also shows up as an event, so a commander that only
+# rewards the event still counts as subscribing to the object.
+_OBJECT_EVENTS = {
+    "token": ("token_created",),
+    "mana": ("mana_produced",),
+    "card_in_hand": ("draw",),
+    "land_in_play": ("landfall",),
+}
 PRED_BUCKETS = (
     "emits",
     "rewards",
@@ -155,6 +179,22 @@ def repair_hit_count(
     return hits
 
 
+def offplan_hit_count(
+    card_sets: Mapping[str, set[str]],
+    records: Iterable[Mapping],
+) -> int:
+    """How many off-plan rows this card feeds. Drives cut pressure, not fill."""
+    hits = 0
+    for record in records:
+        for cut in record.get("cuts") or []:
+            predicate = str(cut.get("predicate") or "")
+            value = str(cut.get("arg_value") or "")
+            if value and value in (card_sets.get(predicate) or set()):
+                hits += 1
+                break
+    return hits
+
+
 def _by_prefix(counts: Mapping[str, int], prefix: str) -> dict[str, int]:
     head = prefix + ":"
     out: dict[str, int] = {}
@@ -170,8 +210,73 @@ def _repair(predicate: str, arg_key: str, arg_value: str) -> dict[str, str]:
     return {"predicate": predicate, "arg_key": arg_key, "arg_value": arg_value}
 
 
-def flow_snapshot(counts: Mapping[str, int]) -> dict:
-    """Event/object supply vs demand. Mana is Stage 3.5's job, not this table."""
+def commander_plan_objects(
+    commander_sets: Mapping[str, Iterable[str]] | None,
+) -> frozenset[str] | None:
+    """Objects the commander's own text puts on the plan.
+
+    `None` means "no ontology claim on the commander" — callers must then treat
+    every object as on-plan rather than inventing off-plan pressure from a hole
+    in the index.
+    """
+    if not commander_sets:
+        return None
+    produces = {str(v) for v in (commander_sets.get("produces") or ())}
+    consumes = {str(v) for v in (commander_sets.get("consumes") or ())}
+    events = {str(v) for v in (commander_sets.get("emits") or ())} | {
+        str(v) for v in (commander_sets.get("rewards") or ())
+    }
+    if not any((produces, consumes, events)):
+        return None
+    plan = produces | consumes
+    for obj, twins in _OBJECT_EVENTS.items():
+        if any(twin in events for twin in twins):
+            plan.add(obj)
+    return frozenset(plan)
+
+
+def commander_plan_events(
+    commander_sets: Mapping[str, Iterable[str]] | None,
+) -> frozenset[str]:
+    """Events the commander's own text turns into value."""
+    sets = commander_sets or {}
+    return frozenset(
+        {str(v) for v in (sets.get("emits") or ())}
+        | {str(v) for v in (sets.get("rewards") or ())}
+    )
+
+
+def serves_plan(
+    card_sets: Mapping[str, Iterable[str]] | None,
+    plan_events: Iterable[str] | None,
+) -> bool:
+    """Whether a card earns its slot on the plan, whatever else it produces.
+
+    Protection and interaction pair with the opponent rather than the 99, so they
+    always count; otherwise the card has to touch an event the commander uses.
+    """
+    sets = card_sets or {}
+    if any(sets.get(bucket) for bucket in SELF_PAIRED_BUCKETS):
+        return True
+    events = set(plan_events or ())
+    if not events:
+        return False
+    card_events = {str(v) for v in (sets.get("emits") or ())} | {
+        str(v) for v in (sets.get("rewards") or ())
+    }
+    return bool(events & card_events)
+
+
+def flow_snapshot(
+    counts: Mapping[str, int],
+    plan_objects: Iterable[str] | None = None,
+) -> dict:
+    """Event/object supply vs demand. Mana is Stage 3.5's job, not this table.
+
+    `plan_objects` is the commander's subscription set. Unmatched producers of
+    fuel outside it are junk to cut, not a hole to fill.
+    """
+    plan = None if plan_objects is None else {str(obj) for obj in plan_objects}
     emits = _by_prefix(counts, "emits")
     rewards = _by_prefix(counts, "rewards")
     produces = _by_prefix(counts, "produces")
@@ -194,11 +299,20 @@ def flow_snapshot(counts: Mapping[str, int]) -> dict:
         if n_consume > 0 and n_produce == 0:
             starved.append({"object": obj, "consumes": n_consume, "produces": 0})
     for obj, n_produce in sorted(produces.items()):
-        if obj in _IGNORE_OBJECTS:
+        # Only fuel goes idle without a consumer; a permanent holds the board on
+        # its own, so producing one is never a mismatch to report.
+        if obj in _IGNORE_OBJECTS or obj not in _FUEL_OBJECTS:
             continue
         n_consume = int(consumes.get(obj) or 0)
         if n_produce > 0 and n_consume == 0:
-            unmatched.append({"object": obj, "produces": n_produce, "consumes": 0})
+            unmatched.append(
+                {
+                    "object": obj,
+                    "produces": n_produce,
+                    "consumes": 0,
+                    "on_plan": plan is None or obj in plan,
+                }
+            )
 
     matched_events = sorted(
         event
@@ -208,16 +322,25 @@ def flow_snapshot(counts: Mapping[str, int]) -> dict:
     return {
         "orphans": orphans,
         "starved": starved,
-        "unmatched_producers": unmatched,
+        "unmatched_producers": [row for row in unmatched if row["on_plan"]],
+        "offplan_producers": [row for row in unmatched if not row["on_plan"]],
         "matched_events": matched_events,
         "answers": answers,
         "protects": protects,
+        "plan_objects": None if plan is None else sorted(plan),
     }
 
 
-def flow_repair_records(counts: Mapping[str, int]) -> list[dict]:
-    """Generic orphan/starved/unmatched rows in the cut/diagnose repair shape."""
-    snap = flow_snapshot(counts)
+def flow_repair_records(
+    counts: Mapping[str, int],
+    plan_objects: Iterable[str] | None = None,
+) -> list[dict]:
+    """Generic orphan/starved/unmatched rows in the cut/diagnose repair shape.
+
+    Off-plan producers carry `cuts` instead of `repairs`: nothing should enter the
+    deck to feed them, and whatever already feeds them should leave.
+    """
+    snap = flow_snapshot(counts, plan_objects)
     records: list[dict] = []
     for row in snap["orphans"]:
         event = row["event"]
@@ -250,6 +373,18 @@ def flow_repair_records(counts: Mapping[str, int]) -> list[dict]:
                 ),
                 "kind": "unmatched",
                 "repairs": [_repair("consumes", "object", obj)],
+            }
+        )
+    for row in snap["offplan_producers"]:
+        obj = row["object"]
+        records.append(
+            {
+                "text": (
+                    f"{row['produces']} {obj} sources off the commander's plan"
+                ),
+                "kind": "offplan",
+                "repairs": [],
+                "cuts": [_repair("produces", "object", obj)],
             }
         )
     return records[:_FLOW_CAP]

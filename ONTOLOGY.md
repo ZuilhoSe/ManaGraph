@@ -223,8 +223,19 @@ This is where the stage earns its keep. Nothing above matters without this.
 - [x] `search_cards`: predicate filters (`emits=`, `rewards=`, `answers=`, `enables=`)
 - [x] Architect prompt consumes typed deficits; queries become `rewards=etb, cmc<=3` instead of `"good Krenko cards"`
 - [x] New view in `card_views.npz`: multi-hot predicate vector, built offline like the others
+- [x] Unmatched producers are read against the **commander's plan**, not the 99's raw counts
 
-The last item is nearly free and buys a genuine ablation row. Rebuild with
+A producer of fuel (treasure, token, food, clue, graveyard fill) that nobody
+consumes is only a hole to fill when the commander subscribes to that object —
+`produces`/`consumes` on its own text, or the event twin (`rewards(token_created)`
+counts as subscribing to `token`). Off the plan the same row inverts: it carries
+`cuts` instead of `repairs`, so no sac outlet is searched for and the producers
+already in the 99 take a cut penalty (`ontology_offplan`). Lands are exempt, as is
+any card that serves the plan anyway — one that protects/answers, or that touches
+an event the commander rewards. A commander with no indexed predicates yields no
+plan and the old fill behaviour stands: a hole in the index must not read as junk.
+
+The multi-hot view is nearly free and buys a genuine ablation row. Rebuild with
 `python src/vectorize_cards.py --predicates-only` (keeps MiniLM views).
 `MANAGRAPH_ONTOLOGY_GEOMETRY=1` scores commander↔card cosine in that space
 instead of MiniLM (ablation row E). Default fill still uses oracle/type/keywords/mana.
@@ -249,7 +260,9 @@ There is no separate multi-view retrieval index; B’s table cell is score-side.
 
 New metrics on top of the `RESEARCH.md` set:
 - matched-pair coverage (fraction of subscribers with a live emitter)
-- orphan rate, starved rate, dead-card rate
+- orphan rate, starved rate, dead-card rate — `protects` / `answers` count as live,
+  since their partner is the opponent's board rather than a card in the 99
+- off-plan objects (fuel produced outside the commander's plan)
 - answer-class coverage (creature / artifact / enchantment / board / stack / graveyard)
 
 **Sharper novelty definition.** The current one is "geometry-strong, observation-weak", measured in MiniLM space. Restate it as: *satisfies the same predicate signature as a known staple, at comparable cmc and rate, with near-zero inclusion rate.* That is a functional substitution claim rather than a textual-similarity claim, it is far more defensible, and it makes a much better figure.

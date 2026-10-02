@@ -18,7 +18,11 @@ import os
 from dataclasses import asdict, dataclass
 from typing import Iterable, Mapping
 
-from ontology.graph import empty_pred_sets, predicate_signature
+from ontology.graph import (
+    SELF_PAIRED_BUCKETS,
+    empty_pred_sets,
+    predicate_signature,
+)
 
 ANSWER_CLASSES = (
     "creature",
@@ -97,6 +101,8 @@ def has_live_pair(
 ) -> bool:
     card = card_sets or {}
     deck = deck_sets or {}
+    if any(card.get(bucket) for bucket in SELF_PAIRED_BUCKETS):
+        return True
     return bool(
         (set(card.get("emits") or ()) & set(deck.get("rewards") or ()))
         or (set(card.get("rewards") or ()) & set(deck.get("emits") or ()))
@@ -190,5 +196,8 @@ def ontology_eval_metrics(
         },
         "orphan_events": [row.get("event") for row in orphans],
         "starved_objects": [row.get("object") for row in starved],
+        "offplan_objects": [
+            row.get("object") for row in (flow.get("offplan_producers") or [])
+        ],
         "matched_events": list(flow.get("matched_events") or covered),
     }
