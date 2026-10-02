@@ -1,0 +1,174 @@
+{
+  "cardsfolder": "forge-gui/res/cardsfolder",
+  "cards": 33369,
+  "abstractable": 31132,
+  "coverage": 0.933,
+  "coverage_strict": 0.8817,
+  "excluded": {
+    "type:Scheme": 102,
+    "type:Plane": 159,
+    "type:Contraption": 45,
+    "type:Conspiracy": 25,
+    "type:Vanguard": 106,
+    "type:Attraction": 23,
+    "type:Phenomenon": 14,
+    "type:Dungeon": 1
+  },
+  "parse_errors": 0,
+  "resource_effects": 46594,
+  "magnitude_constant_share": 0.8868,
+  "element_classes": {
+    "modifier": 319,
+    "resource": 105,
+    "out": 78,
+    "event": 118,
+    "plumbing": 24,
+    "mask": 51
+  },
+  "element_occurrences_by_class": {
+    "modifier": 28376,
+    "resource": 46594,
+    "out": 2578,
+    "event": 16399,
+    "plumbing": 5939,
+    "mask": 1276
+  },
+  "vocabulary_size": {
+    "keyword": 245,
+    "api": 189,
+    "trigger": 130,
+    "replacement": 34,
+    "static": 97
+  },
+  "vocabulary_unknown": [],
+  "top_out_families": [
+    [
+      "api:CopyPermanent",
+      343
+    ],
+    [
+      "api:GainControl",
+      310
+    ],
+    [
+      "api:SetState",
+      278
+    ],
+    [
+      "api:CopySpellAbility",
+      236
+    ],
+    [
+      "api:Clone",
+      164
+    ],
+    [
+      "api:AlterAttribute",
+      123
+    ],
+    [
+      "static:Continuous[RemoveAllAbilities]",
+      49
+    ],
+    [
+      "api:RingTemptsYou",
+      49
+    ],
+    [
+      "keyword:StickerSheet",
+      48
+    ],
+    [
+      "keyword:Start your engines",
+      46
+    ],
+    [
+      "api:ChangeTargets",
+      43
+    ],
+    [
+      "static:Continuous[GainControl]",
+      42
+    ],
+    [
+      "api:Draft",
+      42
+    ],
+    [
+      "static:Continuous[SetColor]",
+      40
+    ],
+    [
+      "api:Venture",
+      37
+    ],
+    [
+      "api:PutSticker",
+      35
+    ],
+    [
+      "keyword:Mutate",
+      34
+    ],
+    [
+      "api:Vote",
+      33
+    ],
+    [
+      "trigger:Mutates",
+      32
+    ],
+    [
+      "api:ExchangeControl",
+      32
+    ],
+    [
+      "api:TwoPiles",
+      30
+    ],
+    [
+      "static:Continuous[RemoveType]",
+      28
+    ],
+    [
+      "keyword:Banding",
+      24
+    ],
+    [
+      "keyword:Myriad",
+      23
+    ],
+    [
+      "api:OpenAttraction",
+      21
+    ],
+    [
+      "api:AssembleContraption",
+      20
+    ],
+    [
+      "keyword:Specialize",
+      19
+    ],
+    [
+      "api:DayTime",
+      14
+    ],
+    [
+      "api:VillainousChoice",
+      13
+    ],
+    [
+      "api:ChangeText",
+      12
+    ]
+  ],
+  "top_unknown_families": [],
+  "acceptance": {
+    "target": 0.8,
+    "stop_below": 0.6,
+    "passed": true
+  },
+  "forge_commit": "09eac29911cdbfea1529ea19b12f0ae076a3369a",
+  "catalog_filter": false
+}

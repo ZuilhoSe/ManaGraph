@@ -1,6 +1,6 @@
 # Economia de operadores — sinergia deduzida das regras
 
-> Status: proposta de direção (2026-10-02). Substitui a ideia de "sinergia =
+> Status: em execução — Fases 0 e 1 concluídas (2026-10-02). Substitui a ideia de "sinergia =
 > similaridade textual" e o score linear com pesos escolhidos à mão. Convive com
 > [`ONTOLOGY.md`](../ONTOLOGY.md): a ontologia vira a interface tipada desta
 > álgebra; o Forge vira a fonte e o oráculo das regras.
@@ -272,35 +272,74 @@ s.a.    Σ x = 99 − (terrenos fixos);  identidade;  singleton;  legalidade
 Cada fase tem um entregável, um critério de aceite e um critério de parada
 (quando a hipótese falhou e é preciso repensar).
 
-### Fase 0 — Consertar o que já está errado (≈ 2–4 dias)
+### Fase 0 — Consertar o que já está errado ✅ (2026-10-02)
 
 Independe do resto e reduz o ruído das comparações futuras.
 
-- [ ] Terrenos: básicos na proporção dos pips (Karsten, `hypergeometric.py`)
-      como default. Não-básicos entram **só por troca** com
-      `Δ = ΔP(fontes corretas em t) − custo(entra virado) − custo(drawback) + utilidade > 0`.
-- [ ] Remover `land_urgent` para não-básicos e o cosseno com o comandante para
-      terrenos.
-- [ ] Drawbacks de terreno como predicados (dá mana a oponente, sacrifica
-      terrenos, cor condicional a tipo).
-- [ ] `_ontology_pair_score` alinhado ao `ONTOLOGY.md`: contagens com `min`
-      saturante.
+- [x] Terrenos: básicos como default; não-básicos entram **só com Δ > 0**
+      contra o básico que substituem (`src/deck_analysis/land_value.py`):
+      `Δ = fixing + mana extra + utilidade − entra virado − drawbacks`, em
+      unidades de "um básico". O fixing é ponderado pela fração da demanda que
+      é colorida (`1 − pips genéricos / pips totais`).
+- [x] `land_urgent` e cosseno com o comandante não pontuam mais terrenos
+      (a sinergia de texto fica só como informação no breakdown).
+- [x] Drawbacks como fatos parseados: perda de controle (Rainbow Vale),
+      presente ao oponente (Forbidden Orchard), sacrifício de terrenos (Lotus
+      Field), bounce, volta à mão (Undiscovered Paradise), mana restrita
+      (Sliver Hive), filtro com custo (Heap Gate), dor por toque.
+- [x] `solve()` troca terrenos já no deck com Δ ≤ 0 por básicos
+      (`land_basic_swaps` no relatório). Tipos de terreno preferidos pelo
+      usuário ficam isentos.
+- [x] `_ontology_pair_score` alinhado ao `ONTOLOGY.md`, com uma correção que
+      saiu da discussão: **objetos** (`produces → consumes`) são rivais e usam
+      `min(supply, demand)`; **eventos** (`emits → rewards`) são broadcast e
+      usam `√(e·r)` — bilinear com retorno decrescente, igual a `min` quando
+      `e = r`.
 
-**Aceite:** o Lightning reconstruído tem ≥ 20 básicos e nenhum terreno que
-gere mana para oponentes ou seja de outra tribo.
+**Aceite:** verificado em `tests/test_land_quality.py` com o texto real dos
+terrenos do deck Lightning: nenhum dos 7 terrenos ruins entra, ≥ 20 básicos,
+os de fixing entram. A reconstrução do Lightning no catálogo real fica para
+quando o `data/managraph.db` estiver disponível (o ambiente desta sessão não
+alcança o Scryfall).
 
-### Fase 1 — Auditoria de cobertura do Forge (≈ 1 semana)
+**Limite conhecido:** terrenos utilitários incolores (Rogue's Passage, War
+Room) ficam abaixo do básico em decks coloridos, porque a utilidade é um
+valor fixo de 0,15. Valorizar utilidade de verdade é a Fase 5 (operadores).
 
-- [ ] Inventariar os tipos de habilidade nos scripts (`A:`, `T:`, `S:`, `R:`,
-      `SVar:`), com seus `Mode$`, `ApiType`, `ValidCard$`, `Execute$`.
-- [ ] Definir a **álgebra mínima**: recursos R, eventos, flags F, operadores de
-      1ª e 2ª ordem.
-- [ ] Mapear cada tipo de habilidade para a álgebra, ou marcar como fora dela.
-- [ ] Relatório: % de cartas totalmente abstraíveis, famílias fora (layers,
-      controle, cópia, alternate win, escolhas), top-N cartas que mais quebram.
+### Fase 1 — Auditoria de cobertura do Forge ✅ (2026-10-02)
 
-**Aceite:** ≥ 80% das cartas legais em Commander totalmente abstraíveis.
-**Parada:** < 60% → repensar a granularidade da álgebra antes de seguir.
+- [x] Inventário dos elementos nos scripts: APIs de efeito (`AB$/SP$/DB$`),
+      modos de trigger, modos de estática, eventos de substituição, keywords.
+- [x] Álgebra mínima em `src/operators/algebra.py`: classes RESOURCE, EVENT,
+      MODIFIER (2ª ordem), MASK (restrições e término), PLUMBING (fluxo de
+      controle) e OUT. Estáticas `Continuous` que reescrevem camadas 1–4 ou
+      removem habilidades contam como OUT.
+- [x] Todo elemento do vocabulário mapeado (0 UNKNOWN).
+- [x] Relatório em [`eval/forge_coverage/report.md`](../eval/forge_coverage/report.md),
+      gerado por `scripts/audit_forge_coverage.py`.
+
+**Resultado** (Forge `09eac29`, 33.369 cartas, sem filtro de legalidade):
+
+| Métrica | Valor |
+|---|---|
+| Abstraíveis por tipo de elemento | **93,3%** |
+| Estrita (sem `Effect`/`ReplaceEffect` opacos) | **88,2%** |
+| Efeitos de recurso com magnitude constante | **88,7%** |
+
+Principais famílias OUT: `CopyPermanent` (343 cartas), `GainControl` (310),
+`SetState`/transformar (278), `CopySpellAbility` (236), `Clone` (164),
+`AlterAttribute` (123).
+
+**Aceite: passou** (≥ 80%). **Leitura honesta:** é cobertura necessária, não
+suficiente — diz que cada elemento tem lugar na álgebra, não que os
+parâmetros já viram um operador correto. A suficiência é a fidelidade da
+Fase 3. Rodar de novo com `--catalog data/managraph.db` restringe às cartas
+legais em Commander.
+
+```bash
+python scripts/audit_forge_coverage.py --cardsfolder <forge>/forge-gui/res/cardsfolder \
+    [--catalog data/managraph.db]
+```
 
 ### Fase 2 — Operadores com magnitude e dominância (≈ 1–2 semanas)
 
@@ -398,8 +437,9 @@ observada. As soluções fortes e raras são a contribuição.
 2. **Horizonte `T` e desconto `γ`.**
 3. **Âncora de π:** só a curva de design, ou com parâmetros normativos e
    análise de sensibilidade?
-4. **Granularidade da álgebra:** quantos recursos e eventos? (decidido pela
-   Fase 1.)
+4. ~~**Granularidade da álgebra**~~ — resolvida na Fase 1: seis classes de
+   elemento cobrem 93% das cartas; o refinamento por parâmetro (magnitude,
+   alvo, condição) é a Fase 2.
 5. **Interface com o Forge:** Puzzle files ou API Java direta?
 6. **Destino do código atual:** embeddings ficam só como recuperação de
    candidatos (recall), nunca como score de sinergia.

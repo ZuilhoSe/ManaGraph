@@ -37,3 +37,6 @@ data/ontology/*.jsonl
 # Frontend local artifacts (also listed in web/.gitignore)
 web/node_modules/
 web/dist/
+
+# Fase 1 audit: per-card table is regenerable and large
+eval/forge_coverage/cards.csv
