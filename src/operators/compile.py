@@ -152,6 +152,7 @@ class CardOps:
     unresolved: list[str] = field(default_factory=list)  # generic atoms whose key params are missing
     file: str = ""
     faces: list["CardOps"] = field(default_factory=list)  # adventure, split, transform, MDFC
+    svars: dict[str, str] = field(default_factory=dict)  # raw SVar bodies, for evaluating Count$ expressions
 
     @property
     def is_spell(self) -> bool:
@@ -297,6 +298,7 @@ def _compile_face(lines: list[str], file: str) -> CardOps:
         supertypes=frozenset(w for w in words if w in SUPERTYPES),
         subtypes=frozenset(w for w in words if w not in CARD_TYPES | SUPERTYPES),
         file=file,
+        svars=dict(svars),
     )
     if "/" in meta.get("PT", ""):
         card.power, card.toughness = meta["PT"].split("/", 1)
