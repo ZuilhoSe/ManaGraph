@@ -128,7 +128,8 @@ class InvariantTests(unittest.TestCase):
         br = self.solver.score_breakdown(deck, "Loot Land", "draw a card")
         self.assertIsNotNone(br["chroma_synergy"])
         self.assertLess(br["synergy"], br["chroma_synergy"])
-        self.assertAlmostEqual(br["synergy"], br["jaccard"], places=3)
+        # A land's synergy is never text resemblance (plan Fase 0): its value is Δ over a basic.
+        self.assertEqual(br["synergy"], 0.0)
 
     def test_land_in_99_must_produce_mana(self):
         self.assertTrue(produces_mana("Basic Land — Mountain", ""))

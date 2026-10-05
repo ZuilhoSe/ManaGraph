@@ -276,44 +276,103 @@ Cada fase tem um entregável, um critério de aceite e um critério de parada
 
 Independe do resto e reduz o ruído das comparações futuras.
 
-- [ ] Terrenos: básicos na proporção dos pips (Karsten, `hypergeometric.py`)
+- [x] Terrenos: básicos na proporção dos pips (Karsten, `hypergeometric.py`)
       como default. Não-básicos entram **só por troca** com
       `Δ = ΔP(fontes corretas em t) − custo(entra virado) − custo(drawback) + utilidade > 0`.
-- [ ] Remover `land_urgent` para não-básicos e o cosseno com o comandante para
-      terrenos.
-- [ ] Drawbacks de terreno como predicados (dá mana a oponente, sacrifica
-      terrenos, cor condicional a tipo).
-- [ ] `_ontology_pair_score` alinhado ao `ONTOLOGY.md`: contagens com `min`
-      saturante.
+      → `src/deck_analysis/land_value.py`; `DeckSolver._upgrade_lands`.
+      ΔP aproximado: peso 1 para cor abaixo do piso de fontes, 0 acima; fontes
+      contadas só em terrenos (o `diagnose` conta pedras/Treasure como `any`).
+- [x] Remover `land_urgent` (removido para todos os terrenos: terrenos não
+      disputam slots com mágicas; `_best_land` preenche a cota) e o cosseno com
+      o comandante para terrenos (`synergy = 0`).
+- [x] Drawbacks de terreno como predicados (dá mana a oponente, sacrifica
+      terrenos, cor condicional a tipo, custo extra, face da frente não-terreno).
+- [x] `_ontology_pair_score` alinhado ao `ONTOLOGY.md`: contagens com `min`
+      saturante (`Σ min(supply, capacidade · demand)`, valor marginal da carta).
 
 **Aceite:** o Lightning reconstruído tem ≥ 20 básicos e nenhum terreno que
 gere mana para oponentes ou seja de outra tribo.
+→ Base de mana do `data/deck_lightning_army_of_one.json` refeita: 4 → 32
+básicos, 35 terrenos, só Plateau / Sunbaked Canyon / Sunbillow Verge como
+não-básicos. Build completa do zero ainda pendente (a busca híbrida leva
+> 30 min nesta máquina).
 
 ### Fase 1 — Auditoria de cobertura do Forge (≈ 1 semana)
 
-- [ ] Inventariar os tipos de habilidade nos scripts (`A:`, `T:`, `S:`, `R:`,
+- [x] Inventariar os tipos de habilidade nos scripts (`A:`, `T:`, `S:`, `R:`,
       `SVar:`), com seus `Mode$`, `ApiType`, `ValidCard$`, `Execute$`.
-- [ ] Definir a **álgebra mínima**: recursos R, eventos, flags F, operadores de
-      1ª e 2ª ordem.
-- [ ] Mapear cada tipo de habilidade para a álgebra, ou marcar como fora dela.
-- [ ] Relatório: % de cartas totalmente abstraíveis, famílias fora (layers,
-      controle, cópia, alternate win, escolhas), top-N cartas que mais quebram.
+      → `scripts/forge_ability_inventory.py` (átomos `api:`/`trigger:`/`static:`/
+      `replacement:`/`keyword:`/`cost:`; `ChangeZone` separado por zonas,
+      `Continuous` separado pelo efeito).
+- [x] Definir a **álgebra mínima**: recursos R, eventos, flags F, operadores de
+      1ª e 2ª ordem. → `data/ontology/operator_algebra_v1.yaml`.
+- [x] Mapear cada tipo de habilidade para a álgebra, ou marcar como fora dela
+      (775 de 794 átomos mapeados; o resto conta como fora).
+- [x] Relatório: % de cartas totalmente abstraíveis, famílias fora (layers,
+      controle, cópia, alternate win, escolhas), top-N átomos que mais quebram.
+      → `scripts/forge_algebra_coverage.py` → `data/ontology/ALGEBRA_COVERAGE.md`.
 
 **Aceite:** ≥ 80% das cartas legais em Commander totalmente abstraíveis.
 **Parada:** < 60% → repensar a granularidade da álgebra antes de seguir.
 
+**Resultado (2026-10-04): ACEITE.** 31.699 cartas legais com script (131 do
+catálogo sem script, quase todas stickers).
+
+- Álgebra v1.0: strict 91,8%, com aproximação 93,1%. Famílias fora: cópia
+  (791), layers (715), informação oculta (263), turno (189), vitória
+  alternativa (85), escolha do oponente (79).
+- Álgebra v1.1 (as famílias ganharam semântica): **strict 98,0%, com
+  aproximação 100%**, cota pessimista 91,1%. Classes novas:
+  - `reference` — cópia: o efeito é o operador de outro nó (CR 707).
+  - `layer` — reclassificar / fixar P/T / remover operadores, na ordem do
+    CR 613 (`layer_index` no YAML).
+  - `face_down` — corpo 2/2 sem operadores + custo de virar (CR 708).
+  - `turn` — turno/fase/combate extra multiplica o bloco de operadores do
+    período; pular é o inverso; Mindslaver = turno do oponente vira seu.
+  - `terminal` — predicados de vitória/derrota/empate (CR 104).
+  - `adversarial` (aprox.) — escolha do oponente por minimax.
+  - `noop` — sem efeito em Commander (wishes, ante, planechase).
+
+Ressalvas: isto mede se o *tipo* de habilidade cabe na álgebra, não se a
+magnitude/condição foi lida (Fase 2) nem se o operador prevê o Forge (Fase 3).
+As classes novas têm **valor diferido** (tabela em `ALGEBRA_COVERAGE.md`): um
+Clone só vale algo quando a Fase 5 resolver o que ele copia; `terminal` depende
+da decisão 8.1 (recurso de vitória).
+
 ### Fase 2 — Operadores com magnitude e dominância (≈ 1–2 semanas)
 
-- [ ] Adicionar magnitude, frequência e condição ao schema
+- [x] Adicionar magnitude, frequência e condição ao schema
       (`src/ontology/schema.py` hoje não guarda quantidade).
-- [ ] Compilar cada carta em operadores a partir do Forge, com fallback
-      `patterns.py` para não mapeadas.
-- [ ] **Ordem parcial de dominância** dentro da mesma assinatura: A ≥ B se
+      → `src/operators/compile.py` (`Operator`/`Step`: magnitude, alvo,
+      condições, forma, frequência, velocidade, custo).
+- [x] Compilar cada carta em operadores a partir do Forge. SVars são
+      resolvidas por conteúdo (Clone, Charm, Repeat), faces alternativas
+      (aventura, split, transformação) compiladas junto. Invólucros genéricos
+      (Animate, Play, MayPlay, Moved, ReplaceEffect) com parâmetros lidos em
+      todas as cartas menos 169 (0,5%), que ficam fora da comparação.
+      Pendente: fallback `patterns.py` para as 131 cartas sem script.
+- [x] **Ordem parcial de dominância** dentro da mesma assinatura: A ≥ B se
       cmc ≤, pips ⊆ ou mais flexíveis, velocidade ≥, magnitude ≥, sem
-      condições extras. Cartas dominadas saem do pool.
+      condições extras. → `src/operators/dominance.py`,
+      `scripts/build_dominance.py`, `data/ontology/dominance_v1.json`.
+      **Mudança em relação ao plano:** Commander é singleton, então cartas
+      dominadas não saem do pool — B espera enquanto o dominador A estiver
+      disponível e fora do deck (no MIQP da Fase 7: `x_B ≤ x_A`). Subtipos ficam
+      fora da assinatura (exceto tipos básicos de terreno e Aura/Equipment/…);
+      quando diferem e só B é da tribo do comandante, B não espera.
 
 **Aceite:** pares canônicos corretos (Lightning Bolt > Shock;
 Counterspell > Cancel); amostra de 100 relações conferida à mão.
+→ **Pares canônicos corretos** (mais 4 pares que têm de sair incomparáveis).
+2.291 relações estritas, 920 cartas dominadas, 701 pares equivalentes.
+Conferência manual: a primeira amostra revelou 8 erros sistemáticos
+(custo adicional ignorado, tipo básico de terreno fora da assinatura, condição
+em desvantagem com polaridade invertida, SVars não lidas, variável com sinal,
+segunda face ignorada, sinal do pump, `Mode$` descartado), todos corrigidos e
+com teste em `tests/test_operators.py`. Depois das correções: 1 erro em 100 na
+amostra da semente 7 e 1 em 100 numa amostra independente (semente 11), ambos
+corrigidos. A amostra final está em `data/ontology/DOMINANCE.md` para a sua
+conferência.
 
 ### Fase 3 — Forge como oráculo: micro-experimentos (≈ 2–3 semanas)
 

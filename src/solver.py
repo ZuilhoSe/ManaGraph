@@ -21,12 +21,15 @@ from archetypes import (
     search_queries_for,
 )
 from catalog_filters import (
+    cards_by_type_fragment,
     identity_ok,
     is_commander_legal,
     names_by_type_fragment,
     type_line_has_fragment,
 )
+from deck_analysis.land_value import land_delta, land_profile
 from deck_state import MAIN_DECK_SIZE, DeckState, _normalize_key
+from operators.dominance import load_dominators
 from geometry import VIEW_WEIGHTS, cosine, load_card_views, multi_view_cosine
 from inventory import get_card as get_inventory_card
 from mana import cmc_bucket, diagnose, produces_mana, shape_bonus, strategy_from_name
@@ -61,6 +64,9 @@ ONTOLOGY_REPAIR_WEIGHT = 2.0
 # A producer nobody in the deck (commander included) subscribes to is junk, so it
 # should lose the cut race to an on-plan card of equal text similarity.
 ONTOLOGY_OFFPLAN_WEIGHT = 1.5
+NONBASIC_BELOW_BASIC = "nonbasic land does not beat a basic"
+# Identity nonbasics seeded into the pool so land swaps have candidates.
+LAND_SEED_CAP = 20
 KNN_REDUNDANCY_K = 8
 
 
@@ -68,31 +74,77 @@ def _ontology_score_enabled(deck: DeckState) -> bool:
     return ontology_score_enabled(resolve_ablation(), deck)
 
 
-def _union_pred_sets(
-    by_name: dict[str, dict[str, set[str]]],
-    skip: str | None = None,
-) -> dict[str, set[str]]:
+def _union_pred_sets(by_name: dict[str, dict[str, set[str]]]) -> dict[str, set[str]]:
     union = _empty_pred_sets()
-    skip_key = (skip or "").lower()
-    for name, sets in by_name.items():
-        if skip_key and name == skip_key:
-            continue
+    for sets in by_name.values():
         for key in union:
             union[key] |= sets.get(key) or set()
     return union
 
 
+# ONTOLOGY.md Layer 3: matched flow is Σ min(supply, capacity · demand) per key,
+# so stacking producers past what the deck's payoffs absorb earns nothing. A
+# payoff/outlet absorbs several suppliers before it saturates. Provisional until
+# Fase 5 prices flows with V(D).
+PAIR_FLOWS = (
+    ("emits", "rewards", 4),
+    ("produces", "consumes", 3),
+)
+
+
+def _pred_counts(
+    by_name: dict[str, dict[str, set[str]]],
+    quantities: dict[str, int],
+) -> dict[str, dict[str, int]]:
+    """Per-bucket key counts over deck members (lowercased name → copies)."""
+    counts: dict[str, dict[str, int]] = {}
+    for name, qty in quantities.items():
+        sets = by_name.get(name)
+        if not sets:
+            continue
+        for bucket, keys in sets.items():
+            dst = counts.setdefault(bucket, {})
+            for key in keys:
+                dst[key] = dst.get(key, 0) + int(qty)
+    return counts
+
+
+def _matched_flow(counts: dict[str, dict[str, int]]) -> float:
+    total = 0.0
+    for supply_bucket, demand_bucket, capacity in PAIR_FLOWS:
+        supply = counts.get(supply_bucket) or {}
+        demand = counts.get(demand_bucket) or {}
+        for key in supply.keys() & demand.keys():
+            total += min(supply[key], capacity * demand[key])
+    return total
+
+
+def _shift_counts(
+    counts: dict[str, dict[str, int]],
+    card_sets: dict[str, set[str]],
+    sign: int,
+) -> dict[str, dict[str, int]]:
+    shifted = {bucket: dict(keys) for bucket, keys in counts.items()}
+    for bucket, keys in card_sets.items():
+        dst = shifted.setdefault(bucket, {})
+        for key in keys:
+            dst[key] = max(0, dst.get(key, 0) + sign)
+    return shifted
+
+
 def _ontology_pair_score(
     card_sets: dict[str, set[str]],
-    deck_sets: dict[str, set[str]],
+    deck_counts: dict[str, dict[str, int]],
+    in_deck: bool = False,
 ) -> float:
-    matched = (
-        len(card_sets.get("emits", set()) & deck_sets.get("rewards", set()))
-        + len(card_sets.get("rewards", set()) & deck_sets.get("emits", set()))
-        + len(card_sets.get("produces", set()) & deck_sets.get("consumes", set()))
-        + len(card_sets.get("consumes", set()) & deck_sets.get("produces", set()))
-    )
-    return ONTOLOGY_PAIR_WEIGHT * matched
+    """Marginal matched flow of one copy of this card (saturating, per Layer 3).
+
+    `in_deck` means `deck_counts` already includes the card (cut scoring), so the
+    marginal is measured against the deck without it.
+    """
+    without = _shift_counts(deck_counts, card_sets, -1) if in_deck else deck_counts
+    with_card = deck_counts if in_deck else _shift_counts(deck_counts, card_sets, +1)
+    return ONTOLOGY_PAIR_WEIGHT * (_matched_flow(with_card) - _matched_flow(without))
 from symbolic_cards import (
     classify_card,
     requirement_families,
@@ -369,6 +421,7 @@ class DeckSolver:
             "mana": mana,
             "ontology_by_name": {},
             "ontology_deck": _empty_pred_sets(),
+            "ontology_deck_counts": {},
             "ontology_repairs": [],
             "ontology_plan": None,
             "ontology_plan_events": frozenset(),
@@ -390,6 +443,9 @@ class DeckSolver:
             }
             if cmd and cmd.get("name"):
                 quantities.setdefault(cmd["name"], 1)
+            self._ctx["ontology_deck_counts"] = _pred_counts(
+                by_name, {name.lower(): qty for name, qty in quantities.items()}
+            )
             counts = summarize_predicates(rows, quantities)
             cmd_sets = by_name.get(str((cmd or {}).get("name") or "").lower())
             plan = commander_plan_objects(cmd_sets)
@@ -421,6 +477,48 @@ class DeckSolver:
             if "land" in (info.get("type_line") or "").lower():
                 n += int(qty)
         return n
+
+    def _land_delta(self, info: dict, deck: DeckState) -> dict:
+        """Δ of a nonbasic over the best basic for the deck's current colour needs."""
+        mana = (self._ctx or {}).get("mana") or {}
+        return land_delta(
+            info.get("type_line") or "",
+            info.get("oracle_text") or "",
+            deck.identity,
+            self._land_sources(deck),
+            mana.get("min_sources"),
+        )
+
+    def _land_sources(self, deck: DeckState) -> dict[str, float]:
+        """Colour sources among the deck's lands, read with the land_value model.
+
+        diagnose()'s sources also count rocks and Treasure makers as 'any', which
+        makes every colour look covered and lets colourless lands through.
+        """
+        ctx = self._ctx if self._ctx is not None else {}
+        cached = ctx.get("land_sources")
+        if cached is not None:
+            return cached
+        sources: dict[str, float] = {}
+        for card in ctx.get("deck_cards") or self._deck_card_infos(deck):
+            tl = card.get("type_line") or ""
+            if "land" not in tl.lower():
+                continue
+            access = land_profile(tl, card.get("oracle_text") or "", deck.identity)["access"]
+            qty = int(card.get("quantity") or 1)
+            for color, level in access.items():
+                sources[color] = sources.get(color, 0.0) + level * qty
+        if self._ctx is not None:
+            self._ctx["land_sources"] = sources
+        return sources
+
+    def _nonbasic_needs_swap_test(self, info: dict, deck: DeckState) -> bool:
+        """Nonbasics enter only by beating a basic; asked-for land types are exempt.
+        Without a colour identity there is no basic to compare against."""
+        tl = info.get("type_line") or ""
+        if "land" not in tl.lower() or is_basic_land(tl) or not deck.identity:
+            return False
+        return not (deck.preferred_land_types and self._matches_preferred_land(info, deck))
 
     def _land_band(self, deck: DeckState) -> tuple[int, int]:
         """Low/high land targets from the active mana strategy.
@@ -473,7 +571,7 @@ class DeckSolver:
         swapped: list[dict] = []
         self._rebuild_context(deck, query)
         while self._lands_needed(deck) > 0 and deck.remaining_slots() > 0:
-            basic = self._best_basic(deck)
+            basic = self._best_land(deck)
             if not basic:
                 break
             ok, _reason = self.can_add(deck, basic)
@@ -489,7 +587,7 @@ class DeckSolver:
             deck.remove_card(victim, 1)
             deck.add_to_pool(victim, 1)
             self._rebuild_context(deck, query)
-            basic = self._best_basic(deck)
+            basic = self._best_land(deck)
             ok, _reason = self.can_add(deck, basic) if basic else (False, "no basic")
             if not basic or not ok:
                 deck.add_card(victim, 1)
@@ -818,9 +916,16 @@ class DeckSolver:
                     dead.add(name.lower())
                     skipped.append({"name": name, "reason": skip})
                     continue
-                is_land = "land" in (info.get("type_line") or "").lower()
+                if "land" in (info.get("type_line") or "").lower():
+                    # Land slots are filled by _best_land (basics by pips, nonbasics
+                    # by Δ over a basic), never by racing spells on synergy.
+                    continue
+                dominated = self._dominated_reason(info, deck)
+                if dominated:
+                    skipped.append({"name": name, "reason": dominated})
+                    continue
                 need = self._lands_needed(deck)
-                if not is_land and need > 0 and deck.remaining_slots() <= need:
+                if need > 0 and deck.remaining_slots() <= need:
                     skipped.append({"name": name, "reason": "land slots reserved"})
                     continue
                 ranked.append((self.score_candidate(deck, name, query), name))
@@ -831,14 +936,14 @@ class DeckSolver:
                 # the greedy pool is all spells and the land floor is unmet.
                 if self._lands_needed(deck) <= 0 and not complete_fallback:
                     break
-                basic = self._best_basic(deck, allow_overquota=complete_fallback)
-                if not basic or basic.lower() in dead:
+                land = self._best_land(deck, allow_overquota=complete_fallback)
+                if not land or land.lower() in dead:
                     break
-                ok, _reason = self.can_add(deck, basic)
+                ok, _reason = self.can_add(deck, land)
                 if not ok:
                     break
-                self._commit_add(deck, basic, 1)
-                added.append({"name": basic, "score": 0.0, "source": "basic"})
+                self._commit_add(deck, land, 1)
+                added.append({"name": land, "score": 0.0, "source": "land"})
                 cap -= 1
                 self._rebuild_context(deck, query)
                 continue
@@ -903,7 +1008,13 @@ class DeckSolver:
         for _ in range(max_swaps):
             if not deck.candidate_pool or deck.slot_count() == 0:
                 break
-            worst = self._worst_cut(deck, query, prefer_expensive=False, protected_names=protected_names)
+            worst = self._worst_cut(
+                deck,
+                query,
+                prefer_expensive=False,
+                protected_names=protected_names,
+                include_lands=False,
+            )
             if not worst:
                 break
             trial = DeckState.from_dict(deck.to_dict())
@@ -1192,13 +1303,18 @@ class DeckSolver:
         if deck.commander and (fill_report or cut_report or fill_to_99 or deck.intent in ("build", "cut")):
             land_fix = self._rebalance_lands(deck, query)
             color_fix = self._rebalance_color_basics(deck, query)
-            if land_fix or color_fix:
+            upgrade_fix = self._upgrade_lands(deck, query)
+            if upgrade_fix:
+                color_fix = color_fix + self._rebalance_color_basics(deck, query)
+            if land_fix or color_fix or upgrade_fix:
                 if fill_report is None:
                     fill_report = {"ok": True, "added": [], "skipped": [], "slot_count": deck.slot_count(), "remaining_slots": deck.remaining_slots(), "pool_count": deck.pool_count()}
                 if land_fix:
                     fill_report.setdefault("land_rebalance", land_fix)
                 if color_fix:
                     fill_report.setdefault("color_basic_rebalance", color_fix)
+                if upgrade_fix:
+                    fill_report.setdefault("land_upgrades", upgrade_fix)
 
         if deck.commander and (fill_report or cut_report):
             # Re-read land count after fill/cut actually changed the deck, not before —
@@ -1399,6 +1515,8 @@ class DeckSolver:
             if "land" in tl.lower() and not is_basic_land(tl):
                 if not self._matches_preferred_land(info, deck):
                     return "non-preferred land (land_types_strict)"
+        if self._nonbasic_needs_swap_test(info, deck) and self._land_delta(info, deck)["delta"] <= 0:
+            return NONBASIC_BELOW_BASIC
         if "land" in tl.lower():
             _low, land_high = self._land_band(deck)
             allow_complete_basic = deck.require_complete and is_basic_land(tl)
@@ -1407,6 +1525,25 @@ class DeckSolver:
         if deck.theme_types and self._matches_theme_type(info, deck):
             if self._theme_count(deck) >= THEME_HARD_CAP:
                 return "theme type cap"
+        return None
+
+    def _dominated_reason(self, info: dict, deck: DeckState) -> str | None:
+        """Commander is singleton, so dominance orders instead of excluding: B waits
+        while a card that dominates it is addable and not yet in the deck. When the
+        two differ in creature type and only B is on-tribe, the tribe wins."""
+        name = (info.get("name") or "").lower()
+        for better, subtypes_differ in load_dominators().get(name, ()):
+            if deck._key(better):
+                continue
+            better_info = self._info(better)
+            if not better_info:
+                continue
+            if subtypes_differ and self._theme_match(info) and not self._theme_match(better_info):
+                continue
+            if self._skip_reason(better_info, deck):
+                continue
+            if self.can_add(deck, better)[0]:
+                return f"dominated by {better}"
         return None
 
     def _off_tribe_creature(self, info: dict) -> bool:
@@ -1422,11 +1559,16 @@ class DeckSolver:
         """Utility land that never taps for mana — not a land-slot fill."""
         if "land" not in (info.get("type_line") or "").lower():
             return False
-        return not produces_mana(
+        if produces_mana(
             info.get("type_line") or "",
             info.get("oracle_text") or "",
             info.get("mana_cost") or "",
-        )
+        ):
+            return False
+        # Fetches make no mana themselves but put a mana land onto the battlefield.
+        return not land_delta(
+            info.get("type_line") or "", info.get("oracle_text") or "", list(IDENTITY_BASICS)
+        )["access"]
 
     def _score_parts(
         self,
@@ -1455,14 +1597,16 @@ class DeckSolver:
         # Retrieval distance is recall. Synergy is commander↔card cosine when
         # the index is loaded; otherwise Jaccard. Chroma query-distance may
         # rerank only after a tribe/text gate (name-query false friends).
-        if geometry is not None:
+        is_land = "land" in (info.get("type_line") or "").lower()
+        if is_land:
+            # A land's job is mana; text resemblance to the commander says nothing.
+            synergy = 0.0
+        elif geometry is not None:
             synergy = geometry
         else:
             synergy = jaccard
-            land = "land" in (info.get("type_line") or "").lower()
             if (
                 chroma_synergy is not None
-                and not land
                 and (theme or jaccard >= CHROMA_JACCARD_GATE)
             ):
                 synergy = max(jaccard, chroma_synergy)
@@ -1530,8 +1674,6 @@ class DeckSolver:
         land_bonus = float(shape["land_bonus"] or 0.0)
         pref_land = 0.0
         theme_bonus = 0.0
-        land_urgent = 0.0
-        is_land = "land" in (info.get("type_line") or "").lower()
         if deck.preferred_land_types and self._matches_preferred_land(info, deck):
             pref_land = PREFERRED_LAND_BONUS
             land_bonus += pref_land
@@ -1564,26 +1706,18 @@ class DeckSolver:
         ):
             if family in requested and enabled:
                 symbolic_bonus += 1.6 if family == "extra_combat" else 0.45
-        # When under land quota, lands must beat glue or 5c builds starve on mana.
-        if is_land and self._lands_needed(deck) > 0:
-            land_urgent = 3.0
-            if deck.preferred_land_types and self._matches_preferred_land(info, deck):
-                land_urgent += 0.5
-
         ontology_pair = 0.0
         ontology_repair = 0.0
         ontology_offplan = 0.0
         if self._use_ontology_score(deck):
             card_sets = self._ontology_sets_for(info.get("name") or name)
-            deck_sets = ctx.get("ontology_deck") or _union_pred_sets(
-                ctx.get("ontology_by_name") or {}
+            in_deck = skip_self and any(
+                (c.get("name") or "").lower() == info["name"].lower()
+                for c in ctx["deck_cards"]
             )
-            if skip_self:
-                deck_sets = _union_pred_sets(
-                    ctx.get("ontology_by_name") or {},
-                    skip=info.get("name") or name,
-                )
-            ontology_pair = _ontology_pair_score(card_sets, deck_sets)
+            ontology_pair = _ontology_pair_score(
+                card_sets, ctx.get("ontology_deck_counts") or {}, in_deck=in_deck
+            )
             records = ctx.get("ontology_repairs") or []
             ontology_repair = ONTOLOGY_REPAIR_WEIGHT * repair_hit_count(
                 card_sets, records
@@ -1609,7 +1743,6 @@ class DeckSolver:
             + shape["total"]
             + pref_land
             + theme_bonus
-            + land_urgent
             + symbolic_bonus
             + ontology_pair
             + ontology_repair
@@ -1665,6 +1798,7 @@ class DeckSolver:
             "curve_bonus": shape["curve_bonus"],
             "land_bonus": land_bonus,
             "mana_bonus": shape["mana_bonus"],
+            "land_delta": self._land_delta(info, deck)["delta"] if is_land else None,
             "shape": shape["total"],
             "value": value,
             "symbolic_facts": facts.to_dict(),
@@ -1856,6 +1990,7 @@ class DeckSolver:
         query: str,
         prefer_expensive: bool,
         protected_names: set[str] | None = None,
+        include_lands: bool = True,
     ) -> str | None:
         if self._ctx is None:
             self._rebuild_context(deck, query)
@@ -1864,7 +1999,7 @@ class DeckSolver:
         quotas = self._ctx.get("quotas") or quotas_for(self._ctx.get("archetype"))
         profile = self._ctx.get("profile") or profile_for("generic")
         land_count = counts.get("land", 0)
-        land_low, _land_high = self._land_band(deck)
+        land_low, land_high = self._land_band(deck)
         worst_name = None
         worst_score = None
         for card in deck_cards:
@@ -1872,7 +2007,9 @@ class DeckSolver:
             if protected_names and name.lower() in protected_names:
                 continue
             roles = self._card_roles(card)
-            if "land" in roles and land_count <= land_low:
+            if "land" in roles and (
+                land_count <= land_low or (not include_lands and land_count <= land_high)
+            ):
                 continue
             protected = False
             for role in roles:
@@ -1901,7 +2038,9 @@ class DeckSolver:
             if not ok:
                 continue
             info = self._info(name) or {}
-            if self._skip_reason(info, deck):
+            if "land" in (info.get("type_line") or "").lower():
+                continue  # land-for-land swaps go through _upgrade_lands
+            if self._skip_reason(info, deck) or self._dominated_reason(info, deck):
                 continue
             score = self.score_candidate(deck, name, query)
             if best_score is None or score > best_score:
@@ -2020,6 +2159,134 @@ class DeckSolver:
                 return info["name"]
         return None
 
+    def _best_land(self, deck: DeckState, allow_overquota: bool = False) -> str | None:
+        """Next land for an open land slot: the pool nonbasic with the largest Δ over a
+        basic when that Δ is positive, else the basic the pips call for."""
+        _low, land_high = self._land_band(deck)
+        if self._land_count(deck) >= land_high and not allow_overquota:
+            return None
+        basic = self._best_basic(deck, allow_overquota=allow_overquota)
+        if basic and not is_basic_land((self._info(basic) or {}).get("type_line") or ""):
+            return basic  # an asked-for land type from the pool
+        # No basic in the catalog: any pool land at least as good as one will do.
+        upgrade = self._best_pool_land(deck, strict=basic is not None)
+        if upgrade:
+            return upgrade[0]
+        return basic
+
+    def _best_pool_land(self, deck: DeckState, strict: bool = True) -> tuple[str, float] | None:
+        """Pool land with the largest Δ over a basic; `strict` demands Δ > 0."""
+        best = None
+        for name in list(deck.candidate_pool):
+            info = self._info(name) or {}
+            tl = info.get("type_line") or ""
+            if "land" not in tl.lower():
+                continue
+            if strict and not self._nonbasic_needs_swap_test(info, deck):
+                continue
+            if self._skip_reason(info, deck) not in (None, "land quota full", NONBASIC_BELOW_BASIC):
+                continue
+            ok, _reason = self.can_add(deck, name)
+            if not ok:
+                continue
+            delta = self._land_delta(info, deck)["delta"]
+            if (delta > 0 or (not strict and delta >= 0)) and (best is None or delta > best[1]):
+                best = (info.get("name") or name, delta)
+        return best
+
+    def _surplus_basic(self, deck: DeckState) -> str | None:
+        """The basic whose colour has the most sources above its floor."""
+        mana = (self._ctx or {}).get("mana") or {}
+        sources = mana.get("sources") or {}
+        floors = mana.get("min_sources") or {}
+        basics = self._identity_basic_counts(deck)
+        held = [c for c, n in basics.items() if n > 0]
+        if not held:
+            return None
+        color = max(
+            held,
+            key=lambda c: (float(sources.get(c) or 0) - float(floors.get(c) or 0), basics[c]),
+        )
+        return IDENTITY_BASICS[color]
+
+    def _seed_identity_lands(self, deck: DeckState) -> int:
+        """Put the identity's best nonbasics in the pool so swaps have something to
+        test. Ranked by Δ with every colour short, the state where fixing matters."""
+        if len([c for c in deck.identity or [] if c in IDENTITY_BASICS]) < 2:
+            return 0
+        ranked = []
+        for card in cards_by_type_fragment(
+            "Land", deck.identity, lands_only=True, db_path=self.db_path
+        ):
+            tl = card.get("type_line") or ""
+            if is_basic_land(tl):
+                continue
+            delta = land_delta(tl, card.get("oracle_text") or "", deck.identity)["delta"]
+            if delta > 0:
+                ranked.append((delta, card["name"]))
+        ranked.sort(key=lambda item: (-item[0], item[1]))
+        added = 0
+        for _delta, name in ranked[:LAND_SEED_CAP]:
+            if self._pool_if_new(deck, name):
+                added += 1
+        return added
+
+    def _upgrade_lands(self, deck: DeckState, query: str = "") -> list[dict]:
+        """Basics are the default; a nonbasic enters only by a swap with Δ > 0, and a
+        nonbasic already in the deck with Δ ≤ 0 goes back to a basic."""
+        swaps: list[dict] = []
+        if not deck.commander or deck.intent != "build":
+            return swaps
+        self._seed_identity_lands(deck)
+        self._rebuild_context(deck, query)
+        kept: set[str] = set()
+        for _ in range(MAIN_DECK_SIZE):
+            # Worst first: lands that fake colour sources (restricted mana) inflate
+            # the floors check for everyone else until they are gone.
+            worst = min(
+                (
+                    (self._land_delta(card, deck)["delta"], card.get("name") or "")
+                    for card in self._ctx["deck_cards"]
+                    if self._nonbasic_needs_swap_test(card, deck)
+                    and (card.get("name") or "") not in kept
+                ),
+                default=None,
+            )
+            if worst is None or worst[0] > 0:
+                break
+            name = worst[1]
+            kept.add(name)
+            deck.remove_card(name, 1)
+            deck.add_to_pool(name, 1)
+            self._rebuild_context(deck, query)
+            basic = self._best_basic(deck, allow_overquota=True)
+            if not basic or not self.can_add(deck, basic)[0]:
+                deck.add_card(name, 1)
+                self._rebuild_context(deck, query)
+                continue
+            self._commit_add(deck, basic, 1)
+            swaps.append({"out": name, "in": basic, "reason": "nonbasic_below_basic"})
+            self._rebuild_context(deck, query)
+        for _ in range(40):
+            basic = self._surplus_basic(deck)
+            if not basic:
+                break
+            # Δ is judged with the slot open: the nonbasic against putting the basic back.
+            deck.remove_card(basic, 1)
+            self._rebuild_context(deck, query)
+            upgrade = self._best_pool_land(deck)
+            if not upgrade:
+                deck.add_card(basic, 1)
+                self._rebuild_context(deck, query)
+                break
+            name, delta = upgrade
+            self._commit_add(deck, name, 1)
+            swaps.append({"out": basic, "in": name, "reason": "nonbasic_upgrade", "delta": delta})
+            self._rebuild_context(deck, query)
+        if swaps:
+            print(f"[Solver] land upgrades: {len(swaps)} swap(s)")
+        return swaps
+
     def _gather_names(
         self,
         deck: DeckState,
@@ -2048,6 +2315,12 @@ class DeckSolver:
         if retrieve:
             for name in self._retrieve(deck, query):
                 push(name)
+        # A dominated candidate brings its dominators: Shock in the pool means
+        # Lightning Bolt must be considered first (plan Fase 2).
+        dominators = load_dominators()
+        for name in list(names):
+            for better, _subtypes_differ in dominators.get(name.lower(), ()):
+                push(better)
         return names
 
     def _retrieve(self, deck: DeckState, query: str) -> list[str]:
