@@ -1,6 +1,6 @@
 # Economia de operadores — sinergia deduzida das regras
 
-> Status: em execução — Fases 1 e 2 aceitas, Fase 0 com build completa pendente;
+> Status: em execução — Fases 0, 1, 2 e 3 aceitas;
 > relógio de dano, taxonomia de arquétipos e exploração adicionados (2026-10-05). Substitui a ideia de "sinergia =
 > similaridade textual" e o score linear com pesos escolhidos à mão. Convive com
 > [`ONTOLOGY.md`](../ONTOLOGY.md): a ontologia vira a interface tipada desta
@@ -477,8 +477,10 @@ Independe do resto e reduz o ruído das comparações futuras.
 gere mana para oponentes ou seja de outra tribo.
 → Base de mana do `data/deck_lightning_army_of_one.json` refeita: 4 → 32
 básicos, 35 terrenos, só Plateau / Sunbaked Canyon / Sunbillow Verge como
-não-básicos. Build completa do zero ainda pendente (a busca híbrida leva
-> 30 min nesta máquina).
+não-básicos. Build completa do zero (2026-10-04): 37 terrenos, **23 básicos**,
+14 não-básicos todos R/W ou busca de básico, nenhum nocivo ou tribal. A lentidão
+da busca híbrida (> 30 min) era um JOIN sem índice em `ontology.search`,
+corrigido na limpeza de código (consulta de > 400 s para ~3 s).
 
 ### Fase 1 — Auditoria de cobertura do Forge (≈ 1 semana)
 
