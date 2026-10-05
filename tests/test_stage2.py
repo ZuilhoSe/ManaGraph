@@ -524,8 +524,11 @@ class Stage2Tests(unittest.TestCase):
             cards={"Sol Ring": 1},
             intent="build",
         )
+        # The shortage is what triggers the fill; solve() reports the alert as it
+        # stands *after* filling, so check the trigger on the incoming deck.
+        self.solver._rebuild_context(deck, "goblin tokens")
+        self.assertEqual(self.solver._ctx["mana"]["land_alert"]["severity"], "severe")
         report = self.solver.solve(deck, query="goblin tokens", fill_to_99=False)
-        self.assertEqual(report["land_alert"]["severity"], "severe")
         self.assertIsNotNone(report["fill"])
         self.assertTrue(report["fill"]["added"])
         self.assertEqual(deck.slot_count(), 99)

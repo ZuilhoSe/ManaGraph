@@ -96,7 +96,14 @@ def _summarize_validation(report: dict) -> dict:
 
 
 def main():
-    retrieve = "--retrieve" in sys.argv
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="LLM-free smoke test: fill/cut the test deck and overwrite "
+        "data/solved_deck.txt and data/solved_deck_log.json."
+    )
+    parser.add_argument("--retrieve", action="store_true", help="Also seed the pool from vector retrieval.")
+    retrieve = parser.parse_args().retrieve
     _print_section("1. Catalog")
     stats = _catalog_stats()
     if not stats:

@@ -106,14 +106,6 @@ class TargetClass(str, Enum):
     BOARD = "board"
 
 
-class Zone(str, Enum):
-    LIBRARY = "library"
-    HAND = "hand"
-    BATTLEFIELD = "battlefield"
-    GRAVEYARD = "graveyard"
-    EXILE = "exile"
-
-
 @dataclass(frozen=True)
 class ObjectDefinition:
     name: ObjectName
@@ -168,14 +160,6 @@ class OntologySchema:
         if forge and forge.get("runtime_dependency", False):
             raise SchemaValidationError("Forge cannot be a schema runtime dependency")
         return self
-
-    def has_object(self, value: str | ObjectName) -> bool:
-        key = value.value if isinstance(value, Enum) else str(value)
-        return key in self.objects
-
-    def has_event(self, value: str | EventName) -> bool:
-        key = value.value if isinstance(value, Enum) else str(value)
-        return key in self.events
 
     def predicate(self, value: str | PredicateName) -> PredicateDefinition:
         key = value.value if isinstance(value, Enum) else str(value)

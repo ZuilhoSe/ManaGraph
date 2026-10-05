@@ -70,18 +70,6 @@ LAND_SEED_CAP = 20
 KNN_REDUNDANCY_K = 8
 
 
-def _ontology_score_enabled(deck: DeckState) -> bool:
-    return ontology_score_enabled(resolve_ablation(), deck)
-
-
-def _union_pred_sets(by_name: dict[str, dict[str, set[str]]]) -> dict[str, set[str]]:
-    union = _empty_pred_sets()
-    for sets in by_name.values():
-        for key in union:
-            union[key] |= sets.get(key) or set()
-    return union
-
-
 # ONTOLOGY.md Layer 3: matched flow is Σ min(supply, capacity · demand) per key,
 # so stacking producers past what the deck's payoffs absorb earns nothing. A
 # payoff/outlet absorbs several suppliers before it saturates. Provisional until
@@ -420,7 +408,6 @@ class DeckSolver:
             "budget": budget,
             "mana": mana,
             "ontology_by_name": {},
-            "ontology_deck": _empty_pred_sets(),
             "ontology_deck_counts": {},
             "ontology_repairs": [],
             "ontology_plan": None,
@@ -437,7 +424,6 @@ class DeckSolver:
                 conn.close()
             by_name = _predicate_sets_from_rows(rows)
             self._ctx["ontology_by_name"] = by_name
-            self._ctx["ontology_deck"] = _union_pred_sets(by_name)
             quantities = {
                 card["name"]: int(card.get("quantity") or 1) for card in deck_cards
             }
@@ -1300,7 +1286,10 @@ class DeckSolver:
             print(f"[Solver] Cutting / swapping from candidate_pool (max_swaps={max_swaps})...")
             cut_report = self.cut(deck, query=query, max_swaps=max_swaps)
 
-        if deck.commander and (fill_report or cut_report or fill_to_99 or deck.intent in ("build", "cut")):
+        # Same rule as should_fix_shape above: a targeted "improve"/"substitute" on a
+        # partial list replaces what was stripped, it does not pad the deck with
+        # basics up to the land quota.
+        if deck.commander and (fill_to_99 or should_fix_shape or deck.intent in ("build", "cut")):
             land_fix = self._rebalance_lands(deck, query)
             color_fix = self._rebalance_color_basics(deck, query)
             upgrade_fix = self._upgrade_lands(deck, query)

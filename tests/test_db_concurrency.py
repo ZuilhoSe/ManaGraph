@@ -64,15 +64,15 @@ class TestEnsureSchemaConcurrency(unittest.TestCase):
 
 class TestSearchCardsConcurrency(unittest.TestCase):
     """Several threads calling search_cards() at once (the Architect's
-    parallel tool calls) must not race on the shared connection/cursor."""
+    parallel tool calls) must not race on SQLite: each call opens its own
+    connection, so no cursor is shared between threads."""
 
     def test_concurrent_search_cards_no_cursor_race(self):
         from hybrid_search import RAGSearcher
 
         searcher = RAGSearcher.__new__(RAGSearcher)  # skip __init__: no Chroma/model needed
-        searcher.conn = sqlite3.connect(DB_NAME, check_same_thread=False)
-        searcher.cursor = searcher.conn.cursor()
-        searcher._embedding_hits = lambda query, allowed_colors, fetch: []
+        searcher._embedding_hits_batch = lambda queries, allowed_colors, fetch: []
+        searcher._embed_cache = {}
 
         errors: list[Exception] = []
         lock = threading.Lock()
@@ -90,7 +90,6 @@ class TestSearchCardsConcurrency(unittest.TestCase):
             t.start()
         for t in threads:
             t.join()
-        searcher.conn.close()
 
         self.assertEqual(errors, [], f"concurrent search_cards raised: {errors!r}")
 

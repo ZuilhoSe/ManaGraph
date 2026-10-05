@@ -2,7 +2,6 @@ import json
 import os
 import sqlite3
 import threading
-from datetime import datetime, timezone
 
 from inventory import _split_face_query_name, get_card as get_inventory_card
 
@@ -408,14 +407,6 @@ def set_meta(conn: sqlite3.Connection, key: str, value: str):
         "INSERT OR REPLACE INTO catalog_meta (key, value) VALUES (?, ?)",
         (key, value),
     )
-
-
-def stamp_price_snapshot(conn: sqlite3.Connection, card_count: int):
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    set_meta(conn, "price_snapshot_at", now)
-    set_meta(conn, "scryfall_bulk_type", "oracle_cards")
-    set_meta(conn, "card_count", str(card_count))
-    conn.commit()
 
 
 def get_meta(db_path: str = DB_NAME) -> dict:

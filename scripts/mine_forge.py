@@ -80,12 +80,6 @@ def _parse_params(value: str) -> dict[str, Any]:
     return params
 
 
-def _param(record: Mapping[str, Any], key: str, default: str = "") -> str:
-    value = record.get("params", {}).get(key, default)
-    values = _as_list(value)
-    return values[0] if values else default
-
-
 def _number(value: str, default: int | str = 1) -> int | str:
     try:
         return int(value)

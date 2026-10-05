@@ -300,15 +300,6 @@ def extra_turn_not_combat(text: str) -> bool:
     return bool(_EXTRA_TURN_RE.search(text)) and not bool(_COMBAT_RE.search(text))
 
 
-def clause_query_string(clause: OntologyClause) -> str:
-    """Explicit `predicate:value` / `predicate:key:value` form for hybrid search."""
-    if clause.arg_key and clause.arg_value:
-        return f"{clause.predicate}:{clause.arg_key}:{clause.arg_value}"
-    if clause.arg_value:
-        return f"{clause.predicate}:{clause.arg_value}"
-    return clause.predicate
-
-
 def compiled_payload(intent: SearchIntent) -> list[dict[str, str | None]]:
     return [
         {
@@ -1147,16 +1138,26 @@ def search_ontology_clauses(
             where_parts.append("(p.predicate = ?)")
             params.append(clause.predicate)
 
-    sql = f"""
-        SELECT p.card_id, p.card_name, p.predicate, p.arg_key, p.arg_value,
+    # Two joins instead of `ON c.id = p.card_id OR (... c.name = p.card_name)`:
+    # with the OR, SQLite cannot use the primary key and scans every card for
+    # every matching predicate row (minutes per query on the full catalog).
+    # Rows without a card_id are rare and keep the by-name match.
+    where = " OR ".join(where_parts)
+    columns = """p.card_id, p.card_name, p.predicate, p.arg_key, p.arg_value,
                c.name, c.type_line, c.oracle_text, c.color_identity,
-               c.cmc, c.legalities
+               c.cmc, c.legalities"""
+    sql = f"""
+        SELECT {columns}
           FROM ontology_predicates p
-     LEFT JOIN cards c
-            ON c.id = p.card_id
-            OR (p.card_id IS NULL AND c.name = p.card_name COLLATE NOCASE)
-         WHERE {" OR ".join(where_parts)}
+     LEFT JOIN cards c ON c.id = p.card_id
+         WHERE p.card_id IS NOT NULL AND ({where})
+     UNION ALL
+        SELECT {columns}
+          FROM ontology_predicates p
+     LEFT JOIN cards c ON c.name = p.card_name COLLATE NOCASE
+         WHERE p.card_id IS NULL AND ({where})
     """
+    params = params + params
 
     by_key: dict[str, dict[str, Any]] = {}
     try:

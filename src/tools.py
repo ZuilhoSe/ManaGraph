@@ -2,9 +2,8 @@ import contextvars
 import json
 from langchain.tools import tool
 from hybrid_search import RAGSearcher
-from inventory import get_cards, list_inventory, FREE_POOL
+from inventory import list_inventory
 from ontology.search import compile_search_intent, compiled_payload, merge_cmc_bounds
-from rules_validator import CommanderValidator
 from deck_state import DeckState, _normalize_key
 
 # Fallback for search_cards' owned_only when the model's tool call omits it.
@@ -224,20 +223,6 @@ def search_predicates(
 
 
 @tool
-def lookup_inventory(card_names: list[str]) -> str:
-    """
-    Look up owned cards in one call: total copies and where each is allocated
-    (free pool vs decks). Pass every name you need in a single list instead of
-    calling this once per card. Returns JSON keyed by the names you passed in;
-    a name not owned maps to null.
-    """
-    if not card_names:
-        return _json({"ok": False, "error": "card_names must be a non-empty list."})
-    found = get_cards(card_names)
-    return _json({"ok": True, "cards": found, "free_pool": FREE_POOL})
-
-
-@tool
 def get_card_info(name: str) -> str:
     """
     Look up one card by its exact name in the Oracle catalog (not the inventory --
@@ -298,24 +283,6 @@ def list_inventory_cards(location: str = "") -> str:
 
 
 @tool
-def move_inventory_card(card_name: str, source: str, destination: str, quantity: int = 1) -> str:
-    """
-    Move copies of an owned card from one location to another. Returns JSON.
-    Typical locations: 'free_pool' and deck keys like 'deck_krenko'.
-    Only call this when the user explicitly asked to allocate, add, or remove cards from a deck.
-    """
-    return _json(
-        {
-            "ok": False,
-            "error": (
-                "LLM inventory moves are disabled. The Manager must issue an "
-                "AllocationCommand with explicit confirmation."
-            ),
-        }
-    )
-
-
-@tool
 def diagnose_deck_json(deck_json: str) -> str:
     """
     Symbolic deck diagnosis: curve, avg CMC, lands, pips vs sources, role gaps,
@@ -360,77 +327,6 @@ def score_card_json(deck_json: str, card_name: str, query: str = "") -> str:
 
 
 @tool
-def validate_commander_rules(commander: str, cards_json: str, constraints_json: str = "") -> str:
-    """
-    Deterministically validate a Commander list. Returns JSON.
-
-    Args:
-        commander: Commander card name, e.g. "Krenko, Mob Boss".
-        cards_json: JSON object of card name -> quantity, e.g. '{"Sol Ring": 1, "Mountain": 35}'.
-        constraints_json: Optional JSON with owned_only, require_complete, max_card_price, budget_cap, currency.
-    """
-    try:
-        deck_list = json.loads(cards_json)
-        if not isinstance(deck_list, dict):
-            return _json({"ok": False, "error": "cards_json must be a JSON object of card name -> quantity."})
-    except json.JSONDecodeError as exc:
-        return _json({"ok": False, "error": f"Invalid JSON for cards_json: {exc}"})
-
-    constraints = {}
-    if constraints_json:
-        try:
-            parsed = json.loads(constraints_json)
-            if isinstance(parsed, dict):
-                constraints = parsed
-        except json.JSONDecodeError as exc:
-            return _json({"ok": False, "error": f"Invalid JSON for constraints_json: {exc}"})
-
-    validator = CommanderValidator()
-    report = validator.validate_deck(commander, deck_list, **constraints)
-    report["ok"] = "error" not in report
-    return _json(report)
-
-
-@tool
-def validate_deck_json(deck_json: str) -> str:
-    """
-    Validate a full DeckState JSON object (commander, cards, budget caps). Returns JSON.
-    """
-    try:
-        data = json.loads(deck_json)
-        if not isinstance(data, dict):
-            return _json({"ok": False, "error": "deck_json must be a JSON object."})
-    except json.JSONDecodeError as exc:
-        return _json({"ok": False, "error": f"Invalid JSON for deck_json: {exc}"})
-
-    validator = CommanderValidator()
-    report = validator.validate_deck_state(DeckState.from_dict(data))
-    report["ok"] = "error" not in report
-    return _json(report)
-
-
-@tool
-def fill_deck_json(deck_json: str, query: str = "", retrieve: bool = False) -> str:
-    """
-    Greedy-fill remaining slots from candidate_pool (and optional vector retrieval).
-    Returns JSON with the updated DeckState. The committed list never exceeds 99.
-    """
-    from solver import DeckSolver
-
-    try:
-        data = json.loads(deck_json)
-        if not isinstance(data, dict):
-            return _json({"ok": False, "error": "deck_json must be a JSON object."})
-    except json.JSONDecodeError as exc:
-        return _json({"ok": False, "error": f"Invalid JSON for deck_json: {exc}"})
-
-    deck = DeckState.from_dict(data)
-    report = DeckSolver().fill(deck, query=query, retrieve=retrieve)
-    report["deck"] = deck.to_dict()
-    return _json(report)
-
-
-@tool
 def list_filter_matches(
     fragment: str,
     colors: list[str] | None = None,
@@ -470,22 +366,3 @@ def list_filter_matches(
     )
 
 
-@tool
-def cut_deck_json(deck_json: str, query: str = "") -> str:
-    """
-    Cut over-budget / over-99 cards and swap weak 99 slots for better candidate_pool cards.
-    Returns JSON with the updated DeckState. The committed list never exceeds 99.
-    """
-    from solver import DeckSolver
-
-    try:
-        data = json.loads(deck_json)
-        if not isinstance(data, dict):
-            return _json({"ok": False, "error": "deck_json must be a JSON object."})
-    except json.JSONDecodeError as exc:
-        return _json({"ok": False, "error": f"Invalid JSON for deck_json: {exc}"})
-
-    deck = DeckState.from_dict(data)
-    report = DeckSolver().cut(deck, query=query)
-    report["deck"] = deck.to_dict()
-    return _json(report)

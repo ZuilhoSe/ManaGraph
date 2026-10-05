@@ -2,7 +2,7 @@ import json
 import os
 import sqlite3
 
-from catalog import _row_to_card, card_unit_price, ensure_schema, enrich_deck, get_oracle_card
+from catalog import _row_to_card, ensure_schema, enrich_deck, get_oracle_card
 from deck_state import MAIN_DECK_SIZE, DeckState, _normalize_key
 from inventory import get_card as get_inventory_card
 from mana import diagnose_deck, strategy_from_name

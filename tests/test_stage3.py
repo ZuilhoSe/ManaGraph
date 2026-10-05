@@ -13,7 +13,7 @@ sys.path.insert(0, SRC_DIR)
 
 from catalog import ensure_schema
 from deck_state import DeckState
-from geometry import chroma_metadata, identity_where, knn_indices
+from geometry import chroma_metadata, identity_where
 from solver import DeckSolver
 
 
@@ -178,13 +178,6 @@ class Stage3Tests(unittest.TestCase):
             self.assertEqual(len(solver._emb["krenko"]), 2)
         finally:
             os.unlink(tmp.name)
-
-    def test_knn_excludes_self(self):
-        vecs = np.array([[1.0, 0.0], [0.9, 0.1], [0.0, 1.0]])
-        idx = knn_indices(vecs, k=1)
-        self.assertEqual(idx.shape, (3, 1))
-        self.assertNotEqual(idx[0, 0], 0)
-        self.assertEqual(int(idx[0, 0]), 1)
 
     def test_geometry_outranks_name_proximity(self):
         tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)

@@ -152,7 +152,15 @@ def download_and_process_scryfall(
 
 
 if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Download Scryfall oracle_cards (or read --local-file) and upsert it into the catalog."
+    )
+    parser.add_argument("--local-file", help="Use a local bulk JSON instead of downloading.")
+    parser.add_argument("--dry-run", action="store_true", help="Parse without writing SQLite.")
+    args = parser.parse_args()
     try:
-        download_and_process_scryfall()
+        download_and_process_scryfall(local_file=args.local_file, dry_run=args.dry_run)
     except CollectionError as exc:
         print(f"Collection failed: {exc}")

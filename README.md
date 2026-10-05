@@ -118,7 +118,6 @@ Research stages (do not skip 3.5 for TDA): **1 DeckState → 2 fill/cut → 3 ge
   - `llm_factory.py`: Swap LLM providers via environment variables.
   - `tools.py`: LangChain `@tool` wrappers; tools return JSON.
   - `architect_agent.py`: Architect agent (synergy search, JSON deltas).
-  - `inventory_agent.py`: Inventory manager agent.
   - `supervisor_agent.py`: Deterministic gate plus optional LLM explanation.
   - `main_agent.py`: LangGraph execution graph and demo entry point.
 - `tests/`: Stage 1–3.5 unit tests (no LLM, no Chroma), including class invariants.

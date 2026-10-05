@@ -38,13 +38,6 @@ class CardRef(StrictModel):
     instead_of: str | None = Field(default=None, max_length=200)
 
 
-class SubstituteRef(StrictModel):
-    out: str = Field(min_length=1, max_length=200)
-    in_: str = Field(alias="in", min_length=1, max_length=200)
-    quantity: int = Field(default=1, ge=1, le=99)
-    reason: str = Field(default="", max_length=1000)
-
-
 class PlanOperation(StrictModel):
     kind: OperationKind
     card: str | None = Field(default=None, min_length=1, max_length=200)

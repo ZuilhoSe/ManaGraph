@@ -9,7 +9,6 @@ from fastapi.testclient import TestClient
 
 from contracts import AllocationCommand, RunEvent
 from service.api import app
-from tools import move_inventory_card
 
 
 class RuntimeContractTests(unittest.TestCase):
@@ -74,18 +73,6 @@ class RuntimeContractTests(unittest.TestCase):
                 quantity=0,
                 confirmation_id="manager-run-1",
             )
-
-    def test_llm_inventory_move_tool_cannot_mutate(self):
-        result = move_inventory_card.invoke(
-            {
-                "card_name": "Island",
-                "source": "free_pool",
-                "destination": "deck_test",
-                "quantity": 1,
-            }
-        )
-        self.assertIn("disabled", result)
-        self.assertIn("AllocationCommand", result)
 
     def test_event_contract_rejects_negative_sequence(self):
         with self.assertRaises(ValueError):

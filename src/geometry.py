@@ -103,22 +103,6 @@ def identity_where(allowed_colors: list[str] | None) -> dict | None:
     return {"$and": clauses}
 
 
-def knn_indices(vectors: np.ndarray, k: int = 8) -> np.ndarray:
-    """Row i → indices of k nearest others by cosine (excludes self)."""
-    x = np.asarray(vectors, dtype=float)
-    if x.ndim != 2 or len(x) == 0:
-        return np.zeros((0, 0), dtype=int)
-    norms = np.linalg.norm(x, axis=1, keepdims=True)
-    norms = np.where(norms == 0, 1.0, norms)
-    unit = x / norms
-    sim = unit @ unit.T
-    np.fill_diagonal(sim, -np.inf)
-    k = min(max(int(k), 0), max(len(x) - 1, 0))
-    if k == 0:
-        return np.zeros((len(x), 0), dtype=int)
-    return np.argpartition(-sim, kth=k - 1, axis=1)[:, :k]
-
-
 def encode_predicate_views(
     ids: list[str],
     by_card_id: Mapping[str, Mapping[str, Iterable[str]]] | None,

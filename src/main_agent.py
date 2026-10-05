@@ -8,7 +8,7 @@ from langchain_core.messages import AIMessage
 
 from architect_agent import ManagerAgent
 from supervisor_agent import SupervisorAgent
-from deck_state import DeckState, diff_decks, extract_json, infer_task, proposal_has_work, _normalize_key
+from deck_state import DeckState, diff_decks, extract_json, infer_task, _normalize_key
 from catalog import enrich_deck, get_oracle_card
 from contracts import ArchitectPlan, parse_architect_plan
 from manager_core import apply_plan, build_intent_spec

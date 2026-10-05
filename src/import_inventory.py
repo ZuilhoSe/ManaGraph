@@ -81,6 +81,12 @@ def import_list(file_path, location_name):
 
 
 if __name__ == "__main__":
+    import argparse
+
+    argparse.ArgumentParser(
+        description="Add data/test_pool.txt (free pool) and data/test_deck.txt (deck_krenko) "
+        "to the inventory. Quantities ADD UP: running it twice doubles them."
+    ).parse_args()
     pool_path = os.path.join(BASE_DIR, "data", "test_pool.txt")
     deck_path = os.path.join(BASE_DIR, "data", "test_deck.txt")
 

@@ -18,11 +18,6 @@ def embedding_device() -> str:
     return "cpu"
 
 
-def _device() -> str:
-    """Backward-compatible alias."""
-    return embedding_device()
-
-
 def describe_embedding_device() -> str:
     device = embedding_device()
     if device != "cuda":

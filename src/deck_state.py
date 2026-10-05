@@ -212,18 +212,6 @@ def infer_task(query: str, has_cards: bool = False) -> dict:
     }
 
 
-def proposal_has_work(proposal: dict | None) -> bool:
-    if not proposal:
-        return False
-    if proposal.get("operations"):
-        return True
-    payload = proposal.get("delta") if isinstance(proposal.get("delta"), dict) else proposal
-    for key in ("add", "remove", "substitute", "substitutions", "candidate_pool", "pool"):
-        if payload.get(key):
-            return True
-    return bool(proposal.get("buy_list") or proposal.get("candidate_pool"))
-
-
 def _qty_items(items) -> list[tuple[str, int]]:
     parsed = []
     for item in items or []:
@@ -569,38 +557,6 @@ class DeckState:
         if deck.commander:
             deck.set_commander(deck.commander)
         return deck
-
-    @classmethod
-    def from_inventory_location(
-        cls,
-        commander: str,
-        location: str,
-        db_path: str | None = None,
-        **kwargs,
-    ) -> DeckState:
-        from inventory import DB_NAME, list_inventory
-
-        cards = {}
-        for row in list_inventory(location, db_path or DB_NAME):
-            cards[row["card_name"]] = row["quantity"]
-        kwargs.setdefault("intent", "improve")
-        deck = cls(commander=commander, cards=cards, **kwargs)
-        if commander:
-            deck.set_commander(commander)
-            if not deck.identity:
-                from catalog import get_oracle_card
-                info = get_oracle_card(commander, db_path or DB_NAME)
-                if info:
-                    deck.identity = list(info["color_identity"])
-        return deck
-
-    @classmethod
-    def from_proposal(cls, proposal: dict | None, base: DeckState | None = None) -> DeckState:
-        deck = cls.from_dict(base.to_dict() if base else {})
-        if proposal:
-            deck.apply_delta(proposal)
-        return deck
-
 
 def diff_decks(before: "DeckState | dict | None", after: "DeckState | dict | None") -> dict:
     """Card-level diff between two deck states, computed from their card_list()s --

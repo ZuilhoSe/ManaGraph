@@ -42,7 +42,7 @@ O cardsfolder local existe (33 666 `.txt`, igual a `forge_records`). Os nomes 
 | `src/ontology/__init__.py` | Reexporta schema (não exporta `Selector` / `TargetClass` / `Zone`) |
 | `src/ontology/patterns.py` | Gramática Oracle (tier 2); entra no índice via `rebuild_predicate_index` |
 | `src/ontology/annotate.py` | **Não existe** |
-| `src/ontology/graph.py` | **Não existe** |
+| `src/ontology/graph.py` | Deck como fluxo tipado: assinaturas, redundância, déficits e reparos de fluxo |
 | `src/ontology/diagnose.py` | Déficits tipados; `diagnose_deck` e `rules_validator` leem o índice |
 | `scripts/mine_forge.py` | Parser do cardsfolder + `apply_mapping` / `_action_candidates` |
 | `scripts/enrich_ontology.py` | Join Scryfall↔Forge; `--reapply-mapping` reescreve candidates sem remine; chama `rebuild_predicate_index` |

@@ -46,16 +46,6 @@ CHROMA_DIR = os.path.join(DATA_DIR, "chroma_db")
 _client_lock = threading.Lock()
 _searcher_lock = threading.Lock()
 _query_lock = threading.Lock()
-# Guards self.conn/self.cursor specifically -- RAGSearcher is a process-wide
-# singleton (see shared()) and search_cards() used to touch that shared
-# connection from whichever thread the Architect's parallel tool calls landed
-# on, with nothing serializing them: concurrent search_cards calls racing on
-# the same cursor raised "another row available" (a sqlite3 Cursor isn't
-# safe to drive from multiple threads at once, even with
-# check_same_thread=False). Separate from _query_lock, which only guards the
-# Chroma call, so embedding search from one request can still run while
-# another's SQLite lexical search holds this lock.
-_conn_lock = threading.Lock()
 _chroma_client = None
 _shared_searcher = None
 
@@ -431,9 +421,9 @@ class RAGSearcher:
                 embed_queries, allowed_colors, fetch
             )
 
-        # One connection per call — do not hold `_conn_lock` across the
-        # lexical scan. Architect fires searches in parallel; serializing
-        # them on a leftover singleton lock made a 35-minute Architect turn.
+        # One connection per call: a sqlite3 cursor is not safe across threads,
+        # and the Architect fires searches in parallel — serializing them on a
+        # shared connection's lock once made a 35-minute Architect turn.
         conn = sqlite3.connect(DB_NAME)
         cursor = conn.cursor()
         try:

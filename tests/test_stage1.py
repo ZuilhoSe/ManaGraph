@@ -10,7 +10,7 @@ SRC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path.insert(0, SRC_DIR)
 
 from catalog import ensure_schema, mana_cost_from_scryfall, oracle_text_from_scryfall
-from deck_state import DeckState, extract_json, infer_intent, infer_task, proposal_has_work
+from deck_state import DeckState, extract_json, infer_intent, infer_task
 from rules_validator import CommanderValidator
 from supervisor_agent import deterministic_gate
 
@@ -151,11 +151,6 @@ class Stage1Tests(unittest.TestCase):
         self.assertEqual(goblin["archetype"], "tribal")
         generic = infer_task("Build me a full deck for Ertai Resurrected.")
         self.assertEqual(generic["archetype"], "generic")
-        self.assertTrue(proposal_has_work({"buy_list": [{"name": "Goblin Bombardment"}]}))
-        self.assertTrue(
-            proposal_has_work({"delta": {"substitute": [{"out": "A", "in": "B"}]}})
-        )
-        self.assertFalse(proposal_has_work({"notes": "looks fine"}))
 
     def test_add_never_exceeds_99_overflow_goes_to_pool(self):
         deck = DeckState(commander="Krenko, Mob Boss")
