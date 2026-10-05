@@ -33,6 +33,7 @@ data/card_views.npz
 
 # Mined/generated ontology artifacts (schema, mapping, and model_config stay tracked)
 data/ontology/*.jsonl
+data/ontology/forge_atoms_*.json
 
 # Frontend local artifacts (also listed in web/.gitignore)
 web/node_modules/

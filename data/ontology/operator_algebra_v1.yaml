@@ -1,0 +1,354 @@
+# Álgebra mínima de operadores (plano economia-de-operadores, Fase 1).
+#
+# Estado abstrato s = (r ∈ ℝ^R, f ∈ {0,1}^F, T) — recursos, flags e predicados
+# terminais. Uma carta é um conjunto de operadores sobre s. Este arquivo diz, para
+# cada átomo do Forge (scripts/forge_ability_inventory.py), em que classe de
+# operador ele cai.
+#
+# Classes dentro da álgebra (operator_classes.core):
+#   resource   1ª ordem: custo c ∈ ℝ^R → efeito e ∈ ℝ^R
+#   event      gatilho: evento E dispara um operador (com condição/frequência)
+#   modifier   2ª ordem: altera outros operadores (custo, magnitude, classe-alvo,
+#              concede palavra-chave/habilidade, multiplica gatilhos/tokens)
+#   mask       flag sobre estados: proíbe/obriga (can't lose, can't block, hexproof)
+#   converter  2ª ordem: troca o recurso de saída de um operador (lifelink, infect)
+#   alt_cost   outro custo para o mesmo efeito (kicker, flashback, convoke)
+#   control    fluxo sem semântica própria (modal, repetição, limpeza, armazenar X)
+#   reference  o efeito É o operador de outro nó: copy(S) = operadores de um objeto
+#              da classe S (CR 707, valores copiáveis). Clone, Spark Double, Twincast.
+#              Resolvido contra o grafo do deck: valor = valor do melhor alvo em S.
+#   layer      modificador de atributo aplicado na ordem do CR 613:
+#                1 cópia · 2 controle · 3 texto · 4 tipo · 5 cor · 6 habilidades ·
+#                7a P/T definido · 7b P/T fixado · 7c P/T modificado · 7d troca
+#              reclassify (muda a que seletores o objeto pertence: vira artefato,
+#              vira criatura), set_stat (fixa P/T base), strip (remove operadores do
+#              alvo — vale como negação dos operadores removidos). `layer_index` abaixo.
+#   face_down  objeto virado para baixo = corpo 2/2 sem operadores; virar é um
+#              alt_cost que troca para o conjunto de operadores real (CR 708).
+#              Morph, disguise, manifest, cloak.
+#   turn       estrutura de turno como recurso: turno/fase/combate extra replica o
+#              bloco de operadores daquele período (multiplicador no horizonte de
+#              V(D)); pular é o inverso. Controlar o turno de outro jogador = pular o
+#              turno dele + usar os recursos dele. Reiniciar o jogo (Karn
+#              Liberated) = voltar a s0, levando as cartas exiladas por ele.
+#   terminal   predicado terminal sobre s: vitória (WinsGame com condição), derrota
+#              (LosesGame), empate. Junta-se aos terminais das regras (vida ≤ 0,
+#              10 veneno, 21 de comandante) e às máscaras can_win/can_lose.
+#   noop       sem efeito em Commander: buscar "fora do jogo" (wishes; Commander não
+#              tem sideboard), ante, planechase.
+#
+# Classes aproximadas (operator_classes.approx) — dentro da álgebra, com hipótese:
+#   stochastic  valor esperado (moeda, dado, Attractions)
+#   param       escolha do controlador fixável na construção do deck (tipo, cor,
+#               nomear uma carta)
+#   adversarial escolha do oponente: assume-se a opção que minimiza o seu valor
+#               (minimax; votos assumem os oponentes contra você). Fact or Fiction,
+#               Council's Judgment, villainous choice.
+#
+# Átomos não listados contam como `unmapped` (fora até serem revisados).
+version: 1.1.0
+
+resources:
+  mana: [W, U, B, R, G, C]
+  cards: [hand, library, graveyard, exile_usable]        # recursos de carta do controlador
+  board: [creature_body, power, toughness, token, artifact, enchantment, land, planeswalker]
+  counters: [p1p1, m1m1, loyalty, charge, other, energy, experience, poison_given]
+  life: [life_self, damage_to_opponents, commander_damage]
+  opponent: [opp_permanent_removed, opp_card_in_hand, opp_library, opp_spell_countered]
+  tempo: [untap, tap_opponent, combat_step, extra_turn, extra_phase, skip_turn, skip_phase]
+  status: [monarch, initiative, city_blessing]
+
+events:
+  [enters, leaves, dies, cast, cast_type, attack, block, blocked, unblocked,
+   combat_damage, damage, draw, discard, gain_life, lose_life, phase, upkeep, end_step,
+   sacrifice, counter_added, counter_removed, token_created, land_played, tap, untap,
+   tapped_for_mana, cycle, mill, target, transform, exploit, surveil, scry, explore,
+   connive, crime, fight, investigate, proliferate, die_roll, turned_face_up,
+   control_changed, phase_out, phase_in, day_night, dungeon_completed, attraction_visited,
+   class_level, adapt, mutate]
+
+flags:
+  [can_lose, can_win, can_gain_life, can_lose_life, can_draw, can_attack, can_block,
+   must_attack, must_block, can_be_targeted, hexproof, shroud, indestructible, protection,
+   evasion, first_strike, double_strike, deathtouch, vigilance, haste, flash, defender,
+   cant_be_countered, cant_be_cast, cant_activate, legend_rule, regenerate, ward,
+   doesnt_untap, prevent_damage, flying, reach, menace, trample, phased_out, face_down,
+   day, night]
+
+terminals: [life_zero, poison_ten, commander_damage_21, draw_empty_library, alt_win,
+  alt_loss, game_drawn]
+
+operator_classes:
+  core: [resource, event, modifier, mask, converter, alt_cost, control, reference, layer,
+    face_down, turn, terminal, noop]
+  approx: [stochastic, param, adversarial]
+
+# CR 613: ordem de aplicação dos operadores `layer` (e da cópia/controle).
+layer_index:
+  "1": [api:Clone, api:CopyPermanent, keyword:Mutate, trigger:Mutates,
+        static:Continuous.GainsAbilitiesOf, static:Continuous.GainsAbilitiesOfZones,
+        static:Continuous.GainsAbilitiesOfDefined, static:Continuous.GainsValidAbilities]
+  "2": [api:GainControl, api:ExchangeControl, static:Continuous.GainControl]
+  "3": [api:ChangeText, api:ExchangeTextBox]
+  "4": [static:Continuous.AddType, static:Continuous.RemoveType,
+        static:Continuous.RemoveCardTypes, static:Continuous.RemoveCreatureTypes,
+        static:Continuous.RemoveLandTypes, static:Continuous.RemoveArtifactTypes,
+        static:Continuous.AddAllCreatureTypes, api:Animate, api:AnimateAll]
+  "5": [static:Continuous.SetColor, static:Continuous.AddColor]
+  "6": [static:Continuous.AddKeyword, static:Continuous.AddAbility,
+        static:Continuous.RemoveAllAbilities, static:Continuous.RemoveKeyword,
+        static:Continuous.CantHaveKeyword]
+  "7a": [static:Continuous.CharacteristicDefining]
+  "7b": [static:Continuous.SetPower, static:Continuous.SetToughness]
+  "7c": [static:Continuous.AddPower, static:Continuous.AddToughness, api:Pump, api:PumpAll]
+
+atoms:
+  api:
+    resource: [Draw, Token, PutCounter, DealDamage, Mana, GainLife, Destroy,
+      Tap, LoseLife, Discard, Dig, Sacrifice, Mill, Counter, Untap, Scry,
+      DamageAll, DestroyAll, PutCounterAll, Surveil, RemoveCounter, DigUntil, PeekAndReveal,
+      Fight, Investigate, SacrificeAll, UntapAll, Proliferate, RevealHand, Amass, TapAll,
+      Reveal, BecomeMonarch, Shuffle, MultiplyCounter, Connive, TapOrUntap, Explore,
+      Earthbend, SetLife, Incubate, MoveCounter, Poison, RearrangeTopOfLibrary, Discover,
+      EachDamage, TakeInitiative, Radiation, Learn, RemoveCounterAll, Airbend, DigMultiple,
+      Endure, Recruit, AddOrRemoveCounter, TimeTravel, Blight, DrainMana, LookAt, Balance,
+      ExchangeLife, ExchangeLifeVariant, BidLife, HealDamage, TaporUntapAll, TapOrUntapAll,
+      GainControl, GainControlVariant, ExchangeControl, ExchangeControlVariant, Play,
+      PermanentCreature, PermanentNoncreature, Regenerate, Regeneration, Fog, PreventDamage,
+      Detain, Goad, Unattach, Attach, Pump, PumpAll, Debuff, Protection, ProtectionAll,
+      Animate, AnimateAll, ManaReflected, Venture, RingTemptsYou, MustBlock,
+      RemoveFromCombat, Block, ChangeCombatants, BecomesBlocked, SwitchBlock,
+      ExchangePower, Camouflage, ReorderZone, Phases, ChangeSpeed, UnlockDoor, Meld]
+    # ChangeZone por par de zonas (Origin>Destination): reanimar, tutor, bounce,
+    # exílio, blink... transferências de recurso entre zonas do jogo.
+    resource.zones: [
+      "ChangeZone.All>Battlefield", "ChangeZone.All>Exile", "ChangeZone.All>Graveyard",
+      "ChangeZone.All>Hand", "ChangeZone.All>Library", "ChangeZone.Any>Battlefield",
+      "ChangeZone.Any>Exile", "ChangeZone.Any>Hand", "ChangeZone.Any>Library",
+      "ChangeZone.Battlefield>Exile",
+      "ChangeZone.Battlefield>Graveyard", "ChangeZone.Battlefield>Hand",
+      "ChangeZone.Battlefield>Library", "ChangeZone.Exile>Battlefield",
+      "ChangeZone.Exile>Graveyard", "ChangeZone.Exile>Hand", "ChangeZone.Exile>Library",
+      "ChangeZone.Graveyard>Battlefield", "ChangeZone.Graveyard>Exile",
+      "ChangeZone.Graveyard>Hand", "ChangeZone.Graveyard>Library",
+      "ChangeZone.Hand>Battlefield", "ChangeZone.Hand>Exile", "ChangeZone.Hand>Graveyard",
+      "ChangeZone.Hand>Hand", "ChangeZone.Hand>Library", "ChangeZone.Library>Any", "ChangeZone.Library>Battlefield",
+      "ChangeZone.Library>Exile", "ChangeZone.Library>Graveyard",
+      "ChangeZone.Library>Hand", "ChangeZone.Library>Library",
+      "ChangeZone.Stack>Exile",
+      "ChangeZone.Stack>Hand", "ChangeZone.Stack>Library", "ChangeZoneAll.Battlefield>Exile", "ChangeZoneAll.Battlefield>Hand",
+      "ChangeZoneAll.Battlefield>Library", "ChangeZoneAll.Exile>Battlefield",
+      "ChangeZoneAll.Exile>Graveyard", "ChangeZoneAll.Exile>Hand",
+      "ChangeZoneAll.Exile>Library", "ChangeZoneAll.Graveyard>Battlefield",
+      "ChangeZoneAll.Graveyard>Exile", "ChangeZoneAll.Graveyard>Hand",
+      "ChangeZoneAll.Graveyard>Library", "ChangeZoneAll.Hand>Battlefield",
+      "ChangeZoneAll.Hand>Exile", "ChangeZoneAll.Hand>Graveyard",
+      "ChangeZoneAll.Hand>Library", "ChangeZoneAll.Library>Battlefield",
+      "ChangeZoneAll.Library>Exile", "ChangeZoneAll.Library>Graveyard",
+      "ChangeZoneAll.Library>Hand", "ChangeZoneAll.Library>Library",
+      "ChangeZoneAll.Stack>Exile"]
+    control.zones: [
+      "ChangeZone.Battlefield>Command", "ChangeZone.Command>Battlefield",
+      "ChangeZone.Command>Exile", "ChangeZone.Command>Hand", "ChangeZone.Hand>Command",
+      "ChangeZoneAll.Battlefield>Command", "ChangeZoneAll.Command>Battlefield",
+      "ChangeZoneAll.Command>Exile", "ChangeZoneAll.Command>Hand"]
+    noop.zones: [
+      "ChangeZone.Battlefield>Ante", "ChangeZone.Library>Ante", "ChangeZone.PlanarDeck>PlanarDeck", "ChangeZoneAll.Ante>Graveyard",
+      "ChangeZone.Hand>Sideboard", "ChangeZone.Sideboard>Exile",
+      "ChangeZone.Sideboard>Hand", "ChangeZone.Sideboard>Library"]
+    modifier: [ReplaceEffect, ReplaceToken, ReplaceCounter, ReplaceDamage, ReplaceMana,
+      ReplaceSplitDamage, AlterAttribute, Effect, DamageResolve]
+    control: [Cleanup, Charm, DelayedTrigger, ImmediateTrigger, RepeatEach, Branch,
+      StoreSVar, Repeat, GenericChoice, ChooseCard, ChoosePlayer, ChooseSource,
+      ChooseNumber, BlankLine, AssignGroup, ChooseDirection, ChooseEvenOdd, ChangeX,
+      ActivateAbility, SetState]
+    param: [ChooseType, ChooseColor, ChooseSector]
+    stochastic: [RollDice, FlipCoin, Clash, ChaosEnsues]
+    # Commandeer: ganhar a mágica = anular + tomar o operador dela como seu.
+    reference: [CopyPermanent, CopySpellAbility, Clone, ChangeTargets, ControlSpell]
+    layer: [ChangeText, ExchangeTextBox]
+    adversarial: [Vote, TwoPiles, VillainousChoice, MultiplePiles]
+    # Mindslaver: o turno do oponente vira seu (pular o dele + recursos dele).
+    turn: [ControlPlayer, AddTurn, AddPhase, SkipPhase, SkipTurn, EndTurn, ReverseTurnOrder,
+      EndCombatPhase, DayTime, RestartGame]
+    # Attractions/contraptions: rolar e visitar = recurso por valor esperado.
+    stochastic.subgame: [OpenAttraction, AssembleContraption]
+    resource.subgame: [ClaimThePrize]
+    noop: [Planeswalk, RollPlanarDice]
+    terminal: [LosesGame, WinsGame, GameDrawn]
+    param.named: [NameCard]
+    face_down: [ManifestDread, Manifest, Cloak]
+
+  trigger:
+    event: [ChangesZone, Phase, Attacks, SpellCast, DamageDone, AttackersDeclared,
+      DamageDoneOnce, Drawn, Blocks, AttackerBlocked, ChangesZoneAll, BecomesTarget, Taps,
+      Sacrificed, LifeGained, Cycled, Discarded, AttackerBlockedByCreature, Always,
+      TapsForMana, DamageDealtOnce, CounterAddedOnce, AbilityCast, AttackerUnblocked,
+      LandPlayed, AttackersDeclaredOneTarget, Untaps, SpellCastOrCopy, Transformed,
+      Exploited, CommitCrime, BecomeMonstrous, CounterAdded, Scry, LifeLost, DiscardedAll,
+      ManaExpend, CounterRemoved, Surveil, Attached, CounterPlayerAddedAll, TurnBegin,
+      DamageAll, SpellCopy, Exerted, SpellAbilityCast, Crewed, Explores, AbilityTriggered,
+      SearchedLibrary, PayCumulativeUpkeep, Countered, Unattached, Shuffled,
+      BecomeMonarch, Proliferate, BecomesCrewed, ExcessDamage, CounterAddedAll, Exiled,
+      Destroyed, Connives, BecomesTargetOnce, MilledAll, TokenCreated, TokenCreatedOnce,
+      Saddled, CounterRemovedOnce, TapAll, LifeLostAll, CollectEvidence, Milled,
+      AttackerBlockedOnce, MilledOnce, AbilityResolves, BecomeRenowned, Evolved, Mentored,
+      ManaAdded, SacrificedOnce, CaseSolved, Forage, AttackerUnblockedOnce, Discover,
+      Investigated, Fight, PayLife, SpellAbilityCopy, Enlisted, GiveGift, ExcessDamageAll,
+      Championed, FightOnce, Trains, DamagePreventedOnce, PayEcho, CounterTypeAddedAll,
+      BecomesSaddled, UntapAll, BlockersDeclared, RolledDie, RolledDieOnce, FlippedCoin,
+      Clashed, RingTemptsYou, UnlockDoor, FullyUnlock, ElementalBend, Foretell,
+      BecomesPlotted]
+    event.extended: [TurnFaceUp, ManifestDread, Mutates, ChangesController, DayTimeChanges,
+      PhaseIn, PhaseOut, PhaseOutAll, DungeonCompleted, VisitAttraction, ClaimPrize,
+      LosesGame, Vote, ClassLevelGained, Adapt]
+
+  static:
+    modifier: [Continuous.AddPower, Continuous.AddToughness, Continuous.AddKeyword,
+      Continuous.AddHiddenKeyword, Continuous.AddAbility, Continuous.AddTrigger,
+      Continuous.AddStaticAbility, Continuous.AddReplacementEffect, Continuous.AddSVar,
+      Continuous.CharacteristicDefining, Continuous.MayPlay, Continuous.MayLookAt,
+      Continuous.MayPlayWithoutManaCost, Continuous.MayPlayAltManaCost,
+      Continuous.MayPlayWithFlash, Continuous.SetMaxHandSize, Continuous.RaiseMaxHandSize,
+      Continuous.AdjustLandPlays, Continuous.CanBlockAmount, Continuous.CanBlockAny,
+      Continuous.RaiseCost, Continuous.TopCardOfLibraryIs, Continuous.GainControl,
+      Continuous.Goad, Continuous, ReduceCost, RaiseCost, AlternativeCost, Panharmonicon,
+      CastWithFlash, OptionalCost, OptionalAttackCost, ManaConvert, UnspentMana,
+      CombatDamageToughness, AssignCombatDamageAsUnblocked, TapPowerValue, NumLoyaltyAct,
+      ActivateAbilityAsIfHaste, CanAttackIfHaste, CountersRemain, Activations, SetCost,
+      FlipCoinMod, FlipCoinDoubler, SurveilNum, CanAdapt, PlotZone, AttackVigilance,
+      IgnoreLegendRule, IgnoreHexproof, IgnoreShroud, IgnoreLandWalk, CanBlockIfReach,
+      BlockTapped, CanAttackDefender, Devotion, MaxCounter, GainLifeRadiation]
+    mask: [CantBlockBy, CantAttack, CantBlock, MustAttack, CantBeCast, CantBeActivated,
+      MinMaxBlocker, CantTarget, CantAttackUnless, AssignNoCombatDamage, MustBlock,
+      CantPreventDamage, CantGainLife, CantPlayLand, CantRegenerate, CantSacrifice,
+      UntapOtherPlayer, CantBlockUnless, CantPutCounter, CantAttach, AttackRestrict,
+      DisableTriggers, CantDraw, BlockRestrict, AttackRequirement, CantChangeLife,
+      CantPayLife, CantCrew, CantBeCopied, MustTarget, CantTransform, CantLoseLife,
+      PlayerMustAttack, CantBeSuspected, CantBecomeMonarch, CantVenture,
+      CantDiscard, CantExile, CantPhaseIn, CantPhaseOut, NoCleanupDamage]
+    converter: [WitherDamage, InfectDamage, ColorlessDamageSource, ManaBurn]
+    layer: [Continuous.SetPower, Continuous.SetToughness, Continuous.AddType,
+      Continuous.SetColor, Continuous.AddColor, Continuous.RemoveAllAbilities,
+      Continuous.RemoveCardTypes, Continuous.RemoveCreatureTypes, Continuous.RemoveType,
+      Continuous.RemoveLandTypes, Continuous.RemoveArtifactTypes, Continuous.RemoveKeyword,
+      Continuous.AddAllCreatureTypes, Continuous.SetName, Continuous.CantHaveKeyword]
+    reference: [Continuous.GainsAbilitiesOf, Continuous.GainsAbilitiesOfZones,
+      Continuous.GainsAbilitiesOfDefined, Continuous.GainsValidAbilities]
+    turn: [Continuous.DeclaresBlockers, Phase]
+
+  replacement:
+    modifier: [Moved, DamageDone, Draw, CreateToken, AddCounter, GainLife, ProduceMana,
+      LifeReduced, Destroy, DrawCards, Mill, RemoveCounter, Scry, Explore, PayLife,
+      Cascade, Connive, Learn, Proliferate, CopySpell, Attached, LoseMana, RollDice]
+    mask: [Untap, Counter, GameLoss, GameWin]
+    turn: [BeginPhase, BeginTurn]
+    face_down: [TurnFaceUp]
+    layer: [Transform]
+    stochastic: [AssembleContraption]
+    noop: [RollPlanarDice, Planeswalk]
+    # Silent Arbiter / Master Warcraft-like: replace who declares blockers.
+    turn.combat: [DeclareBlocker]
+
+  keyword:
+    mask: [Flying, Trample, Vigilance, Haste, Flash, Reach, Menace, First Strike, Defender,
+      Double Strike, Indestructible, Hexproof, Shroud, Protection, Landwalk, Fear,
+      Intimidate, Shadow, Horsemanship, Skulk, Ward, Deathtouch, Split second,
+      Flanking, "CARDNAME must be blocked if able.", "All creatures able to block CARDNAME do so.",
+      "CARDNAME can't attack or block alone.", "CARDNAME can't attack alone.",
+      "CARDNAME can't block alone.", "CARDNAME can only attack alone.", "CARDNAME can't attack or block.",
+      "You may choose not to untap CARDNAME during your untap step.",
+      "Prevent all damage that would be dealt to CARDNAME.",
+      "Prevent all combat damage that would be dealt to CARDNAME.",
+      "Prevent all combat damage that would be dealt to and dealt by CARDNAME.",
+      "CARDNAME can block creatures with shadow as though they didn't have shadow.",
+      MustBeBlockedByAll, Decayed, Compleated]
+    converter: [Lifelink, Infect, Wither, Toxic, Devoid, Changeling]
+    resource: [etbCounter, ETBReplacement, Chapter, Prowess, Cumulative upkeep, Echo,
+      Exalted, Bushido, Soulshift, Persist, Undying, Modular, Bloodthirst, Devour,
+      Evolve, Renown, Fabricate, Vanishing, Fading, Extort, Annihilator, Afflict,
+      Battle cry, Training, Mentor, Afterlife, Amplify, Graft, Riot, Living Weapon,
+      Myriad, Melee, Rampage, Dethrone, Ingest, Backup, Exploit, Outlast, Mobilize,
+      For Mirrodin, Squad, Offspring, Gift, Increment, Ravenous, Enlist, Provoke,
+      Hideaway, Firebending, Saddle, Crew, Equip, Enchant, Reconfigure, Fortify,
+      Level up, Class, Station, Sunburst, Umbra armor, Soulbond, Storied, Undaunted,
+      Start your engines, Harmonize, Mayhem, Sneak, Web-slinging, Job select, Visit,
+      Doctor's companion, Living metal, Recover, Tribute, Tiered, Reinforce, Paradigm,
+      Demonstrate, Teamwork, Space sculptor]
+    turn: [Phasing]
+    # Banding: o controlador do bando atribui o dano de combate (CR 702.22).
+    layer: [Banding]
+    face_down: [Morph, Megamorph, Disguise]
+    alt_cost: [Kicker, Cycling, Flashback, Convoke, TypeCycling, Affinity,
+      Suspend, Madness, Unearth, Foretell, Bestow, AlternateAdditionalCost,
+      Buyback, Evoke, Ninjutsu, Plot, Entwine, Warp, Splice, Delve,
+      Aftermath, Overload, Escape, Encore, Dash, Disturb, Craft, Improvise, Strive,
+      Spree, Bargain, Prototype, Replicate, Multikicker, Fuse, Miracle, Blitz, Retrace,
+      Assist, Casualty, Emerge, Embalm, Cipher, Awaken, Scavenge, Unleash, Transmute,
+      Freerunning, Eternalize, Jump-start, Conspire, Surge, Spectacle, Prowl, Read ahead,
+      Escalate, Offering, Impending, Ascend, Dredge, Champion, MayFlashCost, MayFlashSac,
+      MayEffectFromOpeningHand, MayEffectFromOpeningDeck, Rebound, Haunt,
+      Transfigure, Aura swap]
+    modifier: [Cascade, Storm, Ripple, Epic, Gravestorm]
+    control: [Partner, "Partner with", "Choose a Background", Companion,
+      "A deck can have any number of cards named CARDNAME.", "CARDNAME can be your commander.",
+      DeckLimit, Daybound, Nightbound]
+    reference: [Mutate, "More Than Meets the Eye"]
+    resource.subgame: [Prize]
+    # Frases-palavra-chave de combate e dados que o Forge guarda como K: literal.
+    mask.sentences:
+      - "CARDNAME must be blocked by two or more creatures if able."
+      - "CARDNAME must be blocked by exactly one creature if able."
+      - "CARDNAME can't attack unless a creature with greater power also attacks."
+      - "CARDNAME can't block unless a creature with greater power also blocks."
+      - "CARDNAME can't attack unless at least two other creatures attack."
+      - "CARDNAME can't block unless at least two other creatures block."
+      - "CARDNAME can't attack unless a black or green creature also attacks."
+      - "CARDNAME can't be destroyed by lethal damage unless lethal damage dealt by a single source is marked on it."
+    modifier.sentences:
+      - "You may assign CARDNAME's combat damage divided as you choose among defending player and/or any number of creatures they control."
+      - "If CARDNAME is unblocked, you may have it assign its combat damage to a creature defending player controls."
+      - "As an additional cost to cast creature spells, you may pay any amount of mana. If you do, that creature enters with that many additional +1/+1 counters on it."
+      - "Spend only colored mana on X. No more than one mana of each color may be spent this way."
+      - "While you're searching your library, you may cast CARDNAME from your library."
+    stochastic.sentences:
+      - "Once each turn, you may pay {1} to reroll one or more dice you rolled."
+      - "After you roll a die, you may pay 1 life. If you do, increase or decrease the result by 1. Do this only once each turn."
+      - "After you roll a die, you may remove a +1/+1 counter from Xenosquirrels. If you do, increase or decrease the result by 1."
+
+  cost:
+    resource: [Tap, Sac, SubCounter, Discard, AddCounter, tapXType, PayLife,
+      ExileFromGrave, PayEnergy, Exile, Return, Draw, RemoveAnyCounter, Reveal,
+      ExileAnyGrave, Untap, ExiledMoveToGrave, Blight, CollectEvidence, ExileFromHand,
+      Mana, Unattach, Exert, ExileFromTop, Mill, Forage, untapYType, PutCardToLibFromHand,
+      PutCardToLibFromGrave, ExileFromStack, RevealChosen, ExileSameGrave, Behold,
+      PutCardToLibFromBattlefield, RevealFromExile, RevealOrChoose, Waterbend]
+    control: [Mandatory, XMin]
+    param: [ChooseCreatureType]
+    stochastic: [RollDice]
+
+# Átomos-invólucro: cabem na álgebra só depois que os parâmetros forem lidos na
+# Fase 2. A cota pessimista da cobertura os conta como fora. (Effect$ e os
+# Continuous.Add* não entram: o conteúdo que concedem está em SVars, que o
+# inventário já atomiza; ChangeZone já vem separado por zonas.)
+generic:
+  - api:ReplaceEffect
+  - api:Animate
+  - api:AnimateAll
+  - api:AlterAttribute
+  - api:Play
+  - static:Continuous.MayPlay
+  - replacement:Moved
+
+# Classes cuja semântica está definida aqui mas cujo VALOR depende de algo que só
+# existe em fases posteriores. O relatório de cobertura lista quantas cartas
+# dependem de cada uma.
+deferred_valuation:
+  reference: "Fase 5 — resolver contra o grafo do deck: valor = melhor alvo da classe copiada"
+  layer: "Fase 2 (ler o atributo alterado) + Fase 5 (aplicar na ordem do CR 613)"
+  face_down: "Fase 2 — corpo 2/2 + custo de virar como alt_cost do operador real"
+  turn: "Fase 5 — multiplicador do bloco de operadores no horizonte de V(D)"
+  terminal: "Decisão em aberto 8.1 (recurso de vitória) + Fase 5"
+  adversarial: "Fase 8 — modelo de oponente; até lá, minimax (pior opção para você)"
+  stochastic: "Fase 2 — valor esperado sobre a distribuição do dado/moeda"
+  param: "Fase 7 — o otimizador fixa a escolha junto com o deck"
