@@ -1,6 +1,7 @@
 # Economia de operadores — sinergia deduzida das regras
 
-> Status: proposta de direção (2026-10-02). Substitui a ideia de "sinergia =
+> Status: em execução — Fases 1 e 2 aceitas, Fase 0 com build completa pendente;
+> relógio de dano, taxonomia de arquétipos e exploração adicionados (2026-10-05). Substitui a ideia de "sinergia =
 > similaridade textual" e o score linear com pesos escolhidos à mão. Convive com
 > [`ONTOLOGY.md`](../ONTOLOGY.md): a ontologia vira a interface tipada desta
 > álgebra; o Forge vira a fonte e o oráculo das regras.
@@ -159,6 +160,128 @@ para hiperarestas de 3 ou mais cartas, que nem a sinergia par a par nem os
 embeddings capturam. **Hiperarestas com ρ alto entre cartas de texto
 dissimilar são a hipótese de descoberta.**
 
+### 2.6 Arquétipos de primeira ordem: o relógio de dano
+
+**O problema.** Um mono-green stomp (ramp, criaturas grandes, trample,
+overrun) quase não tem arestas `emits → rewards` ou `produces → consumes`
+entre nomes de predicado. Se o objetivo for só `syn(S)`, o otimizador
+**sempre prefere decks de engine**. É um viés estrutural, não um bug pontual.
+
+**A correção:** o objetivo é `V(D)`, não `syn(S)`, e `V` precisa de um
+**relógio de dano** explícito. O valor de um stomp é quase todo de primeira
+ordem (stats por mana) mais **tempo**:
+
+```
+m_t        = terrenos_t + Σ ramp disponível em t            # mana no turno t
+L_t(D)     = conjunto lançado até t, por uma política de curva (maior impacto que cabe em m_t)
+dano_t     = Σ_{c ∈ corpos em jogo, sem enjoo} poder_c · P_conectar(c) · mult_t
+relógio(D) = min{ t : Σ_{τ ≤ t} dano_τ ≥ 120 }               # 3 oponentes × 40
+```
+
+As peças viram operadores que já existem na álgebra:
+
+1. **Mana no tempo.** Ramp é `produces(mana)`; cada carta consome seu cmc.
+   A sinergia ramp × topo de curva é **temporal**: ramp vale mais quanto mais
+   caras forem as ameaças. Exemplo: um 7/7 de 7 manas sai no turno 7 sem ramp
+   e no turno 5 com duas rampas — dois ataques a mais, ≈ 14 de dano. É um
+   termo quadrático real em `W` entre fontes de mana e ameaças caras, com peso
+   `turnos antecipados × poder`, sem precisar de palavra em comum.
+2. **Corpo = conversor de mana em dano por turno:** `poder × P_conectar`.
+3. **Trample e evasão** são operadores de 2ª ordem sobre `P_conectar`.
+   **Overrun** (Craterhoof, Overwhelming Stampede) multiplica o poder de todos
+   os corpos — o valor dele cresce com o número de criaturas, e "ter muitas
+   criaturas é bom" sai como conclusão, com a mesma estrutura bilinear do
+   exemplo dos artefatos (seção 2.4).
+4. **Proteção em massa** (Heroic Intervention, hexproof) reduz a perda
+   esperada contra o modelo de oponente.
+
+**Combate contra bloqueadores** é a parte difícil: `P_conectar` depende do
+oponente. Abstração viável: cada oponente tem uma **capacidade de bloqueio
+por turno** `b_t` (quantos corpos absorve). Trample e evasão contornam `b_t`;
+overrun e excesso de corpos saturam `b_t`. Até a Fase 8, `b_t` vem da taxa-base
+do catálogo (seção 4, opção 1); depois, da população coevoluída — e aí stomp
+vale mais justamente quando a população tem poucas remoções em massa.
+
+O relógio também dá o **numerário**: dano. Outros recursos (cartas, vida,
+tokens) convertem para dano pelos preços `π` da seção 3, e o mesmo relógio
+mede decks de engine, que precisam converter o motor em dano ou em outra
+condição de vitória. Veneno, dano de comandante, biblioteca vazia e vitórias
+alternativas são **relógios paralelos** (seção 2.7, eixo A); `V` usa o mais
+rápido.
+
+### 2.7 Taxonomia de arquétipos: três eixos
+
+"Stomp" e "aristocrats" dizem **como** o deck ganha; "midrange" e "controle"
+dizem **em que ritmo e com quanta interação** ele joga. São eixos diferentes.
+Um arquétipo é uma combinação de três eixos:
+
+**Eixo A — rota até a vitória (como ganha).** Toda rota é um caminho no
+grafo de recursos, da mana até um terminal das regras (CR 104):
+
+| Terminal | Rotas |
+|---|---|
+| Dano de combate | go-wide (tokens, tribal com lordes), go-tall (stomp), evasão (voadores, unblockable), combates extras |
+| Dano de comandante (21) | voltron (equipamentos, auras) |
+| Perda de vida fora de combate | aristocrats (morte → drenar), burn/spellslinger, lifegain → drenar, pings de ETB, group slug (punir oponentes por agir) |
+| Veneno (10) | infect, toxic, proliferate |
+| Biblioteca vazia | mill dos oponentes |
+| Vitória alternativa | Thassa's Oracle / Laboratory Maniac (com self-mill), Approach of the Second Sun, Coalition Victory, … |
+| Loop infinito | combo: ciclo com ganho ≥ 1 (seção 2.5) alimentando qualquer terminal acima |
+
+**Eixo B — postura (ritmo e relação com os oponentes):**
+
+| Postura | Assinatura mecânica |
+|---|---|
+| Aggro | relógio rápido, pouca interação, curva baixa |
+| Midrange | relógio médio, interação média, **valor por carta alto** (2-por-1, ameaças resilientes); se adapta à mesa |
+| Controle | relógio lento, muita interação, vantagem de cartas, vence tarde |
+| Tempo | ameaças e interação baratas; nega mana e tempo dos oponentes |
+| Combo | velocidade de montagem, tutores, proteção; pouca interação para fora |
+| Ramp / big mana | acelera até efeitos desproporcionais |
+| Stax / prisão | restrições (MASK) sobre os recursos dos oponentes |
+| Pillowfort | desestimula ataques (Propaganda, Ghostly Prison) |
+| Group hug / política | dá recursos aos oponentes e ganha pela dinâmica da mesa |
+
+**Eixo C — motor de recursos (o que alimenta o deck):** cemitério
+(reanimator, recursão, self-mill), terrenos/landfall, artefatos,
+encantamentos (enchantress), tokens, contadores +1/+1, mágicas (storm,
+magecraft), blink/ETB, sacrifício, ganho de vida, compra e wheels, tribal,
+roubo, cópia/clone.
+
+**Exemplos:** reanimator controle = (combate ou vitória alternativa,
+controle, cemitério); stomp = (combate go-tall, ramp, terrenos); aristocrats
+midrange = (drenar, midrange, sacrifício).
+
+**Posturas viram descritores contínuos**, medidos só pelas regras — sem
+rótulos:
+
+| Descritor | Medida |
+|---|---|
+| Velocidade | turno do relógio (seção 2.6), o mais rápido entre os terminais |
+| Interação | densidade de respostas, ponderada por velocidade (instantâneo > feitiço) |
+| Valor | cartas líquidas por turno + corpos que sobrevivem a remoção |
+| Restrição | densidade de operadores MASK que afetam oponentes (stax) |
+| Doação | recursos entregues a oponentes (group hug) |
+| Ordem | fração de `V` vinda de 1ª vs 2ª ordem (stomp vs engine) |
+
+Midrange é a região de velocidade média, interação média e valor alto;
+controle é velocidade baixa, interação alta e valor alto. Os nomes são só
+regiões de um espaço contínuo, e é esse espaço que a exploração da seção 6.1
+usa como descritores. O produto dos três eixos tem centenas de células; a
+comunidade ocupa uma fração delas.
+
+**O que o modelo ainda não vê bem:**
+- **Group hug / política:** o valor depende do comportamento dos outros
+  jogadores (alianças, ameaça percebida). A classe `adversarial` da álgebra
+  usa minimax; isso é pessimista para política e fica fora até existir um
+  modelo de comportamento de oponente.
+- **Roubo e cópia:** têm semântica na álgebra v1.1 (`GainControl` como
+  recurso, cópia como `reference`), mas o valor é diferido para a Fase 5
+  (`data/ontology/ALGEBRA_COVERAGE.md`). Até lá, motores de "usar as cartas
+  dos oponentes" ficam subavaliados.
+- **Pillowfort:** modelável como imposto sobre os ataques dos oponentes, mas
+  o valor depende do modelo de ameaça da Fase 8.
+
 ## 3. Valor como estado latente
 
 As taxas de troca (quanto vale uma carta, um token, 1 de vida, em mana) são
@@ -267,6 +390,66 @@ s.a.    Σ x = 99 − (terrenos fixos);  identidade;  singleton;  legalidade
 - Não é preciso *aprender o otimizador*. O aprendizado vai para `V` (operadores
   e `π`).
 
+### 6.1 Exploração por diversidade (quality-diversity)
+
+Otimizar `V` converge para *um* deck. Para ver o espaço inteiro — inclusive
+o que ninguém testou — a busca é por diversidade, sem popularidade:
+
+- **Rotas primeiro.** Enumerar as rotas mana → terminal (eixo A da seção 2.7)
+  no grafo de operadores do catálogo. Para cada rota: **suporte** (nº de
+  cartas legais na aresta gargalo), **relógio** (seção 2.6) e
+  **fragilidade** (quantas classes de resposta da seção 4 quebram a rota).
+  Rotas com ciclos são engines; ciclos com ganho `≥ 1` são os loops da
+  seção 2.5.
+- **MAP-Elites** (Mouret & Clune, 2015; Fontaine et al., 2019 para decks de
+  Hearthstone): o arquivo guarda o melhor deck de cada célula. Células =
+  rota dominante (eixo A) × motor (eixo C) × descritores de postura
+  contínuos (seção 2.7).
+- **Novelty search** (Lehman & Stanley, 2011): premia o deck por ser
+  comportamentalmente distante do arquivo, não por ser bom. Novidade medida
+  **internamente** (distância entre vetores de descritores).
+- **Combinação:** a novidade empurra a busca para regiões novas; o MAP-Elites
+  guarda o melhor de cada região.
+
+**Definição operacional de descoberta:** uma célula (rota × postura × motor)
+com elite forte (`V` alto, relógio competitivo) que nenhuma heurística, LLM
+ou base de popularidade teria visitado. Verificável a posteriori comparando
+o arquivo com a inclusão observada (Fase 9).
+
+### 6.2 Modelo fundacional
+
+Três camadas, todas treinadas sem popularidade:
+
+| Camada | O que aprende | Dados |
+|---|---|---|
+| **Codificador de cartas** | representação *funcional* de cada carta (não textual) | scripts do Forge + oracle; tarefas autossupervisionadas: texto → operador (o compilador da Fase 2 dá os rótulos), operador mascarado, previsão de custo (a tarefa de `π`) |
+| **Modelo de mundo** | transição `s' = f(s, ação)` no estado abstrato (2.1) | micro-experimentos do Forge (Fase 3): estados legais aleatórios + ações → Δ. É aprender a física do jogo, não deck jogando partida |
+| **Valor e política de decks** | `V(D)` amortizado (Deep Sets / Set Transformer) + gerador de decks | o **próprio arquivo** do MAP-Elites |
+
+- **Ciclo de autoaperfeiçoamento** (o análogo possível do AlphaZero): busca →
+  arquivo → treino do valor e do gerador → busca melhor. O AlphaZero treinava
+  com as próprias partidas; aqui o modelo treina com as **próprias buscas**,
+  ancorado nas regras, nunca em dados humanos.
+- **Argumento principal para o codificador:** Magic lança cartas o tempo
+  todo. Um modelo que lê scripts/texto funcional avalia uma coleção nova
+  **sem retreinar**; embeddings de texto e popularidade não fazem isso.
+- **Ordem:** o modelo fundacional não é o ponto de partida; ele emerge das
+  fases anteriores. O compilador da Fase 2 é o tokenizador; `π` (Fase 4) é a
+  primeira tarefa de pré-treino; rotas + MAP-Elites geram os dados; o
+  surrogate de `V` é a rede de valor.
+
+### 6.3 Limites da exploração
+
+- **Goodhart:** um ciclo que se autoaperfeiçoa explora as falhas de `V`. Se
+  `V` superestima uma interação, o gerador enche os decks dela. Âncora:
+  validação no Forge (micro-experimentos e poucas partidas de checagem),
+  **fora** do laço.
+- **O modelo não sabe mais do que a abstração:** classes de valor diferido
+  (`reference`, `layer`, `adversarial`, …) só pesam quando a fase que as
+  resolve existir; rotas que dependem delas ficam subexploradas até lá.
+- **Escala:** o codificador é viável com os dados existentes; o modelo de
+  mundo exige milhões de transições e é o ponto caro do projeto.
+
 ## 7. Passo a passo
 
 Cada fase tem um entregável, um critério de aceite e um critério de parada
@@ -374,6 +557,31 @@ amostra da semente 7 e 1 em 100 numa amostra independente (semente 11), ambos
 corrigidos. A amostra final está em `data/ontology/DOMINANCE.md` para a sua
 conferência.
 
+### Fase 2.5 — Relógio de dano analítico (≈ 1 semana)
+
+Vem logo depois da Fase 2 porque só precisa de magnitudes (poder, cmc, mana
+produzida); **não depende da Fase 3**. Detalhes na seção 2.6.
+
+- [ ] Curva de mana `m_t` a partir de terrenos (modelo de terrenos da Fase 0)
+      e ramp, por hipergeométrica sobre a ordem de compra.
+- [ ] Política de lançamento: no turno `t`, lançar o conjunto de maior impacto
+      que cabe em `m_t` (mochila pequena por turno).
+- [ ] Dano por turno com enjoo de invocação, `P_conectar` e capacidade de
+      bloqueio `b_t` por oponente (taxa-base do catálogo).
+- [ ] Modificadores de 2ª ordem: trample/evasão sobre `P_conectar`, overrun
+      como multiplicador, haste removendo o enjoo.
+- [ ] Relógios paralelos para os outros terminais (veneno, dano de
+      comandante, biblioteca, vitória alternativa).
+- [ ] Métricas: turno médio e variância do relógio, dano até T6/T8, mana
+      desperdiçada por turno.
+
+**Aceite:**
+- Ramp × topo de curva aparece como interação positiva sem palavra em comum
+  (o exemplo do 7/7 dá ≈ 2 ataques a mais).
+- O valor de um overrun cresce com o número de criaturas do deck.
+- Num deck de criaturas verdes, trocar 10 criaturas grandes por 10 cartas de
+  "draw" sem conversor em dano piora o relógio.
+
 ### Fase 3 — Forge como oráculo: micro-experimentos (≈ 2–3 semanas)
 
 - [ ] Harness que gera estados de Puzzle (ou chama a API Java), executa uma
@@ -405,10 +613,41 @@ tipo; Mind's Eye e similares com `s_k` claramente negativo.
 - [ ] Operadores de 2ª ordem como escalares/máscaras sobre `W`.
 - [ ] Terrenos como operadores de mana comparados contra o básico (substitui a
       Fase 0 no modelo).
-- [ ] `V(D)` analítica e decomposição explicável por aresta.
+- [ ] `V(D)` analítica e decomposição explicável por aresta, com o relógio de
+      dano da Fase 2.5 como numerário.
 
-**Aceite:** `V` reprova os decks atuais de Krenko e Lightning em relação às
-versões reconstruídas; a decomposição explica cada carta.
+**Aceite:**
+- `V` reprova os decks atuais de Krenko e Lightning em relação às versões
+  reconstruídas; a decomposição explica cada carta.
+- **Teste anti-viés de engine:** com o pedido "verde, criaturas", o sistema
+  monta um stomp coerente (ramp, ameaças grandes, trample/overrun) sem que
+  "stomp" esteja escrito em lugar nenhum, e esse deck é competitivo em `V`
+  com decks de engine da mesma cor. Se `V` só gostar de engines, `V` está
+  errada.
+
+### Fase 5.5 — Rotas e descritores de arquétipo (≈ 1–2 semanas)
+
+Detalhes nas seções 2.7 e 6.1. Depende das Fases 2, 2.5 e 4.
+
+- [ ] Grafo de recursos do catálogo: nós = recursos/eventos/terminais,
+      arestas = operadores com taxa `π`.
+- [ ] Enumeração de rotas mana → terminal (caminhos simples até comprimento
+      `k`, mais ciclos), restrita à identidade de cor quando houver
+      comandante.
+- [ ] Métricas por rota: suporte (aresta gargalo), relógio, fragilidade.
+- [ ] Descritores de postura (velocidade, interação, valor, restrição,
+      doação, ordem) e motor dominante para qualquer deck.
+- [ ] Catálogo de rotas em `eval/routes/` com as cartas de cada aresta.
+
+**Aceite:**
+- Recupera as rotas conhecidas (go-wide, stomp, voltron, aristocrats,
+  spellslinger, mill, infect, vitória alternativa, combo) **sem** que elas
+  tenham sido listadas.
+- Os descritores separam posturas conhecidas: listas de referência de
+  aggro, midrange e controle caem em regiões distintas do espaço (a lista de
+  referência serve só para o teste, nunca como sinal de treino).
+- Para cada comandante de teste, lista as rotas viáveis em ordem de relógio,
+  com ao menos uma candidata à descoberta para a Fase 9.
 
 ### Fase 6 — Loops espectrais (≈ 1–2 semanas)
 
@@ -438,22 +677,54 @@ comandantes de teste; solução em < 1 min.
 **Aceite:** o número e o tipo de respostas convergem sem quota fixa; nenhum
 deck final com zero respostas a uma classe presente na população.
 
-### Fase 9 — Avaliação e paper
+### Fase 9 — Exploração e avaliação (≈ 2–3 semanas)
 
-- [ ] **MAP-Elites** com descritores mecânicos (cmc médio, proporção de
-      criaturas, recurso dominante em `G`, ρ máximo). Guarda o melhor deck por
-      célula.
+Detalhes na seção 6.1.
+
+- [ ] **MAP-Elites** com células = rota dominante × motor × descritores de
+      postura (Fase 5.5).
+- [ ] **Novelty search** com arquivo de comportamentos; combinação com o
+      MAP-Elites.
 - [ ] **Novidade (a posteriori):** só aqui a popularidade entra, para medir se
-      as elites e os combos encontrados são pouco usados.
+      as elites, rotas e combos encontrados são pouco usados.
 - [ ] Teste humano: os decks no EDHPlay e na mesa.
+
+**Aceite:** o arquivo cobre todas as rotas viáveis da Fase 5.5 e as posturas
+principais (aggro, midrange, controle, combo, stax); existem células com
+elite competitiva e inclusão observada baixa.
 
 **Figura central candidata:** força funcional (`V`, `ρ`) × inclusão
 observada. As soluções fortes e raras são a contribuição.
 
+### Fase 10 — Modelo fundacional (contínua, depois da Fase 9)
+
+Detalhes na seção 6.2.
+
+- [ ] **Codificador de cartas** autossupervisionado sobre scripts do Forge +
+      oracle (texto → operador, operador mascarado, previsão de custo).
+- [ ] **Surrogate de `V`** (Deep Sets / Set Transformer) treinado no arquivo
+      do MAP-Elites; filtra candidatos antes da avaliação analítica.
+- [ ] **Ciclo busca → treino:** gerador de decks treinado no arquivo, usado
+      como proposta para a busca seguinte.
+- [ ] **Modelo de mundo** a partir dos micro-experimentos da Fase 3 (o
+      componente mais caro; só depois dos outros três).
+- [ ] Validação no Forge **fora** do laço a cada iteração (proteção contra
+      Goodhart).
+
+**Aceite:**
+- O codificador avalia cartas de uma coleção **não vista no treino** com
+  erro de previsão de custo comparável ao das cartas vistas.
+- O surrogate ordena decks como a `V` analítica (correlação de postos alta)
+  a uma fração do custo.
+- Cada iteração do ciclo melhora o arquivo (mais células ocupadas ou elites
+  melhores) **e** a melhora se mantém na validação do Forge.
+
 ## 8. Decisões em aberto
 
-1. **Numerário e objetivo:** qual é o recurso de vitória? Dano até 120?
-   Vetor ponderado?
+1. **Numerário e objetivo** — proposta (2026-10-04): **dano com relógio**
+   (seção 2.6); outros recursos convertem para dano por `π`. Veneno, dano de
+   comandante, biblioteca e vitórias alternativas como relógios paralelos,
+   com `V` usando o mais rápido. Falta confirmar.
 2. **Horizonte `T` e desconto `γ`.**
 3. **Âncora de π:** só a curva de design, ou com parâmetros normativos e
    análise de sensibilidade?
@@ -465,6 +736,14 @@ observada. As soluções fortes e raras são a contribuição.
 
 ## 9. Riscos
 
+- **Viés pró-engine:** um objetivo feito só de sinergia premia engines e
+  ignora arquétipos de primeira ordem (stomp, aggro de stats). Mitigação: `V`
+  com relógio de dano (seção 2.6) e o teste anti-viés da Fase 5.
+- **`P_conectar` é um parâmetro até a Fase 8.** O valor de stomp é sensível a
+  ele. Mitigação: análise de sensibilidade em `b_t` e reportar a faixa em que
+  o deck continua ótimo.
+- **Goodhart no ciclo de autoaperfeiçoamento:** o gerador aprende as falhas
+  de `V`. Mitigação: validação no Forge fora do laço (seção 6.3).
 - **Fidelidade da abstração:** camadas, substituição, cópia e escolhas ficam
   fora ou aproximados. Mitigação: medir cobertura (Fase 1) e fidelidade
   (Fase 3) e reportar.
@@ -487,6 +766,14 @@ observada. As soluções fortes e raras são a contribuição.
   (MAP-Elites para construção de decks).
 - M. Fontaine et al. *Mapping Hearthstone Deck Spaces through MAP-Elites with
   Sliding Boundaries*. GECCO 2019.
+- J.-B. Mouret, J. Clune. *Illuminating search spaces by mapping elites*.
+  arXiv:1504.04909, 2015 (MAP-Elites).
+- J. Lehman, K. O. Stanley. *Abandoning Objectives: Evolution Through the
+  Search for Novelty Alone*. Evolutionary Computation 19(2), 2011.
+- J. Schrittwieser et al. *Mastering Atari, Go, Chess and Shogi by Planning
+  with a Learned Model*. Nature 588, 2020 (MuZero: modelo de mundo aprendido).
+- M. Zaheer et al. *Deep Sets*. NeurIPS 2017; J. Lee et al. *Set
+  Transformer*. ICML 2019 (funções de conjunto para `V(D)`).
 - Forge — modo de simulação headless:
   <https://github.com/Card-Forge/forge/wiki/ai>
 - Forge — Puzzle Mode (formato de estado):
