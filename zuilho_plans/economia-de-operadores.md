@@ -1,6 +1,6 @@
 # Economia de operadores — sinergia deduzida das regras
 
-> Status: em execução — Fases 0, 1, 2 e 3 aceitas;
+> Status: em execução — Fases 0, 1, 2, 2.5 e 3 aceitas;
 > relógio de dano, taxonomia de arquétipos e exploração adicionados (2026-10-05). Substitui a ideia de "sinergia =
 > similaridade textual" e o score linear com pesos escolhidos à mão. Convive com
 > [`ONTOLOGY.md`](../ONTOLOGY.md): a ontologia vira a interface tipada desta
@@ -564,18 +564,26 @@ conferência.
 Vem logo depois da Fase 2 porque só precisa de magnitudes (poder, cmc, mana
 produzida); **não depende da Fase 3**. Detalhes na seção 2.6.
 
-- [ ] Curva de mana `m_t` a partir de terrenos (modelo de terrenos da Fase 0)
-      e ramp, por hipergeométrica sobre a ordem de compra.
-- [ ] Política de lançamento: no turno `t`, lançar o conjunto de maior impacto
-      que cabe em `m_t` (mochila pequena por turno).
-- [ ] Dano por turno com enjoo de invocação, `P_conectar` e capacidade de
-      bloqueio `b_t` por oponente (taxa-base do catálogo).
-- [ ] Modificadores de 2ª ordem: trample/evasão sobre `P_conectar`, overrun
-      como multiplicador, haste removendo o enjoo.
-- [ ] Relógios paralelos para os outros terminais (veneno, dano de
-      comandante, biblioteca, vitória alternativa).
-- [ ] Métricas: turno médio e variância do relógio, dano até T6/T8, mana
-      desperdiçada por turno.
+- [x] Curva de mana `m_t` a partir de terrenos (modelo de terrenos da Fase 0)
+      e ramp, por hipergeométrica sobre a ordem de compra. → esperança estimada
+      por amostragem de ordens de compra (a política de lançamento não tem forma
+      fechada); ordem fixa para testes determinísticos. `src/operators/clock.py`.
+- [x] Política de lançamento: no turno `t`, lançar o conjunto de maior impacto
+      que cabe em `m_t` (mochila pequena por turno). Impacto medido no próprio
+      relógio (dano futuro em equivalente de poder), não em `V`.
+- [x] Dano por turno com enjoo de invocação, `P_conectar` e capacidade de
+      bloqueio `b_t` por oponente (taxa-base do catálogo). → `b_t` é um
+      estoque: a mesa ganha bloqueadores a uma taxa por turno e o bloqueio chump
+      gasta o bloqueador (bloqueadores eternos zeravam o dano de qualquer deck).
+- [x] Modificadores de 2ª ordem: trample/evasão sobre `P_conectar`, overrun
+      como multiplicador, haste removendo o enjoo. Mais: anthem, Craterhoof
+      (+X por criatura), fábricas de token por virar (Krenko), equipamentos e
+      auras (voltron), tokens de ETB e por manutenção.
+- [x] Relógios paralelos para os outros terminais (veneno, dano de
+      comandante, biblioteca, vitória alternativa). Efeitos condicionais
+      ("se você controla seis terrenos", "se tiver 50 de vida") não contam.
+- [x] Métricas: turno médio e variância do relógio, dano até T6/T8, mana
+      desperdiçada por turno. → `scripts/clock_report.py` → `data/ontology/CLOCK.md`.
 
 **Aceite:**
 - Ramp × topo de curva aparece como interação positiva sem palavra em comum
@@ -583,6 +591,20 @@ produzida); **não depende da Fase 3**. Detalhes na seção 2.6.
 - O valor de um overrun cresce com o número de criaturas do deck.
 - Num deck de criaturas verdes, trocar 10 criaturas grandes por 10 cartas de
   "draw" sem conversor em dano piora o relógio.
+
+**Resultado (2026-10-05): ACEITE**, com cartas reais compiladas. Pelakka Wurm +
+2 Rampant Growth: syn = +14 de dano = **2,0 ataques a mais**. Ganho do Overrun:
++0,22 → +1,31 de dano até T8 de 5 para 35 criaturas. Deck verde montado do
+catálogo sem escolha manual: trocar as 10 criaturas mais fortes lançáveis por
+10 draws cai de 28,0 para 22,3 de dano até T8, e a conclusão vale nas 9
+combinações de taxa de bloqueio × `P_conectar` testadas. Achado: a primeira
+versão do teste trocava criaturas de 8–9 manas e o draw ganhava — o modelo
+está certo, ameaças que não entram até T12 valem menos que compra barata.
+Decks do repositório: o Lightning gerado causa 17,0 de dano até T8 contra 28,4
+do Lightning humano; Krenko gerado é o mais rápido (T≈10) pelo próprio Krenko,
+não pelas 99. Custo: ~0,35 ms por partida (≈ 20 ms por deck com 50 amostras).
+Limites: oponentes só bloqueiam (sem remoção nem corrida), habilidades
+ativadas que não sejam mana/token não contam, contagens variáveis aproximadas.
 
 ### Fase 3 — Forge como oráculo: micro-experimentos (≈ 2–3 semanas)
 

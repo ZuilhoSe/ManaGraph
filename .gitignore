@@ -39,3 +39,4 @@ data/ontology/forge_atoms_*.json
 web/node_modules/
 web/dist/
 tools/forge_oracle/build/
+data/ontology/forge_index_*.json
