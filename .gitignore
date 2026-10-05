@@ -38,3 +38,4 @@ data/ontology/forge_atoms_*.json
 # Frontend local artifacts (also listed in web/.gitignore)
 web/node_modules/
 web/dist/
+tools/forge_oracle/build/

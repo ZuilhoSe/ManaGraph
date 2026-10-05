@@ -1,0 +1,5610 @@
+[
+ {
+  "card": "Hawkeye's Shot",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Kin-Tree Severance",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.enchantments": -1
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.enchantments": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Synod Sanctum",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p1.permanents": -1,
+   "p1.exile": 1,
+   "p1.creatures": -1,
+   "p1.power": -2,
+   "p1.toughness": -2
+  },
+  "measured": {
+   "p1.exile": 1,
+   "p1.permanents": -1,
+   "p1.creatures": -1,
+   "p1.power": -2,
+   "p1.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Rite of Oblivion",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Iona's Judgment",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Death in the Family",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Complete Disregard",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Helvault",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p1.permanents": -1,
+   "p1.exile": 1,
+   "p1.creatures": -1,
+   "p1.power": -2,
+   "p1.toughness": -2
+  },
+  "measured": {
+   "p1.exile": 1,
+   "p1.permanents": -1,
+   "p1.creatures": -1,
+   "p1.power": -2,
+   "p1.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Final Death",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Feed the Serpent",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Grotesque Demise",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Blessed Light",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Astral Confrontation",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Exorcise",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.artifacts": -1
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.artifacts": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Brittle Effigy",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Final Reward",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Angelic Edict",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Fade into Antiquity",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.artifacts": -1
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.artifacts": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Shattering Blow",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.artifacts": -1
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.artifacts": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Bogslither's Embrace",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Reaver Ambush",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Overwhelming Remorse",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Hanged Executioner",
+  "api": "ChangeZone.Battlefield>Exile",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.exile": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.exile": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Ugin's Binding",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.hand": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.hand": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Dematerialize",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.hand": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.hand": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Decoction Module",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p1.permanents": -1,
+   "p1.hand": 1,
+   "p1.creatures": -1,
+   "p1.power": -2,
+   "p1.toughness": -2
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.permanents": -1,
+   "p1.creatures": -1,
+   "p1.power": -2,
+   "p1.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Void Snare",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.hand": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.hand": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Hallowed Ground",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p1.permanents": -1,
+   "p1.hand": 1,
+   "p1.lands": -1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.permanents": -1,
+   "p1.lands": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Just the Wind",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.hand": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.hand": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Neurok Replica",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.hand": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.hand": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Clutch of Currents",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.hand": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.hand": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Snapback",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.hand": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.hand": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Tradewind Rider",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.hand": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.hand": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Drown in Shapelessness",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.hand": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.hand": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Obelisk of Undoing",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p1.permanents": -1,
+   "p1.hand": 1,
+   "p1.creatures": -1,
+   "p1.power": -2,
+   "p1.toughness": -2
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.permanents": -1,
+   "p1.creatures": -1,
+   "p1.power": -2,
+   "p1.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Disperse",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.hand": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.hand": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Keeper of the Nine Gales",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.hand": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.hand": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Nightscape Master",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.hand": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.hand": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Void Squall",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.hand": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.hand": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Tolarian Sentinel",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p1.permanents": -1,
+   "p1.hand": 1,
+   "p1.creatures": -1,
+   "p1.power": -2,
+   "p1.toughness": -2
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.permanents": -1,
+   "p1.creatures": -1,
+   "p1.power": -2,
+   "p1.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Temporal Adept",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.hand": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.hand": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Waterfront Bouncer",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.hand": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.hand": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Dispersing Orb",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.hand": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.hand": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Vedalken Mastermind",
+  "api": "ChangeZone.Battlefield>Hand",
+  "status": "pass",
+  "predicted": {
+   "p1.permanents": -1,
+   "p1.hand": 1,
+   "p1.creatures": -1,
+   "p1.power": -2,
+   "p1.toughness": -2
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.permanents": -1,
+   "p1.creatures": -1,
+   "p1.power": -2,
+   "p1.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Griptide",
+  "api": "ChangeZone.Battlefield>Library",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.library": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.library": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Banishment Decree",
+  "api": "ChangeZone.Battlefield>Library",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.library": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.library": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Ticking Gnomes",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -1
+  },
+  "measured": {
+   "p0.life": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Crackleburr",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -3
+  },
+  "measured": {
+   "p0.life": -3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Inescapable Blaze",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -6
+  },
+  "measured": {
+   "p0.life": -6
+  },
+  "misses": {}
+ },
+ {
+  "card": "Magnificent End",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Hagi Mob",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -1
+  },
+  "measured": {
+   "p0.life": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Strafe",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Legion Guildmage",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -3
+  },
+  "measured": {
+   "p0.life": -3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Bhaal's Invoker",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -4
+  },
+  "measured": {
+   "p0.life": -4
+  },
+  "misses": {}
+ },
+ {
+  "card": "Cinder Storm",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -7
+  },
+  "measured": {
+   "p0.life": -7
+  },
+  "misses": {}
+ },
+ {
+  "card": "Tymaret, the Murder King",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -2
+  },
+  "measured": {
+   "p0.life": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Electric Seaweed",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -1
+  },
+  "measured": {
+   "p0.life": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Ragost, Deft Gastronaut",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -3
+  },
+  "measured": {
+   "p0.life": -3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Light 'Em Up",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Puncture Blast",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -3
+  },
+  "measured": {
+   "p0.life": -3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Cinder Pyromancer",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -1
+  },
+  "measured": {
+   "p0.life": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Arms Dealer",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Acceptable Losses",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Goblin Legionnaire",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -2
+  },
+  "measured": {
+   "p0.life": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Goblin Dynamo",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -1
+  },
+  "measured": {
+   "p0.life": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Bullseye, Death Dealer",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -2
+  },
+  "measured": {
+   "p0.life": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Shock Troops",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -2
+  },
+  "measured": {
+   "p0.life": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Precision Bolt",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -3
+  },
+  "measured": {
+   "p0.life": -3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Pyromatics",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -1
+  },
+  "measured": {
+   "p0.life": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Repeating Barrage",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -3
+  },
+  "measured": {
+   "p0.life": -3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Cleansing Screech",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -4
+  },
+  "measured": {
+   "p0.life": -4
+  },
+  "misses": {}
+ },
+ {
+  "card": "Unfriendly Fire",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -4
+  },
+  "measured": {
+   "p0.life": -4
+  },
+  "misses": {}
+ },
+ {
+  "card": "Ghirapur Aether Grid",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -1
+  },
+  "measured": {
+   "p0.life": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Kindlespark Duo",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -1
+  },
+  "measured": {
+   "p0.life": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Monoskelion",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -1
+  },
+  "measured": {
+   "p0.life": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Crackling Triton",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -2
+  },
+  "measured": {
+   "p0.life": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Magmatic Sinkhole",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Molten-Tail Masticore",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -4
+  },
+  "measured": {
+   "p0.life": -4
+  },
+  "misses": {}
+ },
+ {
+  "card": "Arc-Slogger",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -2
+  },
+  "measured": {
+   "p0.life": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Reckless Abandon",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -4
+  },
+  "measured": {
+   "p0.life": -4
+  },
+  "misses": {}
+ },
+ {
+  "card": "Ember Hauler",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -2
+  },
+  "measured": {
+   "p0.life": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Explosive Singularity",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -10
+  },
+  "measured": {
+   "p0.life": -10
+  },
+  "misses": {}
+ },
+ {
+  "card": "High Noon",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -5
+  },
+  "measured": {
+   "p0.life": -5
+  },
+  "misses": {}
+ },
+ {
+  "card": "Direct Current",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -2
+  },
+  "measured": {
+   "p0.life": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Alchemist's Greeting",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Chainflinger",
+  "api": "DealDamage",
+  "status": "pass",
+  "predicted": {
+   "p0.life": -1
+  },
+  "measured": {
+   "p0.life": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Rats of Rath",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p1.permanents": -1,
+   "p1.graveyard": 1,
+   "p1.creatures": -1,
+   "p1.power": -2,
+   "p1.toughness": -2
+  },
+  "measured": {
+   "p1.graveyard": 1,
+   "p1.permanents": -1,
+   "p1.creatures": -1,
+   "p1.power": -2,
+   "p1.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Reckless Reveler",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.artifacts": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.artifacts": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Dragon's Prey",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Voracious Varmint",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.artifacts": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.artifacts": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Skirsdag Flayer",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Earthblighter",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.lands": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.lands": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Priest of Iroas",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.enchantments": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.enchantments": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Ruinous Path",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Winter's Grasp",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.lands": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.lands": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Demolish",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.artifacts": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.artifacts": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Nature's Chant",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.artifacts": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.artifacts": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Uktabi Faerie",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.artifacts": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.artifacts": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Mogg Salvage",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.artifacts": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.artifacts": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Deadly Alliance",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Murderous Cut",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Volcanic Awakening",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.lands": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.lands": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Embrace Oblivion",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Abolish",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.artifacts": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.artifacts": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Ghostly Visit",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Stone Rain",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.lands": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.lands": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Hand of Justice",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Arenson's Aura",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.enchantments": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.enchantments": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Elvish Scrapper",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.artifacts": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.artifacts": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Earth Rift",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.lands": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.lands": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Murder",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Suncrusher",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Spark Harvest",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Crush",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.artifacts": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.artifacts": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Aura Fracture",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.enchantments": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.enchantments": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Desert Twister",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Urgent Exorcism",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.enchantments": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.enchantments": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Powerstone Fracture",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Font of Agonies",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Allay",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.enchantments": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.enchantments": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Keldon Arsonist",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.lands": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.lands": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Grounded for Life",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Viridian Zealot",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.artifacts": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.artifacts": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Bitter Triumph",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Bone Shards",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Chill to the Bone",
+  "api": "Destroy",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Drill Bit",
+  "api": "Discard",
+  "status": "pass",
+  "predicted": {
+   "p0.hand": -1,
+   "p0.graveyard": 1
+  },
+  "measured": {
+   "p0.hand": -1,
+   "p0.graveyard": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Duress",
+  "api": "Discard",
+  "status": "pass",
+  "predicted": {
+   "p0.hand": -1,
+   "p0.graveyard": 1
+  },
+  "measured": {
+   "p0.hand": -1,
+   "p0.graveyard": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Distress",
+  "api": "Discard",
+  "status": "pass",
+  "predicted": {
+   "p0.hand": -1,
+   "p0.graveyard": 1
+  },
+  "measured": {
+   "p0.hand": -1,
+   "p0.graveyard": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Pilfer",
+  "api": "Discard",
+  "status": "pass",
+  "predicted": {
+   "p0.hand": -1,
+   "p0.graveyard": 1
+  },
+  "measured": {
+   "p0.hand": -1,
+   "p0.graveyard": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Silversmote Ghoul",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Lunar Convocation",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Magmatic Insight",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -2,
+   "p1.hand": 2
+  },
+  "measured": {
+   "p1.hand": 2,
+   "p1.library": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Soul Diviner",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Oscorp Research Team",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -2,
+   "p1.hand": 2
+  },
+  "measured": {
+   "p1.hand": 2,
+   "p1.library": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Corrupted Conviction",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -2,
+   "p1.hand": 2
+  },
+  "measured": {
+   "p1.hand": 2,
+   "p1.library": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Shielded Aether Thief",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Plague Dogs",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Serum Tank",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Council's Deliberation",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Masked Meower",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Dockside Chef",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Soulreaper of Mogis",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Deepwood Denizen",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Insolent Neonate",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Everdream",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Sky Crier",
+  "api": "Draw",
+  "status": "miss",
+  "predicted": {
+   "p0.library": -1,
+   "p0.hand": 1
+  },
+  "measured": {
+   "p0.hand": 1,
+   "p0.library": -1,
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {
+   "p1.hand": [
+    0,
+    1
+   ],
+   "p1.library": [
+    0,
+    -1
+   ]
+  }
+ },
+ {
+  "card": "Firemind's Research",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Tower of Fortunes",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -4,
+   "p1.hand": 4
+  },
+  "measured": {
+   "p1.hand": 4,
+   "p1.library": -4
+  },
+  "misses": {}
+ },
+ {
+  "card": "Dragonlord's Prerogative",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -4,
+   "p1.hand": 4
+  },
+  "measured": {
+   "p1.hand": 4,
+   "p1.library": -4
+  },
+  "misses": {}
+ },
+ {
+  "card": "Demand Answers",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -2,
+   "p1.hand": 2
+  },
+  "measured": {
+   "p1.hand": 2,
+   "p1.library": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Spare Supplies",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Scarecrone",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Dross Skullbomb",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Thallid Soothsayer",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Maze Skullbomb",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Wall of Mulch",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Skullport Merchant",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Benalish Heralds",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Niv-Mizzet, the Firemind",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Axiom Engraver",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Chandra's Regulator",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Chemister's Insight",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -2,
+   "p1.hand": 2
+  },
+  "measured": {
+   "p1.hand": 2,
+   "p1.library": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Arcanis the Omnipotent",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -3,
+   "p1.hand": 3
+  },
+  "measured": {
+   "p1.hand": 3,
+   "p1.library": -3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Rat King, Pale Piper",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Font of Fortunes",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -2,
+   "p1.hand": 2
+  },
+  "measured": {
+   "p1.hand": 2,
+   "p1.library": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Excavation",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Meeting of Minds",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -2,
+   "p1.hand": 2
+  },
+  "measured": {
+   "p1.hand": 2,
+   "p1.library": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Surgical Skullbomb",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "The Archimandrite",
+  "api": "Draw",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Tonic Peddler",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p0.life": 3
+  },
+  "measured": {
+   "p0.life": 3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Soul Shepherd",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 1
+  },
+  "measured": {
+   "p1.life": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Meditation Puzzle",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 8
+  },
+  "measured": {
+   "p1.life": 8
+  },
+  "misses": {}
+ },
+ {
+  "card": "Starlight Invoker",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 5
+  },
+  "measured": {
+   "p1.life": 5
+  },
+  "misses": {}
+ },
+ {
+  "card": "Font of Vigor",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 7
+  },
+  "measured": {
+   "p1.life": 7
+  },
+  "misses": {}
+ },
+ {
+  "card": "Bubbling Cauldron",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 4
+  },
+  "measured": {
+   "p1.life": 4
+  },
+  "misses": {}
+ },
+ {
+  "card": "Dubious Delicacy",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 3
+  },
+  "measured": {
+   "p1.life": 3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Guac & Marshmallow Pizza",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 3
+  },
+  "measured": {
+   "p1.life": 3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Skullmead Cauldron",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 1
+  },
+  "measured": {
+   "p1.life": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Tinker's Tote",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 3
+  },
+  "measured": {
+   "p1.life": 3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Mangara's Blessing",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 5
+  },
+  "measured": {
+   "p1.life": 5
+  },
+  "misses": {}
+ },
+ {
+  "card": "Ghost-Lit Redeemer",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 2
+  },
+  "measured": {
+   "p1.life": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Senate Guildmage",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 2
+  },
+  "measured": {
+   "p1.life": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Starved Rusalka",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 1
+  },
+  "measured": {
+   "p1.life": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Claws of Gix",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 1
+  },
+  "measured": {
+   "p1.life": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Pious Kitsune",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 1
+  },
+  "measured": {
+   "p1.life": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Ancestor's Prophet",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 10
+  },
+  "measured": {
+   "p1.life": 10
+  },
+  "misses": {}
+ },
+ {
+  "card": "Baloth Prime",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 2
+  },
+  "measured": {
+   "p1.life": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Sunspring Expedition",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 8
+  },
+  "measured": {
+   "p1.life": 8
+  },
+  "misses": {}
+ },
+ {
+  "card": "Whitesun's Passage",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 5
+  },
+  "measured": {
+   "p1.life": 5
+  },
+  "misses": {}
+ },
+ {
+  "card": "Sun's Bounty",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 4
+  },
+  "measured": {
+   "p1.life": 4
+  },
+  "misses": {}
+ },
+ {
+  "card": "Dedicated Martyr",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 3
+  },
+  "measured": {
+   "p1.life": 3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Angel's Mercy",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 7
+  },
+  "measured": {
+   "p1.life": 7
+  },
+  "misses": {}
+ },
+ {
+  "card": "Natural Spring",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p0.life": 8
+  },
+  "measured": {
+   "p0.life": 8
+  },
+  "misses": {}
+ },
+ {
+  "card": "Chaplain's Blessing",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 5
+  },
+  "measured": {
+   "p1.life": 5
+  },
+  "misses": {}
+ },
+ {
+  "card": "Dune Diviner",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 1
+  },
+  "measured": {
+   "p1.life": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Zuran Orb",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 2
+  },
+  "measured": {
+   "p1.life": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Tower of Eons",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 10
+  },
+  "measured": {
+   "p1.life": 10
+  },
+  "misses": {}
+ },
+ {
+  "card": "Mournful Zombie",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p0.life": 1
+  },
+  "measured": {
+   "p0.life": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Trading Post",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 4
+  },
+  "measured": {
+   "p1.life": 4
+  },
+  "misses": {}
+ },
+ {
+  "card": "Qala, Ajani's Pridemate",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 1
+  },
+  "measured": {
+   "p1.life": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Nourish",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 6
+  },
+  "measured": {
+   "p1.life": 6
+  },
+  "misses": {}
+ },
+ {
+  "card": "Reaping the Rewards",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 2
+  },
+  "measured": {
+   "p1.life": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Potion of Healing",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 3
+  },
+  "measured": {
+   "p1.life": 3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Fountain of Youth",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 1
+  },
+  "measured": {
+   "p1.life": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Ravenous Baloth",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 4
+  },
+  "measured": {
+   "p1.life": 4
+  },
+  "misses": {}
+ },
+ {
+  "card": "Lembas",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 3
+  },
+  "measured": {
+   "p1.life": 3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Brindle Boar",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 4
+  },
+  "measured": {
+   "p1.life": 4
+  },
+  "misses": {}
+ },
+ {
+  "card": "Spring of Eternal Peace",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 8
+  },
+  "measured": {
+   "p1.life": 8
+  },
+  "misses": {}
+ },
+ {
+  "card": "Guardian of Cloverdell",
+  "api": "GainLife",
+  "status": "pass",
+  "predicted": {
+   "p1.life": 1
+  },
+  "measured": {
+   "p1.life": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Ashnod's Altar",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 2
+  },
+  "measured": {
+   "p1.mana": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Animal Attendant",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Rith's Grove",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Seaside Citadel",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Bog Initiate",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Necklace of Girion",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Blood Celebrant",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Sulfur Falls",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Gruul Guildgate",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Gwenna, Eyes of Gaea",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 2
+  },
+  "measured": {
+   "p1.mana": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Copper Myr",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Blooming Marsh",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Bog Witch",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 3
+  },
+  "measured": {
+   "p1.mana": 3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Meteorite",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Pillar of the Paruns",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Izzet Boilerworks",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 2
+  },
+  "measured": {
+   "p1.mana": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Sunbaked Canyon",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Azorius Signet",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 2
+  },
+  "measured": {
+   "p1.mana": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Werebear",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Soldevi Machinist",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 2
+  },
+  "measured": {
+   "p1.mana": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Coldsteel Heart",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "The Dross Pits",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Wose Pathfinder",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p0.power": 3,
+   "p0.toughness": 3
+  },
+  "measured": {
+   "p0.power": 3,
+   "p0.toughness": 3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Highland Lake",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Ichor Elixir",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 2
+  },
+  "measured": {
+   "p1.mana": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Boros Signet",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 2
+  },
+  "measured": {
+   "p1.mana": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Skybridge Towers",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Mox Opal",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Whisperer of the Wilds",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Boiling Rock Prison",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -1,
+   "p1.hand": 1
+  },
+  "measured": {
+   "p1.hand": 1,
+   "p1.library": -1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Verdant Eidolon",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 3
+  },
+  "measured": {
+   "p1.mana": 3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Ur-Golem's Eye",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 2
+  },
+  "measured": {
+   "p1.mana": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Llanowar Visionary",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Thalakos Lowlands",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Arcum's Astrolabe",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Utopia Tree",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Obelisk of Esper",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Radha, Heir to Keld",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Altar of the Lost",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 2
+  },
+  "measured": {
+   "p1.mana": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Scabland",
+  "api": "Mana",
+  "status": "pass",
+  "predicted": {
+   "p1.mana": 1
+  },
+  "measured": {
+   "p1.mana": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Drowner of Secrets",
+  "api": "Mill",
+  "status": "pass",
+  "predicted": {
+   "p0.library": -1,
+   "p0.graveyard": 1
+  },
+  "measured": {
+   "p0.library": -1,
+   "p0.graveyard": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Whetstone",
+  "api": "Mill",
+  "status": "pass",
+  "predicted": {
+   "p0.library": -2,
+   "p0.graveyard": 2,
+   "p1.library": -2,
+   "p1.graveyard": 2
+  },
+  "measured": {
+   "p0.library": -2,
+   "p0.graveyard": 2,
+   "p1.library": -2,
+   "p1.graveyard": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Convergence of Dominion",
+  "api": "Mill",
+  "status": "pass",
+  "predicted": {
+   "p1.library": -3,
+   "p1.graveyard": 3
+  },
+  "measured": {
+   "p1.library": -3,
+   "p1.graveyard": 3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Cathartic Adept",
+  "api": "Mill",
+  "status": "pass",
+  "predicted": {
+   "p0.library": -1,
+   "p0.graveyard": 1
+  },
+  "measured": {
+   "p0.library": -1,
+   "p0.graveyard": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Chill of Foreboding",
+  "api": "Mill",
+  "status": "pass",
+  "predicted": {
+   "p0.library": -5,
+   "p0.graveyard": 5,
+   "p1.library": -5,
+   "p1.graveyard": 5
+  },
+  "measured": {
+   "p0.library": -5,
+   "p0.graveyard": 5,
+   "p1.library": -5,
+   "p1.graveyard": 5
+  },
+  "misses": {}
+ },
+ {
+  "card": "Bloodlust Inciter",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {},
+  "measured": {},
+  "misses": {}
+ },
+ {
+  "card": "Bola Warrior",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {},
+  "measured": {},
+  "misses": {}
+ },
+ {
+  "card": "Staggering Size",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.power": 3,
+   "p0.toughness": 3
+  },
+  "measured": {
+   "p0.power": 3,
+   "p0.toughness": 3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Captive Flame",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.power": 1
+  },
+  "measured": {
+   "p0.power": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Flatten",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Maximize Velocity",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.power": 1,
+   "p0.toughness": 1
+  },
+  "measured": {
+   "p0.power": 1,
+   "p0.toughness": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Ursapine",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.power": 1,
+   "p0.toughness": 1
+  },
+  "measured": {
+   "p0.power": 1,
+   "p0.toughness": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Howling Fury",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.power": 4
+  },
+  "measured": {
+   "p0.power": 4
+  },
+  "misses": {}
+ },
+ {
+  "card": "Lash of the Whip",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Virulent Swipe",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.power": 2
+  },
+  "measured": {
+   "p0.power": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Ticked Off",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {},
+  "measured": {},
+  "misses": {}
+ },
+ {
+  "card": "Seeds of Strength",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.power": 3,
+   "p0.toughness": 3
+  },
+  "measured": {
+   "p0.power": 3,
+   "p0.toughness": 3
+  },
+  "misses": {}
+ },
+ {
+  "card": "New Prahv Guildmage",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {},
+  "measured": {},
+  "misses": {}
+ },
+ {
+  "card": "Monstrous Growth",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.power": 4,
+   "p0.toughness": 4
+  },
+  "measured": {
+   "p0.power": 4,
+   "p0.toughness": 4
+  },
+  "misses": {}
+ },
+ {
+  "card": "Noble Steeds",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {},
+  "measured": {},
+  "misses": {}
+ },
+ {
+  "card": "Rites of Reaping",
+  "api": "Pump",
+  "status": "miss",
+  "predicted": {},
+  "measured": {
+   "p0.power": 3,
+   "p0.toughness": 3
+  },
+  "misses": {
+   "p0.toughness": [
+    0,
+    3
+   ],
+   "p0.power": [
+    0,
+    3
+   ]
+  }
+ },
+ {
+  "card": "Bloodscent",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {},
+  "measured": {},
+  "misses": {}
+ },
+ {
+  "card": "Ranger's Guile",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p1.power": 1,
+   "p1.toughness": 1
+  },
+  "measured": {
+   "p1.power": 1,
+   "p1.toughness": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Whip Sergeant",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {},
+  "measured": {},
+  "misses": {}
+ },
+ {
+  "card": "Rage Weaver",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {},
+  "measured": {},
+  "misses": {}
+ },
+ {
+  "card": "Antagonize",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.power": 4,
+   "p0.toughness": 3
+  },
+  "measured": {
+   "p0.power": 4,
+   "p0.toughness": 3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Gruul Guildmage",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.power": 2,
+   "p0.toughness": 2
+  },
+  "measured": {
+   "p0.power": 2,
+   "p0.toughness": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Siegebreaker Giant",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {},
+  "measured": {},
+  "misses": {}
+ },
+ {
+  "card": "Blossoming Defense",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p1.power": 2,
+   "p1.toughness": 2
+  },
+  "measured": {
+   "p1.power": 2,
+   "p1.toughness": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Panic Spellbomb",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {},
+  "measured": {},
+  "misses": {}
+ },
+ {
+  "card": "Alluring Scent",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {},
+  "measured": {},
+  "misses": {}
+ },
+ {
+  "card": "Enlarge",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.power": 7,
+   "p0.toughness": 7
+  },
+  "measured": {
+   "p0.power": 7,
+   "p0.toughness": 7
+  },
+  "misses": {}
+ },
+ {
+  "card": "Tooth of Chiss-Goria",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.power": 1
+  },
+  "measured": {
+   "p0.power": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Cabal Trainee",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.power": -2
+  },
+  "measured": {
+   "p0.power": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Pixie Queen",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {},
+  "measured": {},
+  "misses": {}
+ },
+ {
+  "card": "Zelyon Sword",
+  "api": "Pump",
+  "status": "miss",
+  "predicted": {
+   "p0.power": 2
+  },
+  "measured": {},
+  "misses": {
+   "p0.power": [
+    2,
+    0
+   ]
+  }
+ },
+ {
+  "card": "Snare the Skies",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.power": 1,
+   "p0.toughness": 1
+  },
+  "measured": {
+   "p0.power": 1,
+   "p0.toughness": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Sure Strike",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.power": 3
+  },
+  "measured": {
+   "p0.power": 3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Patriot, Shield Wielder",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p1.power": 2
+  },
+  "measured": {
+   "p1.power": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Fists of the Anvil",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.power": 4
+  },
+  "measured": {
+   "p0.power": 4
+  },
+  "misses": {}
+ },
+ {
+  "card": "Agony Warp",
+  "api": "Pump",
+  "status": "miss",
+  "predicted": {
+   "p0.power": -5,
+   "p0.toughness": -2,
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {
+   "p0.power": [
+    -5,
+    -2
+   ]
+  }
+ },
+ {
+  "card": "Kindled Fury",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.power": 1
+  },
+  "measured": {
+   "p0.power": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Grasp of Darkness",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.permanents": -1,
+   "p0.graveyard": 1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "measured": {
+   "p0.graveyard": 1,
+   "p0.permanents": -1,
+   "p0.creatures": -1,
+   "p0.power": -2,
+   "p0.toughness": -2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Compelled Duel",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {
+   "p0.power": 3,
+   "p0.toughness": 3
+  },
+  "measured": {
+   "p0.power": 3,
+   "p0.toughness": 3
+  },
+  "misses": {}
+ },
+ {
+  "card": "The Destined Black Mage",
+  "api": "Pump",
+  "status": "pass",
+  "predicted": {},
+  "measured": {},
+  "misses": {}
+ },
+ {
+  "card": "Sinew Dancer",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Dazzling Ramparts",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Rathi Trapper",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Cryptic Cruiser",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Trip Noose",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Icy Manipulator",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Stalking Assassin",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Mind Games",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Pacification Array",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Floodbringer",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Hylda's Crown of Winter",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Law-Rune Enforcer",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Frostbridge Guard",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Vedalken Certarch",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Master Decoy",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Whipcorder",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Errant Doomsayers",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Kytheon's Irregulars",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Fan Bearer",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Tamiyo's Immobilizer",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Sandsower",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Clockwork Drawbridge",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Benalish Trapper",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Starport Security",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Dauntless River Marshal",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Loxodon Mystic",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Akroan Jailer",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Innocence Kami",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Avacynian Priest",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Sunstar Chaplain",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Blinding Drone",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Azorius Guildmage",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Ring of Gix",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Nebelgast Beguiler",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Jolting Merfolk",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Blustersquall",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Prism Array",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Shacklegeist",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Tumble Magnet",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Gigadrowse",
+  "api": "Tap",
+  "status": "pass",
+  "predicted": {
+   "p0.tapped": 1
+  },
+  "measured": {
+   "p0.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Melded Moxite",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.tapped": 1,
+   "p1.creatures": 1,
+   "p1.power": 2,
+   "p1.toughness": 2,
+   "p1.artifacts": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 2,
+   "p1.toughness": 2,
+   "p1.tokens": 1,
+   "p1.artifacts": 1,
+   "p1.tapped": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Savage Conception",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 3,
+   "p1.toughness": 3
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 3,
+   "p1.toughness": 3,
+   "p1.tokens": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Goblin Wizardry",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 2,
+   "p1.permanents": 2,
+   "p1.creatures": 2,
+   "p1.power": 2,
+   "p1.toughness": 2
+  },
+  "measured": {
+   "p1.permanents": 2,
+   "p1.creatures": 2,
+   "p1.power": 2,
+   "p1.toughness": 2,
+   "p1.tokens": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Sigarda, Heron's Grace",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1,
+   "p1.tokens": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "The Circle of Loyalty",
+  "api": "Token",
+  "status": "miss",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 2,
+   "p1.toughness": 2
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 3,
+   "p1.toughness": 3,
+   "p1.tokens": 1
+  },
+  "misses": {
+   "p1.toughness": [
+    2,
+    3
+   ],
+   "p1.power": [
+    2,
+    3
+   ]
+  }
+ },
+ {
+  "card": "The Underworld Cookbook",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.artifacts": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.tokens": 1,
+   "p1.artifacts": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Reach of Branches",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 2,
+   "p1.toughness": 5
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 2,
+   "p1.toughness": 5,
+   "p1.tokens": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Legion Extruder",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 3,
+   "p1.toughness": 3,
+   "p1.artifacts": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 3,
+   "p1.toughness": 3,
+   "p1.tokens": 1,
+   "p1.artifacts": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Golem Foundry",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 3,
+   "p1.toughness": 3,
+   "p1.artifacts": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 3,
+   "p1.toughness": 3,
+   "p1.tokens": 1,
+   "p1.artifacts": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Call the Cavalry",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 2,
+   "p1.permanents": 2,
+   "p1.creatures": 2,
+   "p1.power": 4,
+   "p1.toughness": 4
+  },
+  "measured": {
+   "p1.permanents": 2,
+   "p1.creatures": 2,
+   "p1.power": 4,
+   "p1.toughness": 4,
+   "p1.tokens": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Thallid Shell-Dweller",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1,
+   "p1.tokens": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Baloth Cage Trap",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 4,
+   "p1.toughness": 4
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 4,
+   "p1.toughness": 4,
+   "p1.tokens": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Forsworn Paladin",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.artifacts": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.tokens": 1,
+   "p1.artifacts": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Triskelavus",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1,
+   "p1.artifacts": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1,
+   "p1.tokens": 1,
+   "p1.artifacts": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Prosperous Partnership",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.artifacts": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.tokens": 1,
+   "p1.artifacts": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Bearscape",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 2,
+   "p1.toughness": 2
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 2,
+   "p1.toughness": 2,
+   "p1.tokens": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Savage Thallid",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1,
+   "p1.tokens": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Shadow Summoning",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 2,
+   "p1.permanents": 2,
+   "p1.tapped": 2,
+   "p1.creatures": 2,
+   "p1.power": 2,
+   "p1.toughness": 2
+  },
+  "measured": {
+   "p1.permanents": 2,
+   "p1.creatures": 2,
+   "p1.power": 2,
+   "p1.toughness": 2,
+   "p1.tokens": 2,
+   "p1.tapped": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Vault Robber",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.artifacts": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.tokens": 1,
+   "p1.artifacts": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Pegasus Refuge",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1,
+   "p1.tokens": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Hive Stirrings",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 2,
+   "p1.permanents": 2,
+   "p1.creatures": 2,
+   "p1.power": 2,
+   "p1.toughness": 2
+  },
+  "measured": {
+   "p1.permanents": 2,
+   "p1.creatures": 2,
+   "p1.power": 2,
+   "p1.toughness": 2,
+   "p1.tokens": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Goblin Warrens",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 3,
+   "p1.permanents": 3,
+   "p1.creatures": 3,
+   "p1.power": 3,
+   "p1.toughness": 3
+  },
+  "measured": {
+   "p1.permanents": 3,
+   "p1.creatures": 3,
+   "p1.power": 3,
+   "p1.toughness": 3,
+   "p1.tokens": 3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Rukarumel, Biologist",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1,
+   "p1.tokens": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Stimulus Package",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1,
+   "p1.tokens": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Pashalik Mons",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 2,
+   "p1.permanents": 2,
+   "p1.creatures": 2,
+   "p1.power": 2,
+   "p1.toughness": 2
+  },
+  "measured": {
+   "p1.permanents": 2,
+   "p1.creatures": 2,
+   "p1.power": 2,
+   "p1.toughness": 2,
+   "p1.tokens": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Atla Palani, Nest Tender",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.toughness": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.toughness": 1,
+   "p1.tokens": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Rhys the Redeemed",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1,
+   "p1.tokens": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Cobra Trap",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 4,
+   "p1.permanents": 4,
+   "p1.creatures": 4,
+   "p1.power": 4,
+   "p1.toughness": 4
+  },
+  "measured": {
+   "p1.permanents": 4,
+   "p1.creatures": 4,
+   "p1.power": 4,
+   "p1.toughness": 4,
+   "p1.tokens": 4
+  },
+  "misses": {}
+ },
+ {
+  "card": "Jade Mage",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1,
+   "p1.tokens": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Lich Lord of Unx",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1,
+   "p1.tokens": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Dragon Roost",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 5,
+   "p1.toughness": 5
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 5,
+   "p1.toughness": 5,
+   "p1.tokens": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Baku Altar",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1,
+   "p1.tokens": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Sporesower Thallid",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1,
+   "p1.tokens": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Flurry of Horns",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 2,
+   "p1.permanents": 2,
+   "p1.creatures": 2,
+   "p1.power": 4,
+   "p1.toughness": 6
+  },
+  "measured": {
+   "p1.permanents": 2,
+   "p1.creatures": 2,
+   "p1.power": 4,
+   "p1.toughness": 6,
+   "p1.tokens": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Empty the Warrens",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 2,
+   "p1.permanents": 2,
+   "p1.creatures": 2,
+   "p1.power": 2,
+   "p1.toughness": 2
+  },
+  "measured": {
+   "p1.permanents": 2,
+   "p1.creatures": 2,
+   "p1.power": 2,
+   "p1.toughness": 2,
+   "p1.tokens": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Squirrel Wrangler",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 2,
+   "p1.permanents": 2,
+   "p1.creatures": 2,
+   "p1.power": 2,
+   "p1.toughness": 2
+  },
+  "measured": {
+   "p1.permanents": 2,
+   "p1.creatures": 2,
+   "p1.power": 2,
+   "p1.toughness": 2,
+   "p1.tokens": 2
+  },
+  "misses": {}
+ },
+ {
+  "card": "Coin of Mastery",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.artifacts": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.tokens": 1,
+   "p1.artifacts": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Stone Idol Trap",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 6,
+   "p1.toughness": 12,
+   "p1.artifacts": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 6,
+   "p1.toughness": 12,
+   "p1.tokens": 1,
+   "p1.artifacts": 1
+  },
+  "misses": {}
+ },
+ {
+  "card": "Bestial Menace",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 3,
+   "p1.permanents": 3,
+   "p1.creatures": 3,
+   "p1.power": 6,
+   "p1.toughness": 6
+  },
+  "measured": {
+   "p1.permanents": 3,
+   "p1.creatures": 3,
+   "p1.power": 6,
+   "p1.toughness": 6,
+   "p1.tokens": 3
+  },
+  "misses": {}
+ },
+ {
+  "card": "Recruit the Worthy",
+  "api": "Token",
+  "status": "pass",
+  "predicted": {
+   "p1.tokens": 1,
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1
+  },
+  "measured": {
+   "p1.permanents": 1,
+   "p1.creatures": 1,
+   "p1.power": 1,
+   "p1.toughness": 1,
+   "p1.tokens": 1
+  },
+  "misses": {}
+ }
+]

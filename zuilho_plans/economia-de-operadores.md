@@ -584,15 +584,36 @@ produzida); **não depende da Fase 3**. Detalhes na seção 2.6.
 
 ### Fase 3 — Forge como oráculo: micro-experimentos (≈ 2–3 semanas)
 
-- [ ] Harness que gera estados de Puzzle (ou chama a API Java), executa uma
+- [x] Harness que gera estados de Puzzle (ou chama a API Java), executa uma
       ação ou passa um turno, e lê o vetor de recursos resultante.
-- [ ] Medir Δ para cartas isoladas e pares amostrados.
-- [ ] Comparar com a previsão dos operadores abstratos: métrica de
-      **fidelidade**.
+      → `tools/forge_oracle/ForgeOracle.java`: monta o estado com
+      `forge.game.GameState` (formato do Puzzle Mode), resolve a habilidade só
+      como efeito (custo comparado à parte), roda as ações baseadas em estado e
+      imprime o vetor (vida, veneno, mão, biblioteca, cemitério, exílio, mana,
+      permanentes por tipo, poder, tokens, contadores +1/+1, virados) antes e
+      depois. Forge compilado do checkout local (mesmo commit dos scripts) com o
+      JDK 21 do PyCharm e Maven 3.9.16.
+- [~] Medir Δ para cartas isoladas e pares amostrados. Cartas isoladas: sim.
+      **Pares: pendente** — o preditor ainda não modela 2ª ordem (anthem que
+      afeta o token criado, Doubling Season); isso entra com a Fase 5.
+- [x] Comparar com a previsão dos operadores abstratos: métrica de
+      **fidelidade**. → `src/operators/predict.py` (Δ previsto só a partir dos
+      operadores) e `scripts/forge_oracle.py` → `data/ontology/ORACLE_FIDELITY.md`.
 
 **Aceite:** erro de previsão do Δ ≤ 10% em ≥ 85% dos casos de 1ª ordem.
 **Parada:** se não for possível dirigir o Forge programaticamente, reduzir o
 oráculo a um conjunto de casos validados manualmente.
+
+**Resultado (2026-10-05): ACEITE.** Primeira rodada: 78,7% (1.129 casos). Os
+erros mostraram lacunas reais da abstração — `Defined$ TargetedController`
+(o controlador do alvo ganha a vida / recebe o token), restrições de alvo
+(atacante, com voar, mana value), filtros de descarte, exilar em vez de morrer,
+token artefato-criatura ou virado, "cada jogador", habilidades vindas de
+palavra-chave — todas corrigidas e com teste (`tests/test_predict.py`).
+Desenvolvimento (semente 3): 97,4%. **Avaliação separada** (semente 11, sem as
+1.095 cartas do desenvolvimento): **98,7% (370/375)**. Escopo medido: 3.537
+cartas com efeito de 1ª ordem e quantidades numéricas (~11% das legais);
+gatilhos, estáticos e 2ª ordem ainda não são medidos.
 
 ### Fase 4 — Preços latentes π e força de carta (≈ 1–2 semanas)
 
