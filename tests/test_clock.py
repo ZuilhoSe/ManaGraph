@@ -8,7 +8,7 @@ SRC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path.insert(0, SRC_DIR)
 
 from operators.clock import (  # noqa: E402
-    ClockCard, ClockParams, basic_land, clock_features, simulate, vanilla,
+    ClockCard, ClockParams, basic_land, clock_features, simulate, vanilla, with_,
 )
 from operators.compile import compile_script  # noqa: E402
 
@@ -167,6 +167,43 @@ def gate(name):
 
 def instant(name="Opt", cmc=1, **kw):
     return ClockCard(name=name, cmc=cmc, types=frozenset({"Instant"}), **kw)
+
+
+class KeywordMonotonicityTests(unittest.TestCase):
+    """Adding a combat keyword to a creature never removes damage, on any body."""
+
+    FLAGS = ("trample", "haste", "evasive", "double_strike", "lifelink")
+
+    def deck(self, card):
+        filler = [vanilla(f"Bear{i % 3}", 2, 2) for i in range(25)] + [vanilla("Ogre", 3, 3)] * 14
+        return [FOREST] * 36 + filler + [card] * 24
+
+    def test_every_keyword_on_every_body_is_at_least_as_fast(self):
+        p = ClockParams(horizon=10, samples=60, blocker_rate=1.0)
+        for power in range(1, 7):
+            base = vanilla("T", power, power)
+            d0 = simulate(self.deck(base), params=p).damage_by[10]
+            for flag in self.FLAGS:
+                d = simulate(self.deck(with_(base, **{flag: True})), params=p).damage_by[10]
+                self.assertGreaterEqual(d, d0 - 1e-9, f"{flag} on {power}/{power}")
+
+    def test_blocked_evasive_and_trampling_attackers_get_through(self):
+        p = ClockParams(horizon=6, blocker_rate=3.0, blockers_start=1, blockers_cap=6)
+        order = [FOREST] * 3 + [vanilla("X", 3, 3)] * 2 + [FOREST] * 10
+        ground = simulate([], params=p, order=order).damage_by[6]
+        for flag in ("evasive", "trample"):
+            hit = simulate([], params=p, order=[with_(c, **{flag: True}) if c.creature else c for c in order])
+            self.assertGreater(hit.damage_by[6], ground, flag)
+
+    def test_lifelink_feeds_lifegain_payoffs(self):
+        p = ClockParams(horizon=6, blockers_cap=0)
+        bond = features("Name:Bond\nManaCost:2\nTypes:Enchantment\n"
+                        "T:Mode$ LifeGained | ValidPlayer$ You | TriggerZones$ Battlefield | Execute$ D\n"
+                        "SVar:D:DB$ LoseLife | ValidTgts$ Opponent | LifeAmount$ X\nSVar:X:TriggerCount$LifeAmount")
+        order = [FOREST, FOREST, bond, vanilla("L", 2, 2), FOREST] + [FOREST] * 10
+        plain = simulate([], params=p, order=order).life_sources["direct"]
+        order[3] = vanilla("L", 2, 2, lifelink=True)
+        self.assertGreater(simulate([], params=p, order=order).life_sources["direct"], plain)
 
 
 class RouteFeatureTests(unittest.TestCase):

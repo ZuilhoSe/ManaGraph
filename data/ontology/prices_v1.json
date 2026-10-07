@@ -1,0 +1,9316 @@
+{
+ "version": 1,
+ "model": "mana_value ≈ b0 + b_era|produto + π·(E − C); força centrada por mana value",
+ "features": {
+  "act_once|ChangeZone.Graveyard>Battlefield|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "act_once|ChangeZone.Graveyard>Exile|tgt_Card|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "act_once|ChangeZone.Graveyard>Exile|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "act_once|ChangeZone.Graveyard>Hand|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "act_once|ChangeZone.Library>Battlefield|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "act_once|ChangeZone.Library>Battlefield|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 19
+  },
+  "act_once|ChangeZone.Library>Hand|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "act_once|ChangeZone.Library>Hand|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "act_once|Counter|tgt_Card": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "act_once|Counter|tgt_Card|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "act_once|Counter|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "act_once|Counter|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "act_once|DealDamage|tgt_Any": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 26
+  },
+  "act_once|DealDamage|tgt_Any|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 29
+  },
+  "act_once|DealDamage|tgt_Any|X": {
+   "pi": 0.282413,
+   "sign": 1,
+   "support": 10
+  },
+  "act_once|DealDamage|tgt_Any|X|?": {
+   "pi": 0.282413,
+   "sign": 1,
+   "support": 10
+  },
+  "act_once|DealDamage|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 53
+  },
+  "act_once|DealDamage|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 62
+  },
+  "act_once|DealDamage|tgt_Creature|X": {
+   "pi": 0.552773,
+   "sign": 1,
+   "support": 17
+  },
+  "act_once|DealDamage|tgt_Creature|X|?": {
+   "pi": 0.175251,
+   "sign": 1,
+   "support": 19
+  },
+  "act_once|DelayedTrigger|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "act_once|DelayedTrigger|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "act_once|DestroyAll|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "act_once|DestroyAll|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "act_once|Destroy|tgt_Artifact": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 26
+  },
+  "act_once|Destroy|tgt_Artifact+": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "act_once|Destroy|tgt_Artifact+|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 19
+  },
+  "act_once|Destroy|tgt_Artifact|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 31
+  },
+  "act_once|Destroy|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 26
+  },
+  "act_once|Destroy|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 29
+  },
+  "act_once|Destroy|tgt_Enchantment": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "act_once|Destroy|tgt_Enchantment|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "act_once|Draw|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 124
+  },
+  "act_once|Draw|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 129
+  },
+  "act_once|Effect|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "act_once|Effect|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "act_once|GainLife|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 40
+  },
+  "act_once|GainLife|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 42
+  },
+  "act_once|GainLife|you|X": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "act_once|GainLife|you|X|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "act_once|Mana|any_color": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 21
+  },
+  "act_once|Mana|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 49
+  },
+  "act_once|Mana|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 49
+  },
+  "act_once|Pump-|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "act_once|Pump-|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "act_once|Pump|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "act_once|Pump|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "act_once|PutCounter|tgt_Creature": {
+   "pi": 0.161504,
+   "sign": 1,
+   "support": 12
+  },
+  "act_once|PutCounter|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "act_once|Token|creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "act_once|Token|creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "act_once|Token|creature|X|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "act_once|Token|pt": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "act_once|Token|pt|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "act|Animate|other": {
+   "pi": 0.093655,
+   "sign": 1,
+   "support": 115
+  },
+  "act|Animate|other|?": {
+   "pi": 0.286664,
+   "sign": 1,
+   "support": 122
+  },
+  "act|Animate|tgt_Creature": {
+   "pi": 0.122486,
+   "sign": 1,
+   "support": 18
+  },
+  "act|Animate|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 20
+  },
+  "act|Animate|tgt_Land": {
+   "pi": 0.028896,
+   "sign": 1,
+   "support": 32
+  },
+  "act|Animate|tgt_Land|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 36
+  },
+  "act|Animate|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 19
+  },
+  "act|Animate|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 22
+  },
+  "act|Attach|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 24
+  },
+  "act|Attach|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 26
+  },
+  "act|ChangeZone.Battlefield>Exile|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "act|ChangeZone.Battlefield>Exile|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "act|ChangeZone.Battlefield>Exile|tgt_Creature": {
+   "pi": 0.140747,
+   "sign": 1,
+   "support": 31
+  },
+  "act|ChangeZone.Battlefield>Exile|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 38
+  },
+  "act|ChangeZone.Battlefield>Hand|tgt_Creature": {
+   "pi": 0.173864,
+   "sign": 1,
+   "support": 27
+  },
+  "act|ChangeZone.Battlefield>Hand|tgt_Creature|?": {
+   "pi": 0.689365,
+   "sign": 1,
+   "support": 36
+  },
+  "act|ChangeZone.Battlefield>Hand|tgt_Permanent|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "act|ChangeZone.Battlefield>Hand|you": {
+   "pi": 0.078841,
+   "sign": 1,
+   "support": 53
+  },
+  "act|ChangeZone.Battlefield>Hand|you|?": {
+   "pi": 0.018729,
+   "sign": 1,
+   "support": 57
+  },
+  "act|ChangeZone.Battlefield>Library|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "act|ChangeZone.Graveyard>Battlefield|tgt_Creature": {
+   "pi": 0.070598,
+   "sign": 1,
+   "support": 18
+  },
+  "act|ChangeZone.Graveyard>Battlefield|tgt_Creature|?": {
+   "pi": 0.06116,
+   "sign": 1,
+   "support": 30
+  },
+  "act|ChangeZone.Graveyard>Battlefield|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 46
+  },
+  "act|ChangeZone.Graveyard>Exile|tgt_Card": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 23
+  },
+  "act|ChangeZone.Graveyard>Exile|tgt_Card|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 31
+  },
+  "act|ChangeZone.Graveyard>Exile|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 36
+  },
+  "act|ChangeZone.Graveyard>Exile|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 48
+  },
+  "act|ChangeZone.Graveyard>Hand|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "act|ChangeZone.Graveyard>Hand|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 24
+  },
+  "act|ChangeZone.Graveyard>Hand|you|?": {
+   "pi": 0.093301,
+   "sign": 1,
+   "support": 44
+  },
+  "act|ChangeZone.Graveyard>Library|tgt_Card": {
+   "pi": 0.201625,
+   "sign": 1,
+   "support": 14
+  },
+  "act|ChangeZone.Graveyard>Library|tgt_Card|?": {
+   "pi": 0.132968,
+   "sign": 1,
+   "support": 17
+  },
+  "act|ChangeZone.Graveyard>Library|tgt_Creature": {
+   "pi": 0.243522,
+   "sign": 1,
+   "support": 15
+  },
+  "act|ChangeZone.Graveyard>Library|tgt_Creature|?": {
+   "pi": 0.193408,
+   "sign": 1,
+   "support": 19
+  },
+  "act|ChangeZone.Hand>Battlefield|you": {
+   "pi": 0.033854,
+   "sign": 1,
+   "support": 36
+  },
+  "act|ChangeZone.Hand>Battlefield|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 40
+  },
+  "act|ChangeZone.Library>Battlefield|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 58
+  },
+  "act|ChangeZone.Library>Battlefield|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 68
+  },
+  "act|ChangeZone.Library>Hand|you": {
+   "pi": 0.371973,
+   "sign": 1,
+   "support": 25
+  },
+  "act|ChangeZone.Library>Hand|you|?": {
+   "pi": 0.111588,
+   "sign": 1,
+   "support": 33
+  },
+  "act|Charm|modes": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 23
+  },
+  "act|CopyPermanent|other": {
+   "pi": 0.013761,
+   "sign": 1,
+   "support": 13
+  },
+  "act|CopyPermanent|other|?": {
+   "pi": 0.235078,
+   "sign": 1,
+   "support": 19
+  },
+  "act|CopySpellAbility|tgt_Card|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "act|CopySpellAbility|tgt_Creature|?": {
+   "pi": 0.118744,
+   "sign": 1,
+   "support": 11
+  },
+  "act|CopySpellAbility|tgt_Instant+|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "act|CopySpellAbility|tgt_Instant|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "act|Counter|tgt_Card": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 27
+  },
+  "act|Counter|tgt_Card|?": {
+   "pi": 0.054886,
+   "sign": 1,
+   "support": 31
+  },
+  "act|Counter|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 28
+  },
+  "act|Counter|tgt_Creature|?": {
+   "pi": 0.025651,
+   "sign": 1,
+   "support": 32
+  },
+  "act|DamageAll|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 26
+  },
+  "act|DamageAll|you|?": {
+   "pi": 0.088174,
+   "sign": 1,
+   "support": 29
+  },
+  "act|DamageResolve|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "act|DamageResolve|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "act|DealDamage|each_opp": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 24
+  },
+  "act|DealDamage|each_opp|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 25
+  },
+  "act|DealDamage|other|X": {
+   "pi": 0.125086,
+   "sign": 1,
+   "support": 13
+  },
+  "act|DealDamage|other|X|?": {
+   "pi": 0.2331,
+   "sign": 1,
+   "support": 14
+  },
+  "act|DealDamage|tgt_Any": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 125
+  },
+  "act|DealDamage|tgt_Any|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 138
+  },
+  "act|DealDamage|tgt_Any|X": {
+   "pi": 0.130742,
+   "sign": 1,
+   "support": 29
+  },
+  "act|DealDamage|tgt_Any|X|?": {
+   "pi": 0.13064,
+   "sign": 1,
+   "support": 31
+  },
+  "act|DealDamage|tgt_Creature": {
+   "pi": 0.200653,
+   "sign": 1,
+   "support": 187
+  },
+  "act|DealDamage|tgt_Creature+": {
+   "pi": 0.030014,
+   "sign": 1,
+   "support": 15
+  },
+  "act|DealDamage|tgt_Creature+|?": {
+   "pi": 0.19269,
+   "sign": 1,
+   "support": 17
+  },
+  "act|DealDamage|tgt_Creature|?": {
+   "pi": 0.175664,
+   "sign": 1,
+   "support": 208
+  },
+  "act|DealDamage|tgt_Creature|X": {
+   "pi": 0.184136,
+   "sign": 1,
+   "support": 57
+  },
+  "act|DealDamage|tgt_Creature|X|?": {
+   "pi": 0.672864,
+   "sign": 1,
+   "support": 63
+  },
+  "act|DealDamage|tgt_Opponent": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "act|DealDamage|tgt_Opponent|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "act|DealDamage|tgt_Player": {
+   "pi": 0.008247,
+   "sign": 1,
+   "support": 23
+  },
+  "act|DealDamage|tgt_Player+": {
+   "pi": 0.002815,
+   "sign": 1,
+   "support": 21
+  },
+  "act|DealDamage|tgt_Player+|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 22
+  },
+  "act|DealDamage|tgt_Player|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 24
+  },
+  "act|DealDamage|you": {
+   "pi": 0.141211,
+   "sign": -1,
+   "support": 24
+  },
+  "act|DealDamage|you|?": {
+   "pi": 0.141211,
+   "sign": -1,
+   "support": 24
+  },
+  "act|Debuff|other": {
+   "pi": 0.079629,
+   "sign": 1,
+   "support": 16
+  },
+  "act|Debuff|other|?": {
+   "pi": 0.079629,
+   "sign": 1,
+   "support": 16
+  },
+  "act|DelayedTrigger|you": {
+   "pi": 0.233695,
+   "sign": 1,
+   "support": 42
+  },
+  "act|DelayedTrigger|you|?": {
+   "pi": 0.047671,
+   "sign": 1,
+   "support": 51
+  },
+  "act|DestroyAll|you": {
+   "pi": 0.577369,
+   "sign": 1,
+   "support": 12
+  },
+  "act|DestroyAll|you|?": {
+   "pi": 0.428844,
+   "sign": 1,
+   "support": 15
+  },
+  "act|Destroy|tgt_Artifact": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "act|Destroy|tgt_Artifact+": {
+   "pi": 0.040084,
+   "sign": 1,
+   "support": 11
+  },
+  "act|Destroy|tgt_Artifact+|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "act|Destroy|tgt_Artifact|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 26
+  },
+  "act|Destroy|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 58
+  },
+  "act|Destroy|tgt_Creature|?": {
+   "pi": 0.364713,
+   "sign": 1,
+   "support": 67
+  },
+  "act|Destroy|tgt_Land": {
+   "pi": 0.328256,
+   "sign": 1,
+   "support": 11
+  },
+  "act|Destroy|tgt_Land|?": {
+   "pi": 0.328256,
+   "sign": 1,
+   "support": 11
+  },
+  "act|DigUntil|you": {
+   "pi": 0.023096,
+   "sign": 1,
+   "support": 11
+  },
+  "act|DigUntil|you|?": {
+   "pi": 0.061101,
+   "sign": 1,
+   "support": 12
+  },
+  "act|Dig|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 28
+  },
+  "act|Dig|you|?": {
+   "pi": 0.134394,
+   "sign": 1,
+   "support": 32
+  },
+  "act|Dig|you|X": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 44
+  },
+  "act|Dig|you|X|?": {
+   "pi": 0.107891,
+   "sign": 1,
+   "support": 45
+  },
+  "act|Discard|tgt_Player|?": {
+   "pi": 0.51455,
+   "sign": 1,
+   "support": 20
+  },
+  "act|Discard|you": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 78
+  },
+  "act|Discard|you|?": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 84
+  },
+  "act|Draw|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "act|Draw|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "act|Draw|tgt_Player": {
+   "pi": 0.306629,
+   "sign": 1,
+   "support": 12
+  },
+  "act|Draw|tgt_Player|?": {
+   "pi": 0.216056,
+   "sign": 1,
+   "support": 14
+  },
+  "act|Draw|you": {
+   "pi": 0.091959,
+   "sign": 1,
+   "support": 282
+  },
+  "act|Draw|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 333
+  },
+  "act|Draw|you|X": {
+   "pi": 0.777227,
+   "sign": 1,
+   "support": 31
+  },
+  "act|Draw|you|X|?": {
+   "pi": 0.689679,
+   "sign": 1,
+   "support": 32
+  },
+  "act|Effect|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 110
+  },
+  "act|Effect|tgt_Creature|?": {
+   "pi": 0.298625,
+   "sign": 1,
+   "support": 123
+  },
+  "act|Effect|you": {
+   "pi": 0.431946,
+   "sign": 1,
+   "support": 196
+  },
+  "act|Effect|you|?": {
+   "pi": 0.04516,
+   "sign": 1,
+   "support": 236
+  },
+  "act|GainControl|tgt_Creature": {
+   "pi": 0.431228,
+   "sign": 1,
+   "support": 20
+  },
+  "act|GainControl|tgt_Creature|?": {
+   "pi": 0.111502,
+   "sign": 1,
+   "support": 23
+  },
+  "act|GainLife|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 101
+  },
+  "act|GainLife|you|?": {
+   "pi": 0.025928,
+   "sign": 1,
+   "support": 119
+  },
+  "act|GainLife|you|X": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 23
+  },
+  "act|GainLife|you|X|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 25
+  },
+  "act|ImmediateTrigger|you|?": {
+   "pi": 0.019389,
+   "sign": 1,
+   "support": 12
+  },
+  "act|LoseLife|each_opp": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 22
+  },
+  "act|LoseLife|each_opp|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 27
+  },
+  "act|LoseLife|tgt_Player": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 24
+  },
+  "act|LoseLife|tgt_Player|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 25
+  },
+  "act|ManaReflected|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "act|ManaReflected|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "act|Mana|any_color": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 235
+  },
+  "act|Mana|you": {
+   "pi": 0.119662,
+   "sign": 1,
+   "support": 537
+  },
+  "act|Mana|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 566
+  },
+  "act|Mana|you|X": {
+   "pi": 0.190215,
+   "sign": 1,
+   "support": 71
+  },
+  "act|Mana|you|X|?": {
+   "pi": 0.391999,
+   "sign": 1,
+   "support": 72
+  },
+  "act|Mill|tgt_Player": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "act|Mill|tgt_Player|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 22
+  },
+  "act|Mill|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "act|Mill|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 19
+  },
+  "act|MoveCounter|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "act|MustBlock|tgt_Creature": {
+   "pi": 0.214131,
+   "sign": 1,
+   "support": 11
+  },
+  "act|MustBlock|tgt_Creature|?": {
+   "pi": 0.329131,
+   "sign": 1,
+   "support": 12
+  },
+  "act|PeekAndReveal|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "act|PeekAndReveal|you|?": {
+   "pi": 0.186032,
+   "sign": 1,
+   "support": 18
+  },
+  "act|Play|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "act|PreventDamage|tgt_Any": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 33
+  },
+  "act|PreventDamage|tgt_Any|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 33
+  },
+  "act|PreventDamage|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 44
+  },
+  "act|PreventDamage|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 45
+  },
+  "act|Proliferate|you": {
+   "pi": 0.166554,
+   "sign": 1,
+   "support": 10
+  },
+  "act|Proliferate|you|?": {
+   "pi": 0.102932,
+   "sign": 1,
+   "support": 12
+  },
+  "act|Protection|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "act|Protection|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "act|Pump-|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "act|Pump-|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "act|Pump-|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 41
+  },
+  "act|Pump-|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 44
+  },
+  "act|PumpAll|you": {
+   "pi": 0.010928,
+   "sign": 1,
+   "support": 80
+  },
+  "act|PumpAll|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 83
+  },
+  "act|Pump|other": {
+   "pi": 0.143132,
+   "sign": 1,
+   "support": 236
+  },
+  "act|Pump|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 283
+  },
+  "act|Pump|other|X": {
+   "pi": 0.085717,
+   "sign": 1,
+   "support": 24
+  },
+  "act|Pump|other|X|?": {
+   "pi": 0.118255,
+   "sign": 1,
+   "support": 26
+  },
+  "act|Pump|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 103
+  },
+  "act|Pump|tgt_Creature|?": {
+   "pi": 0.094807,
+   "sign": 1,
+   "support": 139
+  },
+  "act|Pump|tgt_Creature|X": {
+   "pi": 0.218615,
+   "sign": 1,
+   "support": 27
+  },
+  "act|Pump|tgt_Creature|X|?": {
+   "pi": 0.365856,
+   "sign": 1,
+   "support": 30
+  },
+  "act|Pump|you": {
+   "pi": 0.167987,
+   "sign": 1,
+   "support": 107
+  },
+  "act|Pump|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 125
+  },
+  "act|Pump|you|X": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "act|Pump|you|X|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "act|PutCounterAll|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 29
+  },
+  "act|PutCounterAll|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 34
+  },
+  "act|PutCounter|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 125
+  },
+  "act|PutCounter|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 136
+  },
+  "act|PutCounter|other|X": {
+   "pi": 0.267104,
+   "sign": 1,
+   "support": 13
+  },
+  "act|PutCounter|other|X|?": {
+   "pi": 0.928023,
+   "sign": 1,
+   "support": 17
+  },
+  "act|PutCounter|tgt_Creature": {
+   "pi": 0.344847,
+   "sign": 1,
+   "support": 60
+  },
+  "act|PutCounter|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 99
+  },
+  "act|PutCounter|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 180
+  },
+  "act|PutCounter|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 201
+  },
+  "act|Regenerate|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "act|Regenerate|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "act|Regenerate|tgt_Creature": {
+   "pi": 0.089081,
+   "sign": 1,
+   "support": 22
+  },
+  "act|Regenerate|tgt_Creature|?": {
+   "pi": 0.089081,
+   "sign": 1,
+   "support": 22
+  },
+  "act|Regenerate|you": {
+   "pi": 0.013787,
+   "sign": 1,
+   "support": 149
+  },
+  "act|Regenerate|you|?": {
+   "pi": 0.15373,
+   "sign": 1,
+   "support": 152
+  },
+  "act|RepeatEach|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "act|RepeatEach|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "act|RollDice|you": {
+   "pi": 0.220397,
+   "sign": 1,
+   "support": 10
+  },
+  "act|RollDice|you|?": {
+   "pi": 0.281842,
+   "sign": 1,
+   "support": 11
+  },
+  "act|Sacrifice|you|?": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 13
+  },
+  "act|Scry|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 29
+  },
+  "act|Scry|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 32
+  },
+  "act|Surveil|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 19
+  },
+  "act|Surveil|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "act|Tap|other": {
+   "pi": 0.077131,
+   "sign": 1,
+   "support": 26
+  },
+  "act|Tap|other|?": {
+   "pi": 0.013123,
+   "sign": 1,
+   "support": 27
+  },
+  "act|Tap|tgt_Artifact": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "act|Tap|tgt_Artifact|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "act|Tap|tgt_Creature": {
+   "pi": 0.111539,
+   "sign": 1,
+   "support": 113
+  },
+  "act|Tap|tgt_Creature|?": {
+   "pi": 0.251979,
+   "sign": 1,
+   "support": 124
+  },
+  "act|Token|creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 179
+  },
+  "act|Token|creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 226
+  },
+  "act|Token|creature|X": {
+   "pi": 0.239108,
+   "sign": 1,
+   "support": 16
+  },
+  "act|Token|creature|X|?": {
+   "pi": 0.267091,
+   "sign": 1,
+   "support": 17
+  },
+  "act|Token|other": {
+   "pi": 0.15975,
+   "sign": 1,
+   "support": 32
+  },
+  "act|Token|other|?": {
+   "pi": 0.808027,
+   "sign": 1,
+   "support": 36
+  },
+  "act|Token|pt": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 191
+  },
+  "act|Token|pt|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 50
+  },
+  "act|Token|treasure": {
+   "pi": 0.03213,
+   "sign": 1,
+   "support": 17
+  },
+  "act|Token|treasure|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 27
+  },
+  "act|Untap|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "act|Untap|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 28
+  },
+  "act|Untap|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 34
+  },
+  "act|Untap|tgt_Land": {
+   "pi": 0.155548,
+   "sign": 1,
+   "support": 15
+  },
+  "act|Untap|tgt_Land|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 20
+  },
+  "act|Untap|tgt_Permanent": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "act|Untap|tgt_Permanent|?": {
+   "pi": 0.229388,
+   "sign": 1,
+   "support": 13
+  },
+  "act|Untap|you": {
+   "pi": 0.195051,
+   "sign": 1,
+   "support": 30
+  },
+  "act|Untap|you|?": {
+   "pi": 0.256297,
+   "sign": 1,
+   "support": 35
+  },
+  "body|big": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 2044
+  },
+  "body|power": {
+   "pi": 0.369834,
+   "sign": 1,
+   "support": 14986
+  },
+  "body|toughness": {
+   "pi": 0.367143,
+   "sign": 1,
+   "support": 15477
+  },
+  "body|variable": {
+   "pi": 2.122549,
+   "sign": 1,
+   "support": 194
+  },
+  "color|B": {
+   "pi": -0.65257,
+   "sign": 0,
+   "support": 5663
+  },
+  "color|G": {
+   "pi": -0.781981,
+   "sign": 0,
+   "support": 5564
+  },
+  "color|R": {
+   "pi": -0.726933,
+   "sign": 0,
+   "support": 5683
+  },
+  "color|U": {
+   "pi": -0.605676,
+   "sign": 0,
+   "support": 5552
+  },
+  "color|W": {
+   "pi": -0.799995,
+   "sign": 0,
+   "support": 5843
+  },
+  "color|multi": {
+   "pi": 0.237572,
+   "sign": 0,
+   "support": 3310
+  },
+  "combat|AddPhase|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "combat|AddPhase|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "combat|ChangeZone.Battlefield>Exile|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "combat|ChangeZone.Graveyard>Battlefield|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 20
+  },
+  "combat|ChangeZone.Graveyard>Battlefield|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 22
+  },
+  "combat|ChangeZone.Graveyard>Exile|tgt_Card|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "combat|ChangeZone.Graveyard>Exile|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "combat|ChangeZone.Graveyard>Exile|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "combat|ChangeZone.Graveyard>Hand|tgt_Creature|?": {
+   "pi": 0.141325,
+   "sign": 1,
+   "support": 10
+  },
+  "combat|ChangeZone.Hand>Battlefield|you": {
+   "pi": 0.080158,
+   "sign": 1,
+   "support": 12
+  },
+  "combat|ChangeZone.Hand>Battlefield|you|?": {
+   "pi": 0.005873,
+   "sign": 1,
+   "support": 16
+  },
+  "combat|ChangeZone.Library>Battlefield|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "combat|Charm|modes": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 19
+  },
+  "combat|CopyPermanent|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "combat|CopyPermanent|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "combat|DealDamage|tgt_Any|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "combat|DealDamage|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "combat|DealDamage|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 20
+  },
+  "combat|DealDamage|tgt_Creature|X": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "combat|DealDamage|tgt_Creature|X|?": {
+   "pi": 0.025085,
+   "sign": 1,
+   "support": 18
+  },
+  "combat|DelayedTrigger|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 42
+  },
+  "combat|DelayedTrigger|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 44
+  },
+  "combat|Destroy|other": {
+   "pi": 0.354758,
+   "sign": 1,
+   "support": 11
+  },
+  "combat|Destroy|other|?": {
+   "pi": 0.277131,
+   "sign": 1,
+   "support": 12
+  },
+  "combat|Destroy|tgt_Artifact|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "combat|Dig|other|X": {
+   "pi": 0.072366,
+   "sign": 1,
+   "support": 10
+  },
+  "combat|Dig|other|X|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "combat|Dig|you": {
+   "pi": 0.045099,
+   "sign": 1,
+   "support": 17
+  },
+  "combat|Dig|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "combat|Dig|you|X": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 33
+  },
+  "combat|Dig|you|X|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 35
+  },
+  "combat|Discard|other": {
+   "pi": 0.212034,
+   "sign": 1,
+   "support": 41
+  },
+  "combat|Discard|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 43
+  },
+  "combat|Discard|you": {
+   "pi": 0.335591,
+   "sign": -1,
+   "support": 25
+  },
+  "combat|Discard|you|?": {
+   "pi": 0.090368,
+   "sign": -1,
+   "support": 26
+  },
+  "combat|Draw|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "combat|Draw|you": {
+   "pi": 0.136158,
+   "sign": 1,
+   "support": 89
+  },
+  "combat|Draw|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 113
+  },
+  "combat|Draw|you|X": {
+   "pi": 0.040369,
+   "sign": 1,
+   "support": 25
+  },
+  "combat|Draw|you|X|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 27
+  },
+  "combat|Effect|you": {
+   "pi": 0.024332,
+   "sign": 1,
+   "support": 88
+  },
+  "combat|Effect|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 108
+  },
+  "combat|GainLife|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 23
+  },
+  "combat|GainLife|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 32
+  },
+  "combat|GainLife|you|X": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 20
+  },
+  "combat|GainLife|you|X|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "combat|ImmediateTrigger|you": {
+   "pi": 0.123539,
+   "sign": 1,
+   "support": 31
+  },
+  "combat|ImmediateTrigger|you|?": {
+   "pi": 0.040593,
+   "sign": 1,
+   "support": 40
+  },
+  "combat|LoseLife|other|X|?": {
+   "pi": 0.385353,
+   "sign": 1,
+   "support": 12
+  },
+  "combat|LoseLife|you": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 10
+  },
+  "combat|LoseLife|you|?": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 12
+  },
+  "combat|Mill|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 24
+  },
+  "combat|Mill|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 24
+  },
+  "combat|Play|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "combat|Play|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "combat|Play|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "combat|PumpAll|you": {
+   "pi": 0.196199,
+   "sign": 1,
+   "support": 31
+  },
+  "combat|PumpAll|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 37
+  },
+  "combat|PumpAll|you|X": {
+   "pi": 0.416589,
+   "sign": 1,
+   "support": 15
+  },
+  "combat|PumpAll|you|X|?": {
+   "pi": 0.416589,
+   "sign": 1,
+   "support": 15
+  },
+  "combat|Pump|other": {
+   "pi": 0.054342,
+   "sign": 1,
+   "support": 68
+  },
+  "combat|Pump|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 90
+  },
+  "combat|Pump|other|X": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 58
+  },
+  "combat|Pump|other|X|?": {
+   "pi": 0.244472,
+   "sign": 1,
+   "support": 60
+  },
+  "combat|Pump|tgt_Creature|?": {
+   "pi": 0.268578,
+   "sign": 1,
+   "support": 10
+  },
+  "combat|PutCounterAll|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "combat|PutCounterAll|you|?": {
+   "pi": 0.127094,
+   "sign": 1,
+   "support": 18
+  },
+  "combat|PutCounter|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 52
+  },
+  "combat|PutCounter|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 65
+  },
+  "combat|PutCounter|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 25
+  },
+  "combat|PutCounter|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 32
+  },
+  "combat|PutCounter|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 26
+  },
+  "combat|PutCounter|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 28
+  },
+  "combat|RepeatEach|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "combat|RepeatEach|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "combat|RollDice|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "combat|RollDice|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "combat|Sacrifice|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "combat|Sacrifice|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "combat|Sacrifice|you": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 12
+  },
+  "combat|Sacrifice|you|?": {
+   "pi": 0.156012,
+   "sign": -1,
+   "support": 17
+  },
+  "combat|Tap|tgt_Creature": {
+   "pi": 0.251761,
+   "sign": 1,
+   "support": 19
+  },
+  "combat|Tap|tgt_Creature|?": {
+   "pi": 0.24762,
+   "sign": 1,
+   "support": 25
+  },
+  "combat|Token|creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 43
+  },
+  "combat|Token|creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 55
+  },
+  "combat|Token|creature|X": {
+   "pi": 0.287051,
+   "sign": 1,
+   "support": 21
+  },
+  "combat|Token|creature|X|?": {
+   "pi": 0.287051,
+   "sign": 1,
+   "support": 21
+  },
+  "combat|Token|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 20
+  },
+  "combat|Token|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 22
+  },
+  "combat|Token|pt": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 64
+  },
+  "combat|Token|pt|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "combat|Token|treasure": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "combat|Token|treasure|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 19
+  },
+  "combat|UntapAll|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "combat|UntapAll|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "combat|Untap|other": {
+   "pi": 0.099807,
+   "sign": 1,
+   "support": 10
+  },
+  "combat|Untap|other|?": {
+   "pi": 0.022181,
+   "sign": 1,
+   "support": 12
+  },
+  "combat|Untap|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "cost|Discard": {
+   "pi": 0.564904,
+   "sign": -1,
+   "support": 35
+  },
+  "cost|ExileFromGrave": {
+   "pi": 0.831607,
+   "sign": -1,
+   "support": 15
+  },
+  "cost|Sac": {
+   "pi": 0.683983,
+   "sign": -1,
+   "support": 110
+  },
+  "cost|colored_pips": {
+   "pi": 0.587421,
+   "sign": 0,
+   "support": 24273
+  },
+  "dies|ChangeZone.Exile>Battlefield|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "dies|ChangeZone.Exile>Battlefield|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 20
+  },
+  "dies|ChangeZone.Exile>Hand|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "dies|ChangeZone.Exile>Hand|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "dies|ChangeZone.Graveyard>Exile|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 20
+  },
+  "dies|ChangeZone.Graveyard>Exile|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 20
+  },
+  "dies|ChangeZone.Graveyard>Hand|other": {
+   "pi": 0.030282,
+   "sign": 1,
+   "support": 27
+  },
+  "dies|ChangeZone.Graveyard>Hand|other|?": {
+   "pi": 0.030282,
+   "sign": 1,
+   "support": 27
+  },
+  "dies|Charm|modes": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 12
+  },
+  "dies|DealDamage|tgt_Any": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "dies|DealDamage|tgt_Any|?": {
+   "pi": 0.059505,
+   "sign": 1,
+   "support": 15
+  },
+  "dies|DealDamage|tgt_Any|X|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "dies|DealDamage|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "dies|DealDamage|tgt_Creature|?": {
+   "pi": 0.101489,
+   "sign": 1,
+   "support": 19
+  },
+  "dies|DealDamage|tgt_Creature|X": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "dies|DealDamage|tgt_Creature|X|?": {
+   "pi": 0.003155,
+   "sign": 1,
+   "support": 12
+  },
+  "dies|Draw|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 32
+  },
+  "dies|Draw|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 32
+  },
+  "dies|Draw|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 31
+  },
+  "dies|Draw|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 33
+  },
+  "dies|Draw|you|X": {
+   "pi": 0.011727,
+   "sign": 1,
+   "support": 11
+  },
+  "dies|Draw|you|X|?": {
+   "pi": 0.011727,
+   "sign": 1,
+   "support": 11
+  },
+  "dies|GainLife|other": {
+   "pi": 0.047426,
+   "sign": 1,
+   "support": 16
+  },
+  "dies|GainLife|other|?": {
+   "pi": 0.047426,
+   "sign": 1,
+   "support": 16
+  },
+  "dies|ImmediateTrigger|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "dies|ImmediateTrigger|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "dies|Pump-|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "dies|Pump-|tgt_Creature|?": {
+   "pi": 0.116668,
+   "sign": 1,
+   "support": 12
+  },
+  "dies|PutCounter|tgt_Creature": {
+   "pi": 0.067211,
+   "sign": 1,
+   "support": 23
+  },
+  "dies|PutCounter|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 27
+  },
+  "dies|Token-gift|creature": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 19
+  },
+  "dies|Token-gift|creature|?": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 19
+  },
+  "dies|Token-gift|pt": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 21
+  },
+  "dies|Token|creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 61
+  },
+  "dies|Token|creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 62
+  },
+  "dies|Token|creature|X": {
+   "pi": 0.106054,
+   "sign": 1,
+   "support": 12
+  },
+  "dies|Token|creature|X|?": {
+   "pi": 0.106054,
+   "sign": 1,
+   "support": 12
+  },
+  "dies|Token|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "dies|Token|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "dies|Token|pt": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 73
+  },
+  "dies|Token|treasure": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "dies|Token|treasure|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "etb|PutCounter": {
+   "pi": -0.397104,
+   "sign": 0,
+   "support": 10
+  },
+  "etb|Tap": {
+   "pi": -0.322489,
+   "sign": 0,
+   "support": 118
+  },
+  "event:Always|Sacrifice|you|?": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 37
+  },
+  "event:AttackerBlockedByCreature|DelayedTrigger|you": {
+   "pi": 0.126213,
+   "sign": 1,
+   "support": 17
+  },
+  "event:AttackerBlockedByCreature|DelayedTrigger|you|?": {
+   "pi": 0.126213,
+   "sign": 1,
+   "support": 17
+  },
+  "event:AttackerBlockedByCreature|Destroy|other": {
+   "pi": 0.045375,
+   "sign": 1,
+   "support": 10
+  },
+  "event:AttackerBlockedByCreature|Destroy|other|?": {
+   "pi": 0.045375,
+   "sign": 1,
+   "support": 10
+  },
+  "event:AttackerBlocked|Pump|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "event:AttackerBlocked|Pump|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "event:AttackersDeclared|Draw|you": {
+   "pi": 0.194313,
+   "sign": 1,
+   "support": 20
+  },
+  "event:AttackersDeclared|Draw|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 26
+  },
+  "event:AttackersDeclared|ImmediateTrigger|you|?": {
+   "pi": 0.021486,
+   "sign": 1,
+   "support": 12
+  },
+  "event:Attacks|Draw|you": {
+   "pi": 0.359539,
+   "sign": 1,
+   "support": 10
+  },
+  "event:Attacks|Draw|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "event:Attacks|GainLife|you": {
+   "pi": 0.028245,
+   "sign": 1,
+   "support": 16
+  },
+  "event:Attacks|GainLife|you|?": {
+   "pi": 0.028245,
+   "sign": 1,
+   "support": 16
+  },
+  "event:Attacks|LoseLife|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "event:Attacks|LoseLife|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "event:Attacks|Pump|other": {
+   "pi": 0.002872,
+   "sign": 1,
+   "support": 14
+  },
+  "event:Attacks|Pump|other|?": {
+   "pi": 0.002872,
+   "sign": 1,
+   "support": 14
+  },
+  "event:Attacks|Pump|other|X": {
+   "pi": 0.364195,
+   "sign": 1,
+   "support": 13
+  },
+  "event:Attacks|Pump|other|X|?": {
+   "pi": 0.364195,
+   "sign": 1,
+   "support": 13
+  },
+  "event:Attacks|PutCounter|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 22
+  },
+  "event:Attacks|PutCounter|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 22
+  },
+  "event:Attacks|Tap|tgt_Creature|?": {
+   "pi": 0.438552,
+   "sign": 1,
+   "support": 11
+  },
+  "event:Attacks|Token|creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "event:Attacks|Token|creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "event:Attacks|Token|pt": {
+   "pi": 0.010861,
+   "sign": 1,
+   "support": 11
+  },
+  "event:BecomesTarget|Sacrifice|you": {
+   "pi": 0.504493,
+   "sign": -1,
+   "support": 20
+  },
+  "event:BecomesTarget|Sacrifice|you|?": {
+   "pi": 0.016541,
+   "sign": -1,
+   "support": 21
+  },
+  "event:ChangesZoneAll|Draw|you|?": {
+   "pi": 0.226873,
+   "sign": 1,
+   "support": 17
+  },
+  "event:ChangesZoneAll|PutCounter|other|?": {
+   "pi": 0.060219,
+   "sign": 1,
+   "support": 12
+  },
+  "event:ChangesZoneAll|Token|creature": {
+   "pi": 0.08445,
+   "sign": 1,
+   "support": 17
+  },
+  "event:ChangesZoneAll|Token|creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 25
+  },
+  "event:ChangesZoneAll|Token|pt": {
+   "pi": 0.02047,
+   "sign": 1,
+   "support": 17
+  },
+  "event:ChangesZone|Animate|other": {
+   "pi": 0.025858,
+   "sign": 1,
+   "support": 16
+  },
+  "event:ChangesZone|Animate|other|?": {
+   "pi": 0.149679,
+   "sign": 1,
+   "support": 18
+  },
+  "event:ChangesZone|Attach|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "event:ChangesZone|Attach|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 23
+  },
+  "event:ChangesZone|Branch|you|?": {
+   "pi": 0.022089,
+   "sign": 1,
+   "support": 10
+  },
+  "event:ChangesZone|ChangeZone.Battlefield>Hand|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "event:ChangesZone|ChangeZone.Battlefield>Hand|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "event:ChangesZone|ChangeZone.Graveyard>Battlefield|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 50
+  },
+  "event:ChangesZone|ChangeZone.Graveyard>Battlefield|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 52
+  },
+  "event:ChangesZone|ChangeZone.Graveyard>Battlefield|tgt_Creature|?": {
+   "pi": 0.099857,
+   "sign": 1,
+   "support": 11
+  },
+  "event:ChangesZone|ChangeZone.Graveyard>Exile|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 23
+  },
+  "event:ChangesZone|ChangeZone.Graveyard>Exile|other|?": {
+   "pi": 0.120248,
+   "sign": 1,
+   "support": 24
+  },
+  "event:ChangesZone|ChangeZone.Graveyard>Hand|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 30
+  },
+  "event:ChangesZone|ChangeZone.Graveyard>Hand|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 31
+  },
+  "event:ChangesZone|ChangeZone.Graveyard>Hand|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "event:ChangesZone|ChangeZone.Graveyard>Hand|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "event:ChangesZone|ChangeZone.Graveyard>Library|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "event:ChangesZone|ChangeZone.Graveyard>Library|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "event:ChangesZone|ChangeZone.Library>Battlefield|you": {
+   "pi": 0.716699,
+   "sign": 1,
+   "support": 10
+  },
+  "event:ChangesZone|ChangeZone.Library>Battlefield|you|?": {
+   "pi": 0.229153,
+   "sign": 1,
+   "support": 11
+  },
+  "event:ChangesZone|Charm|modes": {
+   "pi": 0.238473,
+   "sign": 1,
+   "support": 16
+  },
+  "event:ChangesZone|CopyPermanent|other": {
+   "pi": 0.458386,
+   "sign": 1,
+   "support": 27
+  },
+  "event:ChangesZone|CopyPermanent|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 32
+  },
+  "event:ChangesZone|DealDamage|each_opp": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "event:ChangesZone|DealDamage|each_opp|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 19
+  },
+  "event:ChangesZone|DealDamage|other": {
+   "pi": 0.145372,
+   "sign": 1,
+   "support": 10
+  },
+  "event:ChangesZone|DealDamage|other|?": {
+   "pi": 0.054447,
+   "sign": 1,
+   "support": 12
+  },
+  "event:ChangesZone|DealDamage|tgt_Any|X": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "event:ChangesZone|DealDamage|tgt_Any|X|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "event:ChangesZone|DealDamage|tgt_Creature": {
+   "pi": 0.287264,
+   "sign": 1,
+   "support": 10
+  },
+  "event:ChangesZone|DealDamage|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "event:ChangesZone|DealDamage|tgt_Creature|X": {
+   "pi": 0.196961,
+   "sign": 1,
+   "support": 15
+  },
+  "event:ChangesZone|DealDamage|tgt_Creature|X|?": {
+   "pi": 0.196961,
+   "sign": 1,
+   "support": 15
+  },
+  "event:ChangesZone|DelayedTrigger|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "event:ChangesZone|DelayedTrigger|you|?": {
+   "pi": 0.475438,
+   "sign": 1,
+   "support": 22
+  },
+  "event:ChangesZone|Discard|you": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 11
+  },
+  "event:ChangesZone|Discard|you|?": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 12
+  },
+  "event:ChangesZone|Draw|you": {
+   "pi": 0.133647,
+   "sign": 1,
+   "support": 90
+  },
+  "event:ChangesZone|Draw|you|?": {
+   "pi": 0.057196,
+   "sign": 1,
+   "support": 105
+  },
+  "event:ChangesZone|Effect|you": {
+   "pi": 0.04208,
+   "sign": 1,
+   "support": 15
+  },
+  "event:ChangesZone|Effect|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "event:ChangesZone|GainLife|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 114
+  },
+  "event:ChangesZone|GainLife|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 117
+  },
+  "event:ChangesZone|GainLife|you|X": {
+   "pi": 0.251071,
+   "sign": 1,
+   "support": 15
+  },
+  "event:ChangesZone|GainLife|you|X|?": {
+   "pi": 0.251071,
+   "sign": 1,
+   "support": 15
+  },
+  "event:ChangesZone|Investigate|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "event:ChangesZone|LoseLife|each_opp": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 39
+  },
+  "event:ChangesZone|LoseLife|each_opp|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 39
+  },
+  "event:ChangesZone|LoseLife|you": {
+   "pi": 0.264792,
+   "sign": -1,
+   "support": 12
+  },
+  "event:ChangesZone|LoseLife|you|?": {
+   "pi": 0.165005,
+   "sign": -1,
+   "support": 13
+  },
+  "event:ChangesZone|PumpAll|you": {
+   "pi": 0.235951,
+   "sign": 1,
+   "support": 11
+  },
+  "event:ChangesZone|PumpAll|you|?": {
+   "pi": 0.235951,
+   "sign": 1,
+   "support": 11
+  },
+  "event:ChangesZone|Pump|other": {
+   "pi": 0.063013,
+   "sign": 1,
+   "support": 79
+  },
+  "event:ChangesZone|Pump|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 80
+  },
+  "event:ChangesZone|Pump|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "event:ChangesZone|Pump|tgt_Creature|?": {
+   "pi": 0.044865,
+   "sign": 1,
+   "support": 15
+  },
+  "event:ChangesZone|PutCounterAll|you": {
+   "pi": 0.418494,
+   "sign": 1,
+   "support": 12
+  },
+  "event:ChangesZone|PutCounterAll|you|?": {
+   "pi": 0.195837,
+   "sign": 1,
+   "support": 13
+  },
+  "event:ChangesZone|PutCounter|other": {
+   "pi": 0.132308,
+   "sign": 1,
+   "support": 166
+  },
+  "event:ChangesZone|PutCounter|other|?": {
+   "pi": 0.009071,
+   "sign": 1,
+   "support": 180
+  },
+  "event:ChangesZone|PutCounter|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 27
+  },
+  "event:ChangesZone|PutCounter|tgt_Creature|?": {
+   "pi": 0.082136,
+   "sign": 1,
+   "support": 31
+  },
+  "event:ChangesZone|PutCounter|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 46
+  },
+  "event:ChangesZone|PutCounter|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 50
+  },
+  "event:ChangesZone|Scry|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "event:ChangesZone|Scry|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "event:ChangesZone|Tap|tgt_Creature": {
+   "pi": 0.401835,
+   "sign": 1,
+   "support": 14
+  },
+  "event:ChangesZone|Tap|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 19
+  },
+  "event:ChangesZone|Token|creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 94
+  },
+  "event:ChangesZone|Token|creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 100
+  },
+  "event:ChangesZone|Token|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "event:ChangesZone|Token|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "event:ChangesZone|Token|pt": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 99
+  },
+  "event:ChangesZone|Token|treasure|?": {
+   "pi": 0.364331,
+   "sign": 1,
+   "support": 10
+  },
+  "event:ChangesZone|Untap|other": {
+   "pi": 0.245664,
+   "sign": 1,
+   "support": 15
+  },
+  "event:ChangesZone|Untap|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "event:DamageDealtOnce|GainLife|you|X": {
+   "pi": 0.312104,
+   "sign": 1,
+   "support": 17
+  },
+  "event:DamageDealtOnce|GainLife|you|X|?": {
+   "pi": 0.312104,
+   "sign": 1,
+   "support": 17
+  },
+  "event:DamageDoneOnce|Draw|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "event:DamageDoneOnce|Draw|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "event:DamageDoneOnce|PutCounter|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "event:DamageDoneOnce|PutCounter|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "event:DamageDoneOnce|Token|pt": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "event:DamageDone|Draw|you": {
+   "pi": 0.096675,
+   "sign": 1,
+   "support": 39
+  },
+  "event:DamageDone|Draw|you|?": {
+   "pi": 0.090166,
+   "sign": 1,
+   "support": 42
+  },
+  "event:DamageDone|Effect|you|?": {
+   "pi": 0.059611,
+   "sign": 1,
+   "support": 10
+  },
+  "event:DamageDone|PutCounter|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "event:DamageDone|PutCounter|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "event:DamageDone|Token|pt": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "event:Drawn|PutCounter|other": {
+   "pi": 0.161632,
+   "sign": 1,
+   "support": 30
+  },
+  "event:Drawn|PutCounter|other|?": {
+   "pi": 0.161632,
+   "sign": 1,
+   "support": 30
+  },
+  "event:Drawn|Token|creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "event:Drawn|Token|creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 19
+  },
+  "event:Drawn|Token|pt": {
+   "pi": 0.028488,
+   "sign": 1,
+   "support": 18
+  },
+  "event:LifeGained|PutCounter|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 23
+  },
+  "event:LifeGained|PutCounter|other|?": {
+   "pi": 0.069126,
+   "sign": 1,
+   "support": 24
+  },
+  "event:Sacrificed|GainLife|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "event:Sacrificed|PutCounter|other": {
+   "pi": 0.013841,
+   "sign": 1,
+   "support": 23
+  },
+  "event:Sacrificed|PutCounter|other|?": {
+   "pi": 0.193523,
+   "sign": 1,
+   "support": 24
+  },
+  "event:SpellCast|Animate|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 23
+  },
+  "event:SpellCast|Animate|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 26
+  },
+  "event:SpellCast|Charm|modes": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 15
+  },
+  "event:SpellCast|CopySpellAbility|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "event:SpellCast|CopySpellAbility|other|?": {
+   "pi": 0.157692,
+   "sign": 1,
+   "support": 62
+  },
+  "event:SpellCast|CopySpellAbility|other|X|?": {
+   "pi": 0.863148,
+   "sign": 1,
+   "support": 11
+  },
+  "event:SpellCast|Counter|other|?": {
+   "pi": 0.318304,
+   "sign": 1,
+   "support": 16
+  },
+  "event:SpellCast|DealDamage|each_opp": {
+   "pi": 0.100511,
+   "sign": 1,
+   "support": 20
+  },
+  "event:SpellCast|DealDamage|each_opp|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "event:SpellCast|DealDamage|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "event:SpellCast|DealDamage|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "event:SpellCast|DealDamage|tgt_Any": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "event:SpellCast|DealDamage|tgt_Any|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "event:SpellCast|DealDamage|tgt_Creature": {
+   "pi": 0.155553,
+   "sign": 1,
+   "support": 18
+  },
+  "event:SpellCast|DealDamage|tgt_Creature|?": {
+   "pi": 0.023956,
+   "sign": 1,
+   "support": 19
+  },
+  "event:SpellCast|DealDamage|tgt_Creature|X|?": {
+   "pi": 0.65287,
+   "sign": 1,
+   "support": 10
+  },
+  "event:SpellCast|Dig|you|X|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "event:SpellCast|Draw|you": {
+   "pi": 0.071094,
+   "sign": 1,
+   "support": 79
+  },
+  "event:SpellCast|Draw|you|?": {
+   "pi": 0.174442,
+   "sign": 1,
+   "support": 90
+  },
+  "event:SpellCast|Effect|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 33
+  },
+  "event:SpellCast|Effect|you|?": {
+   "pi": 0.017517,
+   "sign": 1,
+   "support": 43
+  },
+  "event:SpellCast|GainLife|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 49
+  },
+  "event:SpellCast|GainLife|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 49
+  },
+  "event:SpellCast|PumpAll|you": {
+   "pi": 0.024616,
+   "sign": 1,
+   "support": 15
+  },
+  "event:SpellCast|PumpAll|you|?": {
+   "pi": 0.024616,
+   "sign": 1,
+   "support": 15
+  },
+  "event:SpellCast|Pump|other": {
+   "pi": 0.008487,
+   "sign": 1,
+   "support": 50
+  },
+  "event:SpellCast|Pump|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 52
+  },
+  "event:SpellCast|PutCounterAll|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "event:SpellCast|PutCounterAll|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "event:SpellCast|PutCounter|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 120
+  },
+  "event:SpellCast|PutCounter|other|?": {
+   "pi": 0.04126,
+   "sign": 1,
+   "support": 127
+  },
+  "event:SpellCast|PutCounter|tgt_Creature": {
+   "pi": 0.17763,
+   "sign": 1,
+   "support": 13
+  },
+  "event:SpellCast|PutCounter|tgt_Creature|?": {
+   "pi": 0.356318,
+   "sign": 1,
+   "support": 15
+  },
+  "event:SpellCast|PutCounter|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "event:SpellCast|PutCounter|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "event:SpellCast|Sacrifice|you|?": {
+   "pi": 0.376009,
+   "sign": -1,
+   "support": 10
+  },
+  "event:SpellCast|Scry|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "event:SpellCast|Scry|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "event:SpellCast|Tap|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "event:SpellCast|Tap|tgt_Creature|?": {
+   "pi": 0.058248,
+   "sign": 1,
+   "support": 15
+  },
+  "event:SpellCast|Token|creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 84
+  },
+  "event:SpellCast|Token|creature|?": {
+   "pi": 0.132181,
+   "sign": 1,
+   "support": 91
+  },
+  "event:SpellCast|Token|other": {
+   "pi": 0.171008,
+   "sign": 1,
+   "support": 14
+  },
+  "event:SpellCast|Token|other|?": {
+   "pi": 0.097037,
+   "sign": 1,
+   "support": 17
+  },
+  "event:SpellCast|Token|pt": {
+   "pi": 0.014444,
+   "sign": 1,
+   "support": 88
+  },
+  "event:SpellCast|Untap|other": {
+   "pi": 0.123607,
+   "sign": 1,
+   "support": 26
+  },
+  "event:SpellCast|Untap|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 27
+  },
+  "event:TapsForMana|ManaReflected|other|?": {
+   "pi": 0.160085,
+   "sign": 1,
+   "support": 10
+  },
+  "event:TapsForMana|Mana|other": {
+   "pi": 0.193632,
+   "sign": 1,
+   "support": 16
+  },
+  "event:TapsForMana|Mana|other|?": {
+   "pi": 0.181869,
+   "sign": 1,
+   "support": 17
+  },
+  "event:Taps|Draw|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "event:Taps|Draw|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "event_opp:SpellCast|Animate|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "event_opp:SpellCast|Draw|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "event_opp:SpellCast|Draw|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "event_opp:SpellCast|PutCounter|other": {
+   "pi": 0.098171,
+   "sign": 1,
+   "support": 10
+  },
+  "event_opp:SpellCast|PutCounter|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "kw|A deck can have any number of cards named CARDNAME.": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 10
+  },
+  "kw|Afflict": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 10
+  },
+  "kw|Afterlife": {
+   "pi": 0.687004,
+   "sign": 1,
+   "support": 10
+  },
+  "kw|All creatures able to block CARDNAME do so.": {
+   "pi": 0.571012,
+   "sign": 1,
+   "support": 10
+  },
+  "kw|AlternateAdditionalCost": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 41
+  },
+  "kw|Annihilator": {
+   "pi": 1.035108,
+   "sign": 1,
+   "support": 11
+  },
+  "kw|Ascend": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 26
+  },
+  "kw|Awaken": {
+   "pi": 0.284529,
+   "sign": 1,
+   "support": 15
+  },
+  "kw|Backup": {
+   "pi": 0.782329,
+   "sign": 1,
+   "support": 24
+  },
+  "kw|Banding": {
+   "pi": 0.599566,
+   "sign": 1,
+   "support": 24
+  },
+  "kw|Bargain": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 16
+  },
+  "kw|Battle cry": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 13
+  },
+  "kw|Bloodthirst": {
+   "pi": 0.548968,
+   "sign": 1,
+   "support": 23
+  },
+  "kw|Bushido": {
+   "pi": 0.454208,
+   "sign": 1,
+   "support": 34
+  },
+  "kw|Buyback": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 35
+  },
+  "kw|Cascade": {
+   "pi": 1.27054,
+   "sign": 1,
+   "support": 35
+  },
+  "kw|Champion": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 12
+  },
+  "kw|Changeling": {
+   "pi": 0.091427,
+   "sign": 1,
+   "support": 55
+  },
+  "kw|Chapter": {
+   "pi": 1.120347,
+   "sign": 1,
+   "support": 177
+  },
+  "kw|Choose a Background": {
+   "pi": 0.435408,
+   "sign": 1,
+   "support": 28
+  },
+  "kw|Cipher": {
+   "pi": 0.902134,
+   "sign": 1,
+   "support": 15
+  },
+  "kw|Class": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 33
+  },
+  "kw|Companion": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 10
+  },
+  "kw|Conspire": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 11
+  },
+  "kw|Crew": {
+   "pi": 0.82878,
+   "sign": 1,
+   "support": 166
+  },
+  "kw|Cumulative upkeep": {
+   "pi": 0.244188,
+   "sign": -1,
+   "support": 77
+  },
+  "kw|Cycling": {
+   "pi": 0.275112,
+   "sign": 1,
+   "support": 245
+  },
+  "kw|Deathtouch": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 273
+  },
+  "kw|Defender": {
+   "pi": 0.484688,
+   "sign": -1,
+   "support": 283
+  },
+  "kw|Devoid": {
+   "pi": 0.128075,
+   "sign": 1,
+   "support": 130
+  },
+  "kw|Devour": {
+   "pi": 0.488714,
+   "sign": 1,
+   "support": 22
+  },
+  "kw|Doctor's companion": {
+   "pi": 0.157213,
+   "sign": 1,
+   "support": 27
+  },
+  "kw|Double Strike": {
+   "pi": 0.225882,
+   "sign": 1,
+   "support": 88
+  },
+  "kw|Double Strike×power": {
+   "pi": 0.28115,
+   "sign": 1,
+   "support": 84
+  },
+  "kw|Dredge": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 13
+  },
+  "kw|ETBReplacement": {
+   "pi": 0.276037,
+   "sign": 1,
+   "support": 290
+  },
+  "kw|Echo": {
+   "pi": 0.505254,
+   "sign": -1,
+   "support": 51
+  },
+  "kw|Embalm": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 15
+  },
+  "kw|Enchant": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 1189
+  },
+  "kw|Encore": {
+   "pi": 0.307438,
+   "sign": 1,
+   "support": 26
+  },
+  "kw|Enlist": {
+   "pi": 0.2004,
+   "sign": 1,
+   "support": 12
+  },
+  "kw|Entwine": {
+   "pi": 0.392731,
+   "sign": 1,
+   "support": 32
+  },
+  "kw|Equip": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 563
+  },
+  "kw|Escape": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 31
+  },
+  "kw|Eternalize": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 12
+  },
+  "kw|Evolve": {
+   "pi": 0.17986,
+   "sign": 1,
+   "support": 22
+  },
+  "kw|Exalted": {
+   "pi": 0.168476,
+   "sign": 1,
+   "support": 32
+  },
+  "kw|Exploit": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 23
+  },
+  "kw|Extort": {
+   "pi": 0.373985,
+   "sign": 1,
+   "support": 16
+  },
+  "kw|Fabricate": {
+   "pi": 1.110468,
+   "sign": 1,
+   "support": 16
+  },
+  "kw|Fading": {
+   "pi": 0.05,
+   "sign": -1,
+   "support": 17
+  },
+  "kw|Fear": {
+   "pi": 0.204164,
+   "sign": 1,
+   "support": 35
+  },
+  "kw|Fear×power": {
+   "pi": 0.065513,
+   "sign": 1,
+   "support": 32
+  },
+  "kw|Firebending": {
+   "pi": 0.158688,
+   "sign": 1,
+   "support": 18
+  },
+  "kw|First Strike": {
+   "pi": 0.086735,
+   "sign": 1,
+   "support": 332
+  },
+  "kw|Flanking": {
+   "pi": 0.148509,
+   "sign": 1,
+   "support": 26
+  },
+  "kw|Flash": {
+   "pi": 0.15,
+   "sign": 1,
+   "support": 540
+  },
+  "kw|Flashback": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 196
+  },
+  "kw|Flying": {
+   "pi": 0.247913,
+   "sign": 1,
+   "support": 2735
+  },
+  "kw|Flying×power": {
+   "pi": 0.065513,
+   "sign": 1,
+   "support": 2591
+  },
+  "kw|For Mirrodin": {
+   "pi": 1.162456,
+   "sign": 1,
+   "support": 13
+  },
+  "kw|Gift": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 25
+  },
+  "kw|Graft": {
+   "pi": 1.427139,
+   "sign": 1,
+   "support": 11
+  },
+  "kw|Haste": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 550
+  },
+  "kw|Haste×power": {
+   "pi": 0.086615,
+   "sign": 1,
+   "support": 524
+  },
+  "kw|Haunt": {
+   "pi": 0.60566,
+   "sign": 1,
+   "support": 10
+  },
+  "kw|Hexproof": {
+   "pi": 0.209632,
+   "sign": 1,
+   "support": 75
+  },
+  "kw|Horsemanship": {
+   "pi": 0.192566,
+   "sign": 1,
+   "support": 28
+  },
+  "kw|Horsemanship×power": {
+   "pi": 0.316542,
+   "sign": 1,
+   "support": 28
+  },
+  "kw|Indestructible": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 87
+  },
+  "kw|Infect": {
+   "pi": 0.446408,
+   "sign": 1,
+   "support": 45
+  },
+  "kw|Intimidate": {
+   "pi": 0.106575,
+   "sign": 1,
+   "support": 20
+  },
+  "kw|Intimidate×power": {
+   "pi": 0.065513,
+   "sign": 1,
+   "support": 20
+  },
+  "kw|Job select": {
+   "pi": 0.558916,
+   "sign": 1,
+   "support": 19
+  },
+  "kw|Jump-start": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 12
+  },
+  "kw|Kicker": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 223
+  },
+  "kw|Landwalk": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 128
+  },
+  "kw|Landwalk×power": {
+   "pi": 0.065513,
+   "sign": 1,
+   "support": 126
+  },
+  "kw|Level up": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 25
+  },
+  "kw|Lifelink": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 295
+  },
+  "kw|Living Weapon": {
+   "pi": 0.744094,
+   "sign": 1,
+   "support": 19
+  },
+  "kw|MayEffectFromOpeningHand": {
+   "pi": 0.506632,
+   "sign": 1,
+   "support": 25
+  },
+  "kw|MayFlashSac": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 10
+  },
+  "kw|Mayhem": {
+   "pi": 0.227819,
+   "sign": 1,
+   "support": 15
+  },
+  "kw|Melee": {
+   "pi": 0.543165,
+   "sign": 1,
+   "support": 12
+  },
+  "kw|Menace": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 313
+  },
+  "kw|Menace×power": {
+   "pi": 0.065513,
+   "sign": 1,
+   "support": 297
+  },
+  "kw|Mentor": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 17
+  },
+  "kw|Mobilize": {
+   "pi": 0.232457,
+   "sign": 1,
+   "support": 13
+  },
+  "kw|Modular": {
+   "pi": 1.526895,
+   "sign": 1,
+   "support": 22
+  },
+  "kw|Multikicker": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 16
+  },
+  "kw|Myriad": {
+   "pi": 0.212173,
+   "sign": 1,
+   "support": 22
+  },
+  "kw|Offspring": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 20
+  },
+  "kw|Outlast": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 12
+  },
+  "kw|Partner": {
+   "pi": 0.302084,
+   "sign": 1,
+   "support": 69
+  },
+  "kw|Partner with": {
+   "pi": 0.705742,
+   "sign": 1,
+   "support": 52
+  },
+  "kw|Persist": {
+   "pi": 0.260194,
+   "sign": 1,
+   "support": 24
+  },
+  "kw|Phasing": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 11
+  },
+  "kw|Protection": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 175
+  },
+  "kw|Prototype": {
+   "pi": 1.500819,
+   "sign": 1,
+   "support": 18
+  },
+  "kw|Prowess": {
+   "pi": 0.124369,
+   "sign": 1,
+   "support": 71
+  },
+  "kw|Rampage": {
+   "pi": 0.530425,
+   "sign": 1,
+   "support": 12
+  },
+  "kw|Reach": {
+   "pi": 0.141881,
+   "sign": 1,
+   "support": 361
+  },
+  "kw|Read ahead": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 10
+  },
+  "kw|Rebound": {
+   "pi": 0.765003,
+   "sign": 1,
+   "support": 34
+  },
+  "kw|Reconfigure": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 17
+  },
+  "kw|Renown": {
+   "pi": 0.071209,
+   "sign": 1,
+   "support": 20
+  },
+  "kw|Replicate": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 18
+  },
+  "kw|Retrace": {
+   "pi": 0.430431,
+   "sign": 1,
+   "support": 17
+  },
+  "kw|Riot": {
+   "pi": 0.55865,
+   "sign": 1,
+   "support": 13
+  },
+  "kw|Saddle": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 30
+  },
+  "kw|Scavenge": {
+   "pi": 0.079007,
+   "sign": 1,
+   "support": 14
+  },
+  "kw|Shadow": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 35
+  },
+  "kw|Shadow×power": {
+   "pi": 0.065513,
+   "sign": 1,
+   "support": 34
+  },
+  "kw|Shroud": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 34
+  },
+  "kw|Skulk": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 11
+  },
+  "kw|Skulk×power": {
+   "pi": 0.065513,
+   "sign": 1,
+   "support": 11
+  },
+  "kw|Soulbond": {
+   "pi": 0.305705,
+   "sign": 1,
+   "support": 25
+  },
+  "kw|Soulshift": {
+   "pi": 1.076985,
+   "sign": 1,
+   "support": 26
+  },
+  "kw|Splice": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 29
+  },
+  "kw|Split second": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 21
+  },
+  "kw|Spree": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 21
+  },
+  "kw|Squad": {
+   "pi": 0.09651,
+   "sign": 1,
+   "support": 14
+  },
+  "kw|Start your engines": {
+   "pi": 0.059568,
+   "sign": 1,
+   "support": 37
+  },
+  "kw|Station": {
+   "pi": 1.225431,
+   "sign": 1,
+   "support": 26
+  },
+  "kw|Storm": {
+   "pi": 0.87703,
+   "sign": 1,
+   "support": 32
+  },
+  "kw|Strive": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 19
+  },
+  "kw|Sunburst": {
+   "pi": 1.519545,
+   "sign": 1,
+   "support": 14
+  },
+  "kw|Teamwork": {
+   "pi": 0.104286,
+   "sign": 1,
+   "support": 17
+  },
+  "kw|Toxic": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 37
+  },
+  "kw|Training": {
+   "pi": 0.435789,
+   "sign": 1,
+   "support": 10
+  },
+  "kw|Trample": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 803
+  },
+  "kw|Trample×power": {
+   "pi": 0.051976,
+   "sign": 1,
+   "support": 732
+  },
+  "kw|Transmute": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 13
+  },
+  "kw|Tribute": {
+   "pi": 0.602161,
+   "sign": 1,
+   "support": 11
+  },
+  "kw|TypeCycling": {
+   "pi": 0.85712,
+   "sign": 1,
+   "support": 87
+  },
+  "kw|Umbra armor": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 15
+  },
+  "kw|Undying": {
+   "pi": 0.313034,
+   "sign": 1,
+   "support": 22
+  },
+  "kw|Unearth": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 56
+  },
+  "kw|Unleash": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 14
+  },
+  "kw|Vanishing": {
+   "pi": 0.847974,
+   "sign": -1,
+   "support": 20
+  },
+  "kw|Vigilance": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 614
+  },
+  "kw|Ward": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 150
+  },
+  "kw|Web-slinging": {
+   "pi": 0.151536,
+   "sign": 1,
+   "support": 10
+  },
+  "kw|Wither": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 26
+  },
+  "kw|You may choose not to untap CARDNAME during your untap step.": {
+   "pi": 0.05,
+   "sign": -1,
+   "support": 39
+  },
+  "kw|etbCounter": {
+   "pi": 0.681105,
+   "sign": 1,
+   "support": 359
+  },
+  "loyalty|Animate|other|?": {
+   "pi": 0.070861,
+   "sign": 1,
+   "support": 12
+  },
+  "loyalty|ChangeZone.Battlefield>Exile|tgt_Creature|?": {
+   "pi": 0.114981,
+   "sign": 1,
+   "support": 14
+  },
+  "loyalty|DealDamage|tgt_Any|?": {
+   "pi": 0.380061,
+   "sign": 1,
+   "support": 13
+  },
+  "loyalty|DealDamage|tgt_Creature|?": {
+   "pi": 0.153905,
+   "sign": 1,
+   "support": 18
+  },
+  "loyalty|DealDamage|tgt_Creature|X|?": {
+   "pi": 0.403102,
+   "sign": 1,
+   "support": 12
+  },
+  "loyalty|Destroy|tgt_Creature|?": {
+   "pi": 1.199382,
+   "sign": 1,
+   "support": 15
+  },
+  "loyalty|Dig|you|?": {
+   "pi": 0.551884,
+   "sign": 1,
+   "support": 21
+  },
+  "loyalty|Dig|you|X|?": {
+   "pi": 0.498796,
+   "sign": 1,
+   "support": 22
+  },
+  "loyalty|Discard|you|?": {
+   "pi": 0.243683,
+   "sign": -1,
+   "support": 17
+  },
+  "loyalty|Draw|you": {
+   "pi": 0.247911,
+   "sign": 1,
+   "support": 14
+  },
+  "loyalty|Draw|you|?": {
+   "pi": 0.227477,
+   "sign": 1,
+   "support": 51
+  },
+  "loyalty|Effect|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 25
+  },
+  "loyalty|Effect|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 95
+  },
+  "loyalty|GainLife|you|?": {
+   "pi": 0.085748,
+   "sign": 1,
+   "support": 22
+  },
+  "loyalty|GainLife|you|X|?": {
+   "pi": 0.316026,
+   "sign": 1,
+   "support": 11
+  },
+  "loyalty|Mana|you|?": {
+   "pi": 0.351678,
+   "sign": 1,
+   "support": 15
+  },
+  "loyalty|PutCounter|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "loyalty|Token|creature|?": {
+   "pi": 0.042173,
+   "sign": 1,
+   "support": 73
+  },
+  "loyalty|Token|other|?": {
+   "pi": 0.98041,
+   "sign": 1,
+   "support": 11
+  },
+  "loyalty|Token|pt|?": {
+   "pi": 0.120009,
+   "sign": 1,
+   "support": 70
+  },
+  "once|AddPhase": {
+   "pi": 1.401081,
+   "sign": 1,
+   "support": 11
+  },
+  "once|AddTurn": {
+   "pi": 1.225253,
+   "sign": 1,
+   "support": 19
+  },
+  "once|AddTurn|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "once|AddTurn|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "once|AlterAttribute": {
+   "pi": 0.144491,
+   "sign": 1,
+   "support": 21
+  },
+  "once|AlterAttribute|other": {
+   "pi": 0.112637,
+   "sign": 1,
+   "support": 15
+  },
+  "once|AlterAttribute|other|?": {
+   "pi": 0.112637,
+   "sign": 1,
+   "support": 15
+  },
+  "once|Amass": {
+   "pi": 0.130683,
+   "sign": 1,
+   "support": 46
+  },
+  "once|Amass|you": {
+   "pi": 0.277711,
+   "sign": 1,
+   "support": 45
+  },
+  "once|Amass|you|?": {
+   "pi": 0.095301,
+   "sign": 1,
+   "support": 36
+  },
+  "once|Animate": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 115
+  },
+  "once|AnimateAll": {
+   "pi": 0.186977,
+   "sign": 1,
+   "support": 22
+  },
+  "once|AnimateAll|you": {
+   "pi": 0.175872,
+   "sign": 1,
+   "support": 16
+  },
+  "once|AnimateAll|you|?": {
+   "pi": 0.466152,
+   "sign": 1,
+   "support": 14
+  },
+  "once|Animate|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 49
+  },
+  "once|Animate|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 45
+  },
+  "once|Animate|tgt_Artifact": {
+   "pi": 0.164794,
+   "sign": 1,
+   "support": 12
+  },
+  "once|Animate|tgt_Artifact|?": {
+   "pi": 0.164794,
+   "sign": 1,
+   "support": 12
+  },
+  "once|Animate|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 34
+  },
+  "once|Animate|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 34
+  },
+  "once|Animate|tgt_Land": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "once|Animate|tgt_Land|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "once|Attach": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 107
+  },
+  "once|Attach|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 43
+  },
+  "once|Attach|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 42
+  },
+  "once|Attach|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 55
+  },
+  "once|Attach|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 55
+  },
+  "once|BecomeMonarch": {
+   "pi": 0.059462,
+   "sign": 1,
+   "support": 44
+  },
+  "once|BecomeMonarch|you": {
+   "pi": 0.435779,
+   "sign": 1,
+   "support": 41
+  },
+  "once|BecomeMonarch|you|?": {
+   "pi": 0.307758,
+   "sign": 1,
+   "support": 39
+  },
+  "once|Branch": {
+   "pi": 0.455644,
+   "sign": 1,
+   "support": 22
+  },
+  "once|Branch|you": {
+   "pi": 0.080118,
+   "sign": 1,
+   "support": 15
+  },
+  "once|Branch|you|?": {
+   "pi": 0.080118,
+   "sign": 1,
+   "support": 15
+  },
+  "once|ChangeTargets": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 20
+  },
+  "once|ChangeTargets|tgt_Card": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "once|ChangeTargets|tgt_Card|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "once|ChangeTargets|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "once|ChangeTargets|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "once|ChangeZone.All>Battlefield": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 17
+  },
+  "once|ChangeZone.All>Battlefield|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "once|ChangeZone.All>Battlefield|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "once|ChangeZone.Battlefield>Exile": {
+   "pi": 0.139106,
+   "sign": 1,
+   "support": 355
+  },
+  "once|ChangeZone.Battlefield>Exile|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 19
+  },
+  "once|ChangeZone.Battlefield>Exile|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "once|ChangeZone.Battlefield>Exile|tgt_Artifact": {
+   "pi": 0.245865,
+   "sign": 1,
+   "support": 46
+  },
+  "once|ChangeZone.Battlefield>Exile|tgt_Artifact+": {
+   "pi": 0.088321,
+   "sign": 1,
+   "support": 25
+  },
+  "once|ChangeZone.Battlefield>Exile|tgt_Artifact+|?": {
+   "pi": 0.028095,
+   "sign": 1,
+   "support": 34
+  },
+  "once|ChangeZone.Battlefield>Exile|tgt_Artifact|?": {
+   "pi": 0.245865,
+   "sign": 1,
+   "support": 46
+  },
+  "once|ChangeZone.Battlefield>Exile|tgt_Creature": {
+   "pi": 0.002565,
+   "sign": 1,
+   "support": 266
+  },
+  "once|ChangeZone.Battlefield>Exile|tgt_Creature+": {
+   "pi": 0.149516,
+   "sign": 1,
+   "support": 23
+  },
+  "once|ChangeZone.Battlefield>Exile|tgt_Creature+|?": {
+   "pi": 0.002796,
+   "sign": 1,
+   "support": 28
+  },
+  "once|ChangeZone.Battlefield>Exile|tgt_Creature|?": {
+   "pi": 0.32873,
+   "sign": 1,
+   "support": 259
+  },
+  "once|ChangeZone.Battlefield>Exile|tgt_Enchantment": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "once|ChangeZone.Battlefield>Exile|tgt_Enchantment|?": {
+   "pi": 0.009639,
+   "sign": 1,
+   "support": 10
+  },
+  "once|ChangeZone.Battlefield>Exile|tgt_Permanent": {
+   "pi": 0.229112,
+   "sign": 1,
+   "support": 57
+  },
+  "once|ChangeZone.Battlefield>Exile|tgt_Permanent|?": {
+   "pi": 0.219543,
+   "sign": 1,
+   "support": 70
+  },
+  "once|ChangeZone.Battlefield>Hand": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 272
+  },
+  "once|ChangeZone.Battlefield>Hand|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 202
+  },
+  "once|ChangeZone.Battlefield>Hand|tgt_Creature|?": {
+   "pi": 0.250798,
+   "sign": 1,
+   "support": 194
+  },
+  "once|ChangeZone.Battlefield>Hand|tgt_Permanent": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 58
+  },
+  "once|ChangeZone.Battlefield>Hand|tgt_Permanent|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 82
+  },
+  "once|ChangeZone.Battlefield>Hand|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 46
+  },
+  "once|ChangeZone.Battlefield>Hand|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 42
+  },
+  "once|ChangeZone.Battlefield>Library": {
+   "pi": 0.100532,
+   "sign": 1,
+   "support": 78
+  },
+  "once|ChangeZone.Battlefield>Library|tgt_Artifact": {
+   "pi": 0.303428,
+   "sign": 1,
+   "support": 12
+  },
+  "once|ChangeZone.Battlefield>Library|tgt_Artifact|?": {
+   "pi": 0.303428,
+   "sign": 1,
+   "support": 12
+  },
+  "once|ChangeZone.Battlefield>Library|tgt_Creature": {
+   "pi": 0.668553,
+   "sign": 1,
+   "support": 54
+  },
+  "once|ChangeZone.Battlefield>Library|tgt_Creature|?": {
+   "pi": 0.668553,
+   "sign": 1,
+   "support": 54
+  },
+  "once|ChangeZone.Battlefield>Library|tgt_Permanent": {
+   "pi": 0.209724,
+   "sign": 1,
+   "support": 16
+  },
+  "once|ChangeZone.Battlefield>Library|tgt_Permanent|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "once|ChangeZone.Exile>Battlefield": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 39
+  },
+  "once|ChangeZone.Exile>Battlefield|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 36
+  },
+  "once|ChangeZone.Exile>Battlefield|other|?": {
+   "pi": 0.085137,
+   "sign": 1,
+   "support": 15
+  },
+  "once|ChangeZone.Exile>Hand": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 23
+  },
+  "once|ChangeZone.Exile>Hand|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 20
+  },
+  "once|ChangeZone.Graveyard,Exile>Hand": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 22
+  },
+  "once|ChangeZone.Graveyard,Exile>Hand|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 20
+  },
+  "once|ChangeZone.Graveyard,Exile>Hand|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 19
+  },
+  "once|ChangeZone.Graveyard>Battlefield": {
+   "pi": 0.791782,
+   "sign": 1,
+   "support": 233
+  },
+  "once|ChangeZone.Graveyard>Battlefield|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 31
+  },
+  "once|ChangeZone.Graveyard>Battlefield|other|?": {
+   "pi": 0.287085,
+   "sign": 1,
+   "support": 27
+  },
+  "once|ChangeZone.Graveyard>Battlefield|tgt_Artifact": {
+   "pi": 0.359149,
+   "sign": 1,
+   "support": 13
+  },
+  "once|ChangeZone.Graveyard>Battlefield|tgt_Artifact|?": {
+   "pi": 0.348178,
+   "sign": 1,
+   "support": 12
+  },
+  "once|ChangeZone.Graveyard>Battlefield|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 147
+  },
+  "once|ChangeZone.Graveyard>Battlefield|tgt_Creature|?": {
+   "pi": 1.056903,
+   "sign": 1,
+   "support": 126
+  },
+  "once|ChangeZone.Graveyard>Battlefield|tgt_Permanent": {
+   "pi": 0.061327,
+   "sign": 1,
+   "support": 17
+  },
+  "once|ChangeZone.Graveyard>Battlefield|tgt_Permanent|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 22
+  },
+  "once|ChangeZone.Graveyard>Battlefield|you": {
+   "pi": 0.315168,
+   "sign": 1,
+   "support": 29
+  },
+  "once|ChangeZone.Graveyard>Battlefield|you|?": {
+   "pi": 0.025675,
+   "sign": 1,
+   "support": 23
+  },
+  "once|ChangeZone.Graveyard>Exile": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 147
+  },
+  "once|ChangeZone.Graveyard>Exile|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 23
+  },
+  "once|ChangeZone.Graveyard>Exile|tgt_Card": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 36
+  },
+  "once|ChangeZone.Graveyard>Exile|tgt_Card|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 59
+  },
+  "once|ChangeZone.Graveyard>Exile|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 89
+  },
+  "once|ChangeZone.Graveyard>Exile|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 73
+  },
+  "once|ChangeZone.Graveyard>Exile|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 19
+  },
+  "once|ChangeZone.Graveyard>Exile|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "once|ChangeZone.Graveyard>Hand": {
+   "pi": 0.098988,
+   "sign": 1,
+   "support": 331
+  },
+  "once|ChangeZone.Graveyard>Hand|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 40
+  },
+  "once|ChangeZone.Graveyard>Hand|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "once|ChangeZone.Graveyard>Hand|tgt_Artifact": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 31
+  },
+  "once|ChangeZone.Graveyard>Hand|tgt_Artifact|?": {
+   "pi": 0.220901,
+   "sign": 1,
+   "support": 23
+  },
+  "once|ChangeZone.Graveyard>Hand|tgt_Card": {
+   "pi": 0.174578,
+   "sign": 1,
+   "support": 26
+  },
+  "once|ChangeZone.Graveyard>Hand|tgt_Card|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 34
+  },
+  "once|ChangeZone.Graveyard>Hand|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 171
+  },
+  "once|ChangeZone.Graveyard>Hand|tgt_Creature|?": {
+   "pi": 0.313852,
+   "sign": 1,
+   "support": 156
+  },
+  "once|ChangeZone.Graveyard>Hand|tgt_Enchantment": {
+   "pi": 0.382964,
+   "sign": 1,
+   "support": 10
+  },
+  "once|ChangeZone.Graveyard>Hand|tgt_Instant": {
+   "pi": 0.632451,
+   "sign": 1,
+   "support": 31
+  },
+  "once|ChangeZone.Graveyard>Hand|tgt_Instant+": {
+   "pi": 0.029184,
+   "sign": 1,
+   "support": 18
+  },
+  "once|ChangeZone.Graveyard>Hand|tgt_Instant+|?": {
+   "pi": 0.517181,
+   "sign": 1,
+   "support": 19
+  },
+  "once|ChangeZone.Graveyard>Hand|tgt_Instant|?": {
+   "pi": 0.325192,
+   "sign": 1,
+   "support": 25
+  },
+  "once|ChangeZone.Graveyard>Hand|tgt_Permanent": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "once|ChangeZone.Graveyard>Hand|tgt_Permanent|?": {
+   "pi": 0.008731,
+   "sign": 1,
+   "support": 29
+  },
+  "once|ChangeZone.Graveyard>Hand|you": {
+   "pi": 0.110627,
+   "sign": 1,
+   "support": 35
+  },
+  "once|ChangeZone.Graveyard>Hand|you|?": {
+   "pi": 0.110627,
+   "sign": 1,
+   "support": 33
+  },
+  "once|ChangeZone.Graveyard>Library": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 62
+  },
+  "once|ChangeZone.Graveyard>Library|other": {
+   "pi": 0.60276,
+   "sign": 1,
+   "support": 10
+  },
+  "once|ChangeZone.Graveyard>Library|tgt_Card|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 25
+  },
+  "once|ChangeZone.Graveyard>Library|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 39
+  },
+  "once|ChangeZone.Graveyard>Library|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 34
+  },
+  "once|ChangeZone.Hand>Battlefield": {
+   "pi": 0.110114,
+   "sign": 1,
+   "support": 39
+  },
+  "once|ChangeZone.Hand>Battlefield|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 33
+  },
+  "once|ChangeZone.Hand>Battlefield|you|?": {
+   "pi": 0.287067,
+   "sign": 1,
+   "support": 29
+  },
+  "once|ChangeZone.Hand>Exile": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 70
+  },
+  "once|ChangeZone.Hand>Exile|tgt_Opponent": {
+   "pi": 0.023824,
+   "sign": 1,
+   "support": 16
+  },
+  "once|ChangeZone.Hand>Exile|tgt_Opponent|?": {
+   "pi": 0.176139,
+   "sign": 1,
+   "support": 15
+  },
+  "once|ChangeZone.Hand>Exile|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 51
+  },
+  "once|ChangeZone.Hand>Exile|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 27
+  },
+  "once|ChangeZone.Hand>Exile|you|X": {
+   "pi": 0.051889,
+   "sign": 1,
+   "support": 20
+  },
+  "once|ChangeZone.Hand>Exile|you|X|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 24
+  },
+  "once|ChangeZone.Hand>Library": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 29
+  },
+  "once|ChangeZone.Hand>Library|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "once|ChangeZone.Hand>Library|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "once|ChangeZone.Library>Battlefield": {
+   "pi": 0.436215,
+   "sign": 1,
+   "support": 189
+  },
+  "once|ChangeZone.Library>Battlefield|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "once|ChangeZone.Library>Battlefield|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "once|ChangeZone.Library>Battlefield|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 173
+  },
+  "once|ChangeZone.Library>Battlefield|you|?": {
+   "pi": 0.322615,
+   "sign": 1,
+   "support": 129
+  },
+  "once|ChangeZone.Library>Battlefield|you|X": {
+   "pi": 0.438153,
+   "sign": 1,
+   "support": 15
+  },
+  "once|ChangeZone.Library>Battlefield|you|X|?": {
+   "pi": 0.438153,
+   "sign": 1,
+   "support": 15
+  },
+  "once|ChangeZone.Library>Exile": {
+   "pi": 0.28825,
+   "sign": 1,
+   "support": 53
+  },
+  "once|ChangeZone.Library>Exile|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 43
+  },
+  "once|ChangeZone.Library>Exile|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "once|ChangeZone.Library>Exile|you|X": {
+   "pi": 0.451617,
+   "sign": 1,
+   "support": 26
+  },
+  "once|ChangeZone.Library>Exile|you|X|?": {
+   "pi": 0.19294,
+   "sign": 1,
+   "support": 30
+  },
+  "once|ChangeZone.Library>Graveyard": {
+   "pi": 0.318998,
+   "sign": 1,
+   "support": 24
+  },
+  "once|ChangeZone.Library>Graveyard|you": {
+   "pi": 0.179478,
+   "sign": 1,
+   "support": 18
+  },
+  "once|ChangeZone.Library>Graveyard|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "once|ChangeZone.Library>Hand": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 225
+  },
+  "once|ChangeZone.Library>Hand|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "once|ChangeZone.Library>Hand|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "once|ChangeZone.Library>Hand|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 207
+  },
+  "once|ChangeZone.Library>Hand|you|?": {
+   "pi": 0.43128,
+   "sign": 1,
+   "support": 169
+  },
+  "once|ChangeZone.Library>Hand|you|X": {
+   "pi": 0.359893,
+   "sign": 1,
+   "support": 11
+  },
+  "once|ChangeZone.Library>Hand|you|X|?": {
+   "pi": 0.359893,
+   "sign": 1,
+   "support": 11
+  },
+  "once|ChangeZone.Library>Library": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 64
+  },
+  "once|ChangeZone.Library>Library|you": {
+   "pi": 0.040305,
+   "sign": 1,
+   "support": 62
+  },
+  "once|ChangeZone.Library>Library|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 54
+  },
+  "once|ChangeZone.Stack>Exile": {
+   "pi": 0.492296,
+   "sign": 1,
+   "support": 74
+  },
+  "once|ChangeZone.Stack>Exile|other": {
+   "pi": 0.593598,
+   "sign": 1,
+   "support": 11
+  },
+  "once|ChangeZone.Stack>Exile|other|?": {
+   "pi": 0.593598,
+   "sign": 1,
+   "support": 11
+  },
+  "once|ChangeZone.Stack>Exile|you": {
+   "pi": 0.308036,
+   "sign": 1,
+   "support": 58
+  },
+  "once|ChangeZone.Stack>Exile|you|?": {
+   "pi": 0.308036,
+   "sign": 1,
+   "support": 58
+  },
+  "once|ChangeZone.Stack>Hand": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 14
+  },
+  "once|ChangeZone.Stack>Hand|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "once|ChangeZone.Stack>Hand|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "once|ChangeZone.Stack>Library": {
+   "pi": 0.327623,
+   "sign": 1,
+   "support": 10
+  },
+  "once|ChangeZone.Stack>Library|other": {
+   "pi": 0.326423,
+   "sign": 1,
+   "support": 10
+  },
+  "once|ChangeZone.Stack>Library|other|?": {
+   "pi": 0.326423,
+   "sign": 1,
+   "support": 10
+  },
+  "once|ChangeZoneAll.Battlefield>Exile": {
+   "pi": 0.950614,
+   "sign": 1,
+   "support": 59
+  },
+  "once|ChangeZoneAll.Battlefield>Exile|you": {
+   "pi": 0.297724,
+   "sign": 1,
+   "support": 51
+  },
+  "once|ChangeZoneAll.Battlefield>Exile|you|?": {
+   "pi": 0.806401,
+   "sign": 1,
+   "support": 43
+  },
+  "once|ChangeZoneAll.Battlefield>Hand": {
+   "pi": 0.408948,
+   "sign": 1,
+   "support": 42
+  },
+  "once|ChangeZoneAll.Battlefield>Hand|you": {
+   "pi": 0.483674,
+   "sign": 1,
+   "support": 35
+  },
+  "once|ChangeZoneAll.Battlefield>Hand|you|?": {
+   "pi": 0.483674,
+   "sign": 1,
+   "support": 35
+  },
+  "once|ChangeZoneAll.Exile>Battlefield": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 15
+  },
+  "once|ChangeZoneAll.Exile>Battlefield|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "once|ChangeZoneAll.Graveyard>Battlefield": {
+   "pi": 0.849125,
+   "sign": 1,
+   "support": 30
+  },
+  "once|ChangeZoneAll.Graveyard>Battlefield|you": {
+   "pi": 0.603927,
+   "sign": 1,
+   "support": 29
+  },
+  "once|ChangeZoneAll.Graveyard>Battlefield|you|?": {
+   "pi": 1.090938,
+   "sign": 1,
+   "support": 24
+  },
+  "once|ChangeZoneAll.Graveyard>Exile": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 70
+  },
+  "once|ChangeZoneAll.Graveyard>Exile|tgt_Player": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 30
+  },
+  "once|ChangeZoneAll.Graveyard>Exile|tgt_Player|?": {
+   "pi": 0.223374,
+   "sign": 1,
+   "support": 23
+  },
+  "once|ChangeZoneAll.Graveyard>Exile|you": {
+   "pi": 0.006874,
+   "sign": 1,
+   "support": 21
+  },
+  "once|ChangeZoneAll.Graveyard>Exile|you|?": {
+   "pi": 0.494871,
+   "sign": 1,
+   "support": 20
+  },
+  "once|ChangeZoneAll.Graveyard>Hand": {
+   "pi": 0.760117,
+   "sign": 1,
+   "support": 13
+  },
+  "once|ChangeZoneAll.Graveyard>Hand|you": {
+   "pi": 0.758917,
+   "sign": 1,
+   "support": 13
+  },
+  "once|ChangeZoneAll.Graveyard>Library": {
+   "pi": 0.397918,
+   "sign": 1,
+   "support": 18
+  },
+  "once|ChangeZoneAll.Graveyard>Library|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "once|ChangeZoneAll.Hand>Exile": {
+   "pi": 0.684794,
+   "sign": 1,
+   "support": 12
+  },
+  "once|Charm|modes": {
+   "pi": 0.209718,
+   "sign": 1,
+   "support": 546
+  },
+  "once|Clash": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 21
+  },
+  "once|Clash|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 19
+  },
+  "once|Clash|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "once|Cleanup": {
+   "pi": 0.15288,
+   "sign": 1,
+   "support": 45
+  },
+  "once|Cleanup|other": {
+   "pi": 0.15168,
+   "sign": 1,
+   "support": 45
+  },
+  "once|Cleanup|other|?": {
+   "pi": 0.395675,
+   "sign": 1,
+   "support": 44
+  },
+  "once|Clone": {
+   "pi": 1.026734,
+   "sign": 1,
+   "support": 10
+  },
+  "once|Connive": {
+   "pi": 0.388991,
+   "sign": 1,
+   "support": 18
+  },
+  "once|Connive|you": {
+   "pi": 0.21995,
+   "sign": 1,
+   "support": 13
+  },
+  "once|Connive|you|?": {
+   "pi": 0.21995,
+   "sign": 1,
+   "support": 13
+  },
+  "once|CopyPermanent": {
+   "pi": 1.399929,
+   "sign": 1,
+   "support": 66
+  },
+  "once|CopyPermanent|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "once|CopyPermanent|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "once|CopyPermanent|tgt_Creature": {
+   "pi": 0.207403,
+   "sign": 1,
+   "support": 37
+  },
+  "once|CopyPermanent|tgt_Creature|?": {
+   "pi": 0.046039,
+   "sign": 1,
+   "support": 36
+  },
+  "once|CopySpellAbility": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 30
+  },
+  "once|CopySpellAbility|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "once|CopySpellAbility|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "once|CopySpellAbility|tgt_Instant": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "once|CopySpellAbility|tgt_Instant+|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "once|CopySpellAbility|tgt_Instant|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "once|Counter": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 325
+  },
+  "once|Counter|tgt_Artifact": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "once|Counter|tgt_Artifact|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "once|Counter|tgt_Card": {
+   "pi": 0.097552,
+   "sign": 1,
+   "support": 210
+  },
+  "once|Counter|tgt_Card+": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "once|Counter|tgt_Card+|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "once|Counter|tgt_Card|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 229
+  },
+  "once|Counter|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 279
+  },
+  "once|Counter|tgt_Creature+": {
+   "pi": 0.072443,
+   "sign": 1,
+   "support": 11
+  },
+  "once|Counter|tgt_Creature+|?": {
+   "pi": 0.072443,
+   "sign": 1,
+   "support": 11
+  },
+  "once|Counter|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 262
+  },
+  "once|Counter|tgt_Instant": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "once|Counter|tgt_Instant+": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "once|Counter|tgt_Instant+|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "once|Counter|tgt_Instant|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "once|DamageAll": {
+   "pi": 0.12346,
+   "sign": 1,
+   "support": 160
+  },
+  "once|DamageAll|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 157
+  },
+  "once|DamageAll|you|?": {
+   "pi": 0.302904,
+   "sign": 1,
+   "support": 99
+  },
+  "once|DamageAll|you|X": {
+   "pi": 0.526462,
+   "sign": 1,
+   "support": 35
+  },
+  "once|DamageAll|you|X|?": {
+   "pi": 0.787465,
+   "sign": 1,
+   "support": 37
+  },
+  "once|DamageResolve": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 32
+  },
+  "once|DamageResolve|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 32
+  },
+  "once|DamageResolve|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 32
+  },
+  "once|DealDamage": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 904
+  },
+  "once|DealDamage|each_opp": {
+   "pi": 0.175995,
+   "sign": 1,
+   "support": 20
+  },
+  "once|DealDamage|each_opp|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "once|DealDamage|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 86
+  },
+  "once|DealDamage|other|?": {
+   "pi": 0.074342,
+   "sign": 1,
+   "support": 56
+  },
+  "once|DealDamage|other|X": {
+   "pi": 0.322313,
+   "sign": 1,
+   "support": 21
+  },
+  "once|DealDamage|other|X|?": {
+   "pi": 0.574066,
+   "sign": 1,
+   "support": 24
+  },
+  "once|DealDamage|tgt_Any": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 156
+  },
+  "once|DealDamage|tgt_Any|?": {
+   "pi": 0.090314,
+   "sign": 1,
+   "support": 185
+  },
+  "once|DealDamage|tgt_Any|X": {
+   "pi": 0.119977,
+   "sign": 1,
+   "support": 52
+  },
+  "once|DealDamage|tgt_Any|X|?": {
+   "pi": 0.544954,
+   "sign": 1,
+   "support": 57
+  },
+  "once|DealDamage|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 737
+  },
+  "once|DealDamage|tgt_Creature+": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 53
+  },
+  "once|DealDamage|tgt_Creature+|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 63
+  },
+  "once|DealDamage|tgt_Creature+|X": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 36
+  },
+  "once|DealDamage|tgt_Creature+|X|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 42
+  },
+  "once|DealDamage|tgt_Creature|?": {
+   "pi": 0.175152,
+   "sign": 1,
+   "support": 406
+  },
+  "once|DealDamage|tgt_Creature|X": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 193
+  },
+  "once|DealDamage|tgt_Creature|X|?": {
+   "pi": 0.308768,
+   "sign": 1,
+   "support": 221
+  },
+  "once|DealDamage|tgt_Opponent": {
+   "pi": 0.210572,
+   "sign": 1,
+   "support": 20
+  },
+  "once|DealDamage|tgt_Opponent|?": {
+   "pi": 0.296196,
+   "sign": 1,
+   "support": 12
+  },
+  "once|DealDamage|tgt_Player": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 64
+  },
+  "once|DealDamage|tgt_Player+": {
+   "pi": 0.126861,
+   "sign": 1,
+   "support": 27
+  },
+  "once|DealDamage|tgt_Player+|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 30
+  },
+  "once|DealDamage|tgt_Player+|X": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "once|DealDamage|tgt_Player+|X|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "once|DealDamage|tgt_Player|?": {
+   "pi": 0.174916,
+   "sign": 1,
+   "support": 35
+  },
+  "once|DealDamage|tgt_Player|X": {
+   "pi": 0.601461,
+   "sign": 1,
+   "support": 18
+  },
+  "once|DealDamage|tgt_Player|X|?": {
+   "pi": 0.11348,
+   "sign": 1,
+   "support": 19
+  },
+  "once|DealDamage|you": {
+   "pi": 0.110798,
+   "sign": -1,
+   "support": 26
+  },
+  "once|DealDamage|you|?": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 17
+  },
+  "once|DelayedTrigger": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 181
+  },
+  "once|DelayedTrigger|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 168
+  },
+  "once|DelayedTrigger|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 145
+  },
+  "once|Destroy": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 819
+  },
+  "once|DestroyAll": {
+   "pi": 0.521448,
+   "sign": 1,
+   "support": 187
+  },
+  "once|DestroyAll|other": {
+   "pi": 0.789593,
+   "sign": 1,
+   "support": 14
+  },
+  "once|DestroyAll|other|?": {
+   "pi": 0.789593,
+   "sign": 1,
+   "support": 14
+  },
+  "once|DestroyAll|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 167
+  },
+  "once|DestroyAll|you|?": {
+   "pi": 1.219139,
+   "sign": 1,
+   "support": 149
+  },
+  "once|Destroy|other": {
+   "pi": 0.060789,
+   "sign": 1,
+   "support": 33
+  },
+  "once|Destroy|other|?": {
+   "pi": 0.568269,
+   "sign": 1,
+   "support": 28
+  },
+  "once|Destroy|tgt_Artifact": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 235
+  },
+  "once|Destroy|tgt_Artifact+": {
+   "pi": 0.121473,
+   "sign": 1,
+   "support": 73
+  },
+  "once|Destroy|tgt_Artifact+|?": {
+   "pi": 0.536701,
+   "sign": 1,
+   "support": 88
+  },
+  "once|Destroy|tgt_Artifact|?": {
+   "pi": 0.140541,
+   "sign": 1,
+   "support": 203
+  },
+  "once|Destroy|tgt_Creature": {
+   "pi": 0.295552,
+   "sign": 1,
+   "support": 415
+  },
+  "once|Destroy|tgt_Creature+": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 51
+  },
+  "once|Destroy|tgt_Creature+|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 55
+  },
+  "once|Destroy|tgt_Creature|?": {
+   "pi": 0.372886,
+   "sign": 1,
+   "support": 380
+  },
+  "once|Destroy|tgt_Enchantment": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 70
+  },
+  "once|Destroy|tgt_Enchantment|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 55
+  },
+  "once|Destroy|tgt_Land": {
+   "pi": 1.122349,
+   "sign": 1,
+   "support": 74
+  },
+  "once|Destroy|tgt_Land|?": {
+   "pi": 0.238139,
+   "sign": 1,
+   "support": 66
+  },
+  "once|Destroy|tgt_Permanent": {
+   "pi": 0.325686,
+   "sign": 1,
+   "support": 39
+  },
+  "once|Destroy|tgt_Permanent|?": {
+   "pi": 0.263515,
+   "sign": 1,
+   "support": 48
+  },
+  "once|Dig": {
+   "pi": 0.258387,
+   "sign": 1,
+   "support": 295
+  },
+  "once|DigUntil": {
+   "pi": 0.563376,
+   "sign": 1,
+   "support": 50
+  },
+  "once|DigUntil|other": {
+   "pi": 0.246588,
+   "sign": 1,
+   "support": 11
+  },
+  "once|DigUntil|other|?": {
+   "pi": 0.246588,
+   "sign": 1,
+   "support": 11
+  },
+  "once|DigUntil|you": {
+   "pi": 0.178815,
+   "sign": 1,
+   "support": 30
+  },
+  "once|DigUntil|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 22
+  },
+  "once|Dig|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 274
+  },
+  "once|Dig|you|?": {
+   "pi": 0.069899,
+   "sign": 1,
+   "support": 158
+  },
+  "once|Dig|you|X": {
+   "pi": 0.182282,
+   "sign": 1,
+   "support": 93
+  },
+  "once|Dig|you|X|?": {
+   "pi": 0.344959,
+   "sign": 1,
+   "support": 96
+  },
+  "once|Discard": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 400
+  },
+  "once|Discard|each_opp": {
+   "pi": 0.370651,
+   "sign": 1,
+   "support": 35
+  },
+  "once|Discard|each_opp|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 31
+  },
+  "once|Discard|each_player": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "once|Discard|each_player|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "once|Discard|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 36
+  },
+  "once|Discard|other|?": {
+   "pi": 0.044849,
+   "sign": 1,
+   "support": 33
+  },
+  "once|Discard|tgt_Opponent": {
+   "pi": 0.272064,
+   "sign": 1,
+   "support": 67
+  },
+  "once|Discard|tgt_Opponent|?": {
+   "pi": 0.240052,
+   "sign": 1,
+   "support": 56
+  },
+  "once|Discard|tgt_Player": {
+   "pi": 0.352056,
+   "sign": 1,
+   "support": 96
+  },
+  "once|Discard|tgt_Player|?": {
+   "pi": 0.009845,
+   "sign": 1,
+   "support": 72
+  },
+  "once|Discard|tgt_Player|X": {
+   "pi": 0.415075,
+   "sign": 1,
+   "support": 10
+  },
+  "once|Discard|tgt_Player|X|?": {
+   "pi": 0.903072,
+   "sign": 1,
+   "support": 11
+  },
+  "once|Discard|you": {
+   "pi": 0.26551,
+   "sign": -1,
+   "support": 151
+  },
+  "once|Discard|you|?": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 141
+  },
+  "once|Discover": {
+   "pi": 0.07137,
+   "sign": 1,
+   "support": 12
+  },
+  "once|Discover|you": {
+   "pi": 0.294715,
+   "sign": 1,
+   "support": 11
+  },
+  "once|Draw": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 1219
+  },
+  "once|Draw|each_player": {
+   "pi": 0.069264,
+   "sign": 1,
+   "support": 27
+  },
+  "once|Draw|each_player|?": {
+   "pi": 0.069319,
+   "sign": 1,
+   "support": 20
+  },
+  "once|Draw|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 76
+  },
+  "once|Draw|other|?": {
+   "pi": 0.074708,
+   "sign": 1,
+   "support": 35
+  },
+  "once|Draw|tgt_Opponent": {
+   "pi": 0.094019,
+   "sign": 1,
+   "support": 15
+  },
+  "once|Draw|tgt_Player": {
+   "pi": 0.590873,
+   "sign": 1,
+   "support": 46
+  },
+  "once|Draw|tgt_Player|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 32
+  },
+  "once|Draw|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 1063
+  },
+  "once|Draw|you|?": {
+   "pi": 0.322851,
+   "sign": 1,
+   "support": 757
+  },
+  "once|Draw|you|X": {
+   "pi": 0.237185,
+   "sign": 1,
+   "support": 130
+  },
+  "once|Draw|you|X|?": {
+   "pi": 1.116409,
+   "sign": 1,
+   "support": 135
+  },
+  "once|EachDamage": {
+   "pi": 0.89908,
+   "sign": 1,
+   "support": 15
+  },
+  "once|EachDamage|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "once|Earthbend": {
+   "pi": 0.234819,
+   "sign": 1,
+   "support": 11
+  },
+  "once|Earthbend|you": {
+   "pi": 0.233619,
+   "sign": 1,
+   "support": 11
+  },
+  "once|Effect": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 459
+  },
+  "once|Effect|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 31
+  },
+  "once|Effect|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 30
+  },
+  "once|Effect|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 60
+  },
+  "once|Effect|tgt_Creature|?": {
+   "pi": 0.080124,
+   "sign": 1,
+   "support": 51
+  },
+  "once|Effect|tgt_Player": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "once|Effect|tgt_Player|?": {
+   "pi": 0.342034,
+   "sign": 1,
+   "support": 13
+  },
+  "once|Effect|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 350
+  },
+  "once|Effect|you|?": {
+   "pi": 0.095399,
+   "sign": 1,
+   "support": 325
+  },
+  "once|ExchangeControl": {
+   "pi": 1.006865,
+   "sign": 1,
+   "support": 17
+  },
+  "once|ExchangeControl|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "once|ExchangeControl|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "once|Explore": {
+   "pi": 0.225574,
+   "sign": 1,
+   "support": 19
+  },
+  "once|Explore|you": {
+   "pi": 0.178197,
+   "sign": 1,
+   "support": 16
+  },
+  "once|Explore|you|?": {
+   "pi": 0.178197,
+   "sign": 1,
+   "support": 16
+  },
+  "once|Fight": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 70
+  },
+  "once|Fight|tgt_Creature": {
+   "pi": 0.017632,
+   "sign": 1,
+   "support": 69
+  },
+  "once|Fight|tgt_Creature|?": {
+   "pi": 0.180194,
+   "sign": 1,
+   "support": 68
+  },
+  "once|FlipCoin": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 14
+  },
+  "once|FlipCoin|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "once|Fog": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 23
+  },
+  "once|Fog|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 22
+  },
+  "once|Fog|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 20
+  },
+  "once|GainControl": {
+   "pi": 0.568213,
+   "sign": 1,
+   "support": 117
+  },
+  "once|GainControl|other": {
+   "pi": 0.160504,
+   "sign": 1,
+   "support": 22
+  },
+  "once|GainControl|other|?": {
+   "pi": 0.160504,
+   "sign": 1,
+   "support": 22
+  },
+  "once|GainControl|tgt_Creature": {
+   "pi": 0.089327,
+   "sign": 1,
+   "support": 69
+  },
+  "once|GainControl|tgt_Creature|?": {
+   "pi": 0.690355,
+   "sign": 1,
+   "support": 66
+  },
+  "once|GainControl|you": {
+   "pi": 0.509326,
+   "sign": 1,
+   "support": 11
+  },
+  "once|GainLife": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 608
+  },
+  "once|GainLife|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 40
+  },
+  "once|GainLife|other|X": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "once|GainLife|other|X|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "once|GainLife|tgt_Player": {
+   "pi": 0.018039,
+   "sign": 1,
+   "support": 14
+  },
+  "once|GainLife|tgt_Player|?": {
+   "pi": 0.19417,
+   "sign": 1,
+   "support": 10
+  },
+  "once|GainLife|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 547
+  },
+  "once|GainLife|you|?": {
+   "pi": 0.065826,
+   "sign": 1,
+   "support": 327
+  },
+  "once|GainLife|you|X": {
+   "pi": 0.219029,
+   "sign": 1,
+   "support": 147
+  },
+  "once|GainLife|you|X|?": {
+   "pi": 0.312252,
+   "sign": 1,
+   "support": 154
+  },
+  "once|GenericChoice": {
+   "pi": 0.22776,
+   "sign": 1,
+   "support": 38
+  },
+  "once|GenericChoice|you": {
+   "pi": 0.460834,
+   "sign": 1,
+   "support": 20
+  },
+  "once|GenericChoice|you|?": {
+   "pi": 0.460834,
+   "sign": 1,
+   "support": 20
+  },
+  "once|Goad": {
+   "pi": 0.259887,
+   "sign": 1,
+   "support": 16
+  },
+  "once|Goad|other": {
+   "pi": 0.054111,
+   "sign": 1,
+   "support": 10
+  },
+  "once|Goad|other|?": {
+   "pi": 0.054111,
+   "sign": 1,
+   "support": 10
+  },
+  "once|ImmediateTrigger": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 90
+  },
+  "once|ImmediateTrigger|you": {
+   "pi": 0.037373,
+   "sign": 1,
+   "support": 89
+  },
+  "once|ImmediateTrigger|you|?": {
+   "pi": 0.675118,
+   "sign": 1,
+   "support": 77
+  },
+  "once|Incubate": {
+   "pi": 0.050077,
+   "sign": 1,
+   "support": 23
+  },
+  "once|Incubate|you": {
+   "pi": 0.275572,
+   "sign": 1,
+   "support": 22
+  },
+  "once|Incubate|you|?": {
+   "pi": 0.061559,
+   "sign": 1,
+   "support": 15
+  },
+  "once|Investigate": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 53
+  },
+  "once|Investigate|you": {
+   "pi": 0.098012,
+   "sign": 1,
+   "support": 49
+  },
+  "once|Investigate|you|?": {
+   "pi": 0.085293,
+   "sign": 1,
+   "support": 44
+  },
+  "once|Learn": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 20
+  },
+  "once|Learn|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 20
+  },
+  "once|Learn|you|?": {
+   "pi": 0.031454,
+   "sign": 1,
+   "support": 17
+  },
+  "once|LoseLife": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 286
+  },
+  "once|LoseLife|each_opp": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 48
+  },
+  "once|LoseLife|each_opp|?": {
+   "pi": 0.162087,
+   "sign": 1,
+   "support": 28
+  },
+  "once|LoseLife|each_player": {
+   "pi": 0.321478,
+   "sign": 1,
+   "support": 14
+  },
+  "once|LoseLife|each_player|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "once|LoseLife|other": {
+   "pi": 0.049085,
+   "sign": 1,
+   "support": 57
+  },
+  "once|LoseLife|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 45
+  },
+  "once|LoseLife|tgt_Opponent": {
+   "pi": 0.024428,
+   "sign": 1,
+   "support": 30
+  },
+  "once|LoseLife|tgt_Opponent|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "once|LoseLife|tgt_Player": {
+   "pi": 0.210814,
+   "sign": 1,
+   "support": 29
+  },
+  "once|LoseLife|tgt_Player|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "once|LoseLife|you": {
+   "pi": 0.048528,
+   "sign": -1,
+   "support": 111
+  },
+  "once|LoseLife|you|?": {
+   "pi": 0.067815,
+   "sign": -1,
+   "support": 77
+  },
+  "once|LoseLife|you|X": {
+   "pi": 0.204589,
+   "sign": -1,
+   "support": 24
+  },
+  "once|LoseLife|you|X|?": {
+   "pi": 0.481424,
+   "sign": -1,
+   "support": 26
+  },
+  "once|Mana": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 110
+  },
+  "once|Mana|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 109
+  },
+  "once|Mana|you|?": {
+   "pi": 0.104786,
+   "sign": 1,
+   "support": 34
+  },
+  "once|Mana|you|X": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 19
+  },
+  "once|Mana|you|X|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 19
+  },
+  "once|Manifest": {
+   "pi": 0.624523,
+   "sign": 1,
+   "support": 12
+  },
+  "once|ManifestDread": {
+   "pi": 0.252325,
+   "sign": 1,
+   "support": 20
+  },
+  "once|ManifestDread|you": {
+   "pi": 0.182902,
+   "sign": 1,
+   "support": 18
+  },
+  "once|ManifestDread|you|?": {
+   "pi": 0.310086,
+   "sign": 1,
+   "support": 15
+  },
+  "once|Manifest|you": {
+   "pi": 0.265102,
+   "sign": 1,
+   "support": 10
+  },
+  "once|Mill": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 196
+  },
+  "once|Mill|each_player": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "once|Mill|each_player|?": {
+   "pi": 0.135841,
+   "sign": 1,
+   "support": 11
+  },
+  "once|Mill|other": {
+   "pi": 0.040835,
+   "sign": 1,
+   "support": 12
+  },
+  "once|Mill|tgt_Player": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 43
+  },
+  "once|Mill|tgt_Player|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 34
+  },
+  "once|Mill|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 116
+  },
+  "once|Mill|you|?": {
+   "pi": 0.033765,
+   "sign": 1,
+   "support": 108
+  },
+  "once|NameCard": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 22
+  },
+  "once|NameCard|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "once|NameCard|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "once|PeekAndReveal": {
+   "pi": 0.160485,
+   "sign": 1,
+   "support": 39
+  },
+  "once|PeekAndReveal|you": {
+   "pi": 0.527579,
+   "sign": 1,
+   "support": 28
+  },
+  "once|PeekAndReveal|you|?": {
+   "pi": 0.073641,
+   "sign": 1,
+   "support": 27
+  },
+  "once|PermanentCreature": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 23
+  },
+  "once|PermanentCreature|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 23
+  },
+  "once|PermanentCreature|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 23
+  },
+  "once|Phases": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 17
+  },
+  "once|Play": {
+   "pi": 0.627242,
+   "sign": 1,
+   "support": 61
+  },
+  "once|Play|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "once|Play|other|?": {
+   "pi": 0.299339,
+   "sign": 1,
+   "support": 14
+  },
+  "once|Play|tgt_Instant": {
+   "pi": 0.167446,
+   "sign": 1,
+   "support": 10
+  },
+  "once|Play|you": {
+   "pi": 0.293174,
+   "sign": 1,
+   "support": 29
+  },
+  "once|Play|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "once|PreventDamage": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 22
+  },
+  "once|PreventDamage|tgt_Any|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "once|PreventDamage|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "once|PreventDamage|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "once|Proliferate": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 49
+  },
+  "once|Proliferate|you": {
+   "pi": 0.120939,
+   "sign": 1,
+   "support": 41
+  },
+  "once|Proliferate|you|?": {
+   "pi": 0.253549,
+   "sign": 1,
+   "support": 34
+  },
+  "once|Protection": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 19
+  },
+  "once|Protection|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "once|Protection|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "once|Pump": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 581
+  },
+  "once|Pump-": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 139
+  },
+  "once|Pump-|tgt_Creature": {
+   "pi": 0.005069,
+   "sign": 1,
+   "support": 139
+  },
+  "once|Pump-|tgt_Creature|?": {
+   "pi": 0.030551,
+   "sign": 1,
+   "support": 117
+  },
+  "once|PumpAll": {
+   "pi": 0.133346,
+   "sign": 1,
+   "support": 186
+  },
+  "once|PumpAll-": {
+   "pi": 0.154551,
+   "sign": 1,
+   "support": 68
+  },
+  "once|PumpAll-|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 66
+  },
+  "once|PumpAll-|you|?": {
+   "pi": 0.020058,
+   "sign": 1,
+   "support": 61
+  },
+  "once|PumpAll|other": {
+   "pi": 0.000777,
+   "sign": 1,
+   "support": 18
+  },
+  "once|PumpAll|other|?": {
+   "pi": 0.000777,
+   "sign": 1,
+   "support": 18
+  },
+  "once|PumpAll|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 162
+  },
+  "once|PumpAll|you|?": {
+   "pi": 0.211785,
+   "sign": 1,
+   "support": 125
+  },
+  "once|PumpAll|you|X": {
+   "pi": 0.57917,
+   "sign": 1,
+   "support": 30
+  },
+  "once|PumpAll|you|X|?": {
+   "pi": 0.730148,
+   "sign": 1,
+   "support": 31
+  },
+  "once|Pump|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 53
+  },
+  "once|Pump|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 40
+  },
+  "once|Pump|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 520
+  },
+  "once|Pump|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 396
+  },
+  "once|Pump|tgt_Creature|X": {
+   "pi": 0.019034,
+   "sign": 1,
+   "support": 98
+  },
+  "once|Pump|tgt_Creature|X|?": {
+   "pi": 0.061034,
+   "sign": 1,
+   "support": 103
+  },
+  "once|PutCounter": {
+   "pi": 0.061029,
+   "sign": 1,
+   "support": 572
+  },
+  "once|PutCounterAll": {
+   "pi": 0.734725,
+   "sign": 1,
+   "support": 63
+  },
+  "once|PutCounterAll|you": {
+   "pi": 0.014034,
+   "sign": 1,
+   "support": 60
+  },
+  "once|PutCounterAll|you|?": {
+   "pi": 0.214792,
+   "sign": 1,
+   "support": 52
+  },
+  "once|PutCounter|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 133
+  },
+  "once|PutCounter|other|?": {
+   "pi": 0.060913,
+   "sign": 1,
+   "support": 107
+  },
+  "once|PutCounter|other|X": {
+   "pi": 0.544691,
+   "sign": 1,
+   "support": 24
+  },
+  "once|PutCounter|other|X|?": {
+   "pi": 0.544691,
+   "sign": 1,
+   "support": 24
+  },
+  "once|PutCounter|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 268
+  },
+  "once|PutCounter|tgt_Creature|?": {
+   "pi": 0.300357,
+   "sign": 1,
+   "support": 209
+  },
+  "once|PutCounter|tgt_Creature|X": {
+   "pi": 0.62292,
+   "sign": 1,
+   "support": 12
+  },
+  "once|PutCounter|tgt_Creature|X|?": {
+   "pi": 0.711532,
+   "sign": 1,
+   "support": 13
+  },
+  "once|PutCounter|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 150
+  },
+  "once|PutCounter|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 129
+  },
+  "once|PutCounter|you|X": {
+   "pi": 0.154536,
+   "sign": 1,
+   "support": 19
+  },
+  "once|PutCounter|you|X|?": {
+   "pi": 0.319894,
+   "sign": 1,
+   "support": 20
+  },
+  "once|RearrangeTopOfLibrary": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 21
+  },
+  "once|RearrangeTopOfLibrary|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "once|RearrangeTopOfLibrary|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "once|Regenerate": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 29
+  },
+  "once|Regenerate|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "once|Regenerate|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "once|Regenerate|tgt_Creature|?": {
+   "pi": 0.049918,
+   "sign": 1,
+   "support": 11
+  },
+  "once|RemoveCounter": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 13
+  },
+  "once|Repeat": {
+   "pi": 0.246048,
+   "sign": 1,
+   "support": 25
+  },
+  "once|RepeatEach": {
+   "pi": 0.264911,
+   "sign": 1,
+   "support": 156
+  },
+  "once|RepeatEach|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 148
+  },
+  "once|RepeatEach|you|?": {
+   "pi": 0.392776,
+   "sign": 1,
+   "support": 142
+  },
+  "once|Repeat|you": {
+   "pi": 0.232133,
+   "sign": 1,
+   "support": 20
+  },
+  "once|Repeat|you|?": {
+   "pi": 0.232133,
+   "sign": 1,
+   "support": 20
+  },
+  "once|RevealHand": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 45
+  },
+  "once|RevealHand|tgt_Opponent": {
+   "pi": 0.020001,
+   "sign": 1,
+   "support": 31
+  },
+  "once|RevealHand|tgt_Opponent|?": {
+   "pi": 0.020001,
+   "sign": 1,
+   "support": 31
+  },
+  "once|RevealHand|tgt_Player": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "once|RevealHand|tgt_Player|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "once|RingTemptsYou": {
+   "pi": 0.069005,
+   "sign": 1,
+   "support": 32
+  },
+  "once|RingTemptsYou|you": {
+   "pi": 0.0678,
+   "sign": 1,
+   "support": 32
+  },
+  "once|RingTemptsYou|you|?": {
+   "pi": 0.250824,
+   "sign": 1,
+   "support": 27
+  },
+  "once|RollDice": {
+   "pi": 0.360906,
+   "sign": 1,
+   "support": 32
+  },
+  "once|RollDice|you": {
+   "pi": 0.359706,
+   "sign": 1,
+   "support": 32
+  },
+  "once|RollDice|you|?": {
+   "pi": 0.119623,
+   "sign": 1,
+   "support": 28
+  },
+  "once|Sacrifice": {
+   "pi": 0.131141,
+   "sign": 1,
+   "support": 208
+  },
+  "once|SacrificeAll": {
+   "pi": 0.05,
+   "sign": -1,
+   "support": 40
+  },
+  "once|SacrificeAll|other": {
+   "pi": 0.524084,
+   "sign": 1,
+   "support": 11
+  },
+  "once|SacrificeAll|other|?": {
+   "pi": 0.239754,
+   "sign": 1,
+   "support": 10
+  },
+  "once|SacrificeAll|you": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 26
+  },
+  "once|SacrificeAll|you|?": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 22
+  },
+  "once|Sacrifice|each_opp": {
+   "pi": 0.061472,
+   "sign": 1,
+   "support": 23
+  },
+  "once|Sacrifice|each_opp|?": {
+   "pi": 0.549459,
+   "sign": 1,
+   "support": 22
+  },
+  "once|Sacrifice|each_player": {
+   "pi": 0.111424,
+   "sign": 1,
+   "support": 34
+  },
+  "once|Sacrifice|each_player|?": {
+   "pi": 0.10601,
+   "sign": 1,
+   "support": 28
+  },
+  "once|Sacrifice|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "once|Sacrifice|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "once|Sacrifice|tgt_Opponent": {
+   "pi": 0.309571,
+   "sign": 1,
+   "support": 28
+  },
+  "once|Sacrifice|tgt_Opponent|?": {
+   "pi": 0.0822,
+   "sign": 1,
+   "support": 22
+  },
+  "once|Sacrifice|tgt_Player": {
+   "pi": 0.213874,
+   "sign": 1,
+   "support": 24
+  },
+  "once|Sacrifice|tgt_Player|?": {
+   "pi": 0.031262,
+   "sign": 1,
+   "support": 22
+  },
+  "once|Sacrifice|you": {
+   "pi": 0.404121,
+   "sign": -1,
+   "support": 85
+  },
+  "once|Sacrifice|you|?": {
+   "pi": 0.612107,
+   "sign": -1,
+   "support": 67
+  },
+  "once|Sacrifice|you|X": {
+   "pi": 0.082809,
+   "sign": -1,
+   "support": 10
+  },
+  "once|Sacrifice|you|X|?": {
+   "pi": 0.082809,
+   "sign": -1,
+   "support": 10
+  },
+  "once|Scry": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 193
+  },
+  "once|Scry|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 192
+  },
+  "once|Scry|you|?": {
+   "pi": 0.006155,
+   "sign": 1,
+   "support": 177
+  },
+  "once|SetLife": {
+   "pi": 0.391406,
+   "sign": 1,
+   "support": 15
+  },
+  "once|SetState": {
+   "pi": 0.078473,
+   "sign": 1,
+   "support": 12
+  },
+  "once|Surveil": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 79
+  },
+  "once|Surveil|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 79
+  },
+  "once|Surveil|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 74
+  },
+  "once|TakeInitiative": {
+   "pi": 0.314521,
+   "sign": 1,
+   "support": 20
+  },
+  "once|TakeInitiative|you": {
+   "pi": 0.313321,
+   "sign": 1,
+   "support": 20
+  },
+  "once|TakeInitiative|you|?": {
+   "pi": 0.188357,
+   "sign": 1,
+   "support": 19
+  },
+  "once|Tap": {
+   "pi": 0.181446,
+   "sign": 1,
+   "support": 197
+  },
+  "once|TapAll": {
+   "pi": 0.651343,
+   "sign": 1,
+   "support": 31
+  },
+  "once|TapAll|you": {
+   "pi": 0.08847,
+   "sign": 1,
+   "support": 22
+  },
+  "once|TapAll|you|?": {
+   "pi": 0.08847,
+   "sign": 1,
+   "support": 22
+  },
+  "once|TapOrUntap": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 13
+  },
+  "once|TapOrUntap|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "once|Tap|other": {
+   "pi": 0.064706,
+   "sign": 1,
+   "support": 53
+  },
+  "once|Tap|other|?": {
+   "pi": 0.064706,
+   "sign": 1,
+   "support": 53
+  },
+  "once|Tap|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 130
+  },
+  "once|Tap|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 128
+  },
+  "once|Tap|tgt_Permanent|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "once|Token": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 1093
+  },
+  "once|Token-gift": {
+   "pi": 0.05,
+   "sign": -1,
+   "support": 82
+  },
+  "once|Token-gift|creature": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 59
+  },
+  "once|Token-gift|creature|?": {
+   "pi": 0.345949,
+   "sign": -1,
+   "support": 38
+  },
+  "once|Token-gift|other": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 10
+  },
+  "once|Token-gift|pt": {
+   "pi": 0.05,
+   "sign": -1,
+   "support": 59
+  },
+  "once|Token|blood": {
+   "pi": 0.123132,
+   "sign": 1,
+   "support": 20
+  },
+  "once|Token|blood|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "once|Token|clue": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "once|Token|clue|?": {
+   "pi": 0.121598,
+   "sign": 1,
+   "support": 12
+  },
+  "once|Token|creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 726
+  },
+  "once|Token|creature|?": {
+   "pi": 0.273401,
+   "sign": 1,
+   "support": 517
+  },
+  "once|Token|creature|X": {
+   "pi": 0.675702,
+   "sign": 1,
+   "support": 109
+  },
+  "once|Token|creature|X|?": {
+   "pi": 0.615838,
+   "sign": 1,
+   "support": 110
+  },
+  "once|Token|food": {
+   "pi": 0.054042,
+   "sign": 1,
+   "support": 60
+  },
+  "once|Token|food|?": {
+   "pi": 0.194658,
+   "sign": 1,
+   "support": 50
+  },
+  "once|Token|other": {
+   "pi": 0.149455,
+   "sign": 1,
+   "support": 151
+  },
+  "once|Token|other|?": {
+   "pi": 0.333416,
+   "sign": 1,
+   "support": 129
+  },
+  "once|Token|powerstone": {
+   "pi": 0.291101,
+   "sign": 1,
+   "support": 16
+  },
+  "once|Token|powerstone|?": {
+   "pi": 0.382609,
+   "sign": 1,
+   "support": 13
+  },
+  "once|Token|pt": {
+   "pi": 0.142756,
+   "sign": 1,
+   "support": 714
+  },
+  "once|Token|pt|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 46
+  },
+  "once|Token|treasure": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 91
+  },
+  "once|Token|treasure|?": {
+   "pi": 0.450621,
+   "sign": 1,
+   "support": 66
+  },
+  "once|Token|treasure|X": {
+   "pi": 0.758035,
+   "sign": 1,
+   "support": 10
+  },
+  "once|Token|treasure|X|?": {
+   "pi": 0.866723,
+   "sign": 1,
+   "support": 12
+  },
+  "once|TwoPiles": {
+   "pi": 0.372554,
+   "sign": 1,
+   "support": 17
+  },
+  "once|TwoPiles|you": {
+   "pi": 0.17797,
+   "sign": 1,
+   "support": 15
+  },
+  "once|TwoPiles|you|?": {
+   "pi": 0.17797,
+   "sign": 1,
+   "support": 15
+  },
+  "once|Untap": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 106
+  },
+  "once|UntapAll": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 45
+  },
+  "once|UntapAll|you": {
+   "pi": 0.253142,
+   "sign": 1,
+   "support": 37
+  },
+  "once|UntapAll|you|?": {
+   "pi": 0.186789,
+   "sign": 1,
+   "support": 35
+  },
+  "once|Untap|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 53
+  },
+  "once|Untap|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 53
+  },
+  "once|Untap|tgt_Creature": {
+   "pi": 0.066688,
+   "sign": 1,
+   "support": 38
+  },
+  "once|Untap|tgt_Creature|?": {
+   "pi": 0.066688,
+   "sign": 1,
+   "support": 38
+  },
+  "once|Untap|you": {
+   "pi": 0.092163,
+   "sign": 1,
+   "support": 11
+  },
+  "once|Untap|you|?": {
+   "pi": 0.092163,
+   "sign": 1,
+   "support": 11
+  },
+  "once|Venture": {
+   "pi": 0.07606,
+   "sign": 1,
+   "support": 14
+  },
+  "once|Venture|you": {
+   "pi": 0.161582,
+   "sign": 1,
+   "support": 13
+  },
+  "once|Venture|you|?": {
+   "pi": 0.012521,
+   "sign": 1,
+   "support": 12
+  },
+  "once|Vote": {
+   "pi": 0.306369,
+   "sign": 1,
+   "support": 27
+  },
+  "once|Vote|each_player": {
+   "pi": 0.566306,
+   "sign": 1,
+   "support": 26
+  },
+  "once|Vote|each_player|?": {
+   "pi": 0.566306,
+   "sign": 1,
+   "support": 26
+  },
+  "repl|AddCounter": {
+   "pi": 0.11849,
+   "sign": 0,
+   "support": 25
+  },
+  "repl|BeginPhase": {
+   "pi": 0.257704,
+   "sign": 0,
+   "support": 17
+  },
+  "repl|Counter": {
+   "pi": -0.239862,
+   "sign": 0,
+   "support": 86
+  },
+  "repl|CreateToken": {
+   "pi": 0.624218,
+   "sign": 0,
+   "support": 22
+  },
+  "repl|DamageDone": {
+   "pi": 0.460711,
+   "sign": 0,
+   "support": 164
+  },
+  "repl|DamageDone|?": {
+   "pi": 0.619794,
+   "sign": 0,
+   "support": 12
+  },
+  "repl|Draw": {
+   "pi": 1.190872,
+   "sign": 0,
+   "support": 25
+  },
+  "repl|GainLife": {
+   "pi": 0.261271,
+   "sign": 0,
+   "support": 19
+  },
+  "repl|GameLoss": {
+   "pi": 1.102137,
+   "sign": 0,
+   "support": 12
+  },
+  "repl|Moved": {
+   "pi": -0.020736,
+   "sign": 0,
+   "support": 90
+  },
+  "repl|Untap": {
+   "pi": -0.1355,
+   "sign": 0,
+   "support": 137
+  },
+  "rep|AddPhase": {
+   "pi": 0.122882,
+   "sign": 1,
+   "support": 32
+  },
+  "rep|AddPhase|you": {
+   "pi": 0.121682,
+   "sign": 1,
+   "support": 32
+  },
+  "rep|AddTurn": {
+   "pi": 0.498809,
+   "sign": 1,
+   "support": 15
+  },
+  "rep|AddTurn|you": {
+   "pi": 0.497604,
+   "sign": 1,
+   "support": 13
+  },
+  "rep|AlterAttribute": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 21
+  },
+  "rep|AlterAttribute|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "rep|Amass": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 21
+  },
+  "rep|Amass|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "rep|Animate": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 372
+  },
+  "rep|AnimateAll": {
+   "pi": 0.163559,
+   "sign": 1,
+   "support": 26
+  },
+  "rep|AnimateAll|you": {
+   "pi": 0.053918,
+   "sign": 1,
+   "support": 25
+  },
+  "rep|Animate|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 230
+  },
+  "rep|Animate|tgt_Artifact": {
+   "pi": 0.264591,
+   "sign": 1,
+   "support": 19
+  },
+  "rep|Animate|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 34
+  },
+  "rep|Animate|tgt_Land": {
+   "pi": 0.007878,
+   "sign": 1,
+   "support": 49
+  },
+  "rep|Animate|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 36
+  },
+  "rep|Attach": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 88
+  },
+  "rep|Attach|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 34
+  },
+  "rep|Attach|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 39
+  },
+  "rep|Branch": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 44
+  },
+  "rep|Branch|you": {
+   "pi": 0.166399,
+   "sign": 1,
+   "support": 39
+  },
+  "rep|ChangeTargets": {
+   "pi": 0.936568,
+   "sign": 1,
+   "support": 11
+  },
+  "rep|ChangeZone.All>Battlefield": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 22
+  },
+  "rep|ChangeZone.All>Battlefield|other": {
+   "pi": 0.009426,
+   "sign": 1,
+   "support": 22
+  },
+  "rep|ChangeZone.Battlefield>Exile": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 169
+  },
+  "rep|ChangeZone.Battlefield>Exile|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 40
+  },
+  "rep|ChangeZone.Battlefield>Exile|tgt_Artifact": {
+   "pi": 0.252344,
+   "sign": 1,
+   "support": 11
+  },
+  "rep|ChangeZone.Battlefield>Exile|tgt_Creature": {
+   "pi": 0.427073,
+   "sign": 1,
+   "support": 98
+  },
+  "rep|ChangeZone.Battlefield>Exile|you": {
+   "pi": 0.155662,
+   "sign": 1,
+   "support": 15
+  },
+  "rep|ChangeZone.Battlefield>Hand": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 223
+  },
+  "rep|ChangeZone.Battlefield>Hand|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 56
+  },
+  "rep|ChangeZone.Battlefield>Hand|tgt_Creature": {
+   "pi": 0.089952,
+   "sign": 1,
+   "support": 63
+  },
+  "rep|ChangeZone.Battlefield>Hand|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 93
+  },
+  "rep|ChangeZone.Battlefield>Library": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 39
+  },
+  "rep|ChangeZone.Battlefield>Library|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "rep|ChangeZone.Battlefield>Library|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "rep|ChangeZone.Battlefield>Library|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "rep|ChangeZone.Exile>Battlefield": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 31
+  },
+  "rep|ChangeZone.Exile>Battlefield|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "rep|ChangeZone.Exile>Battlefield|you": {
+   "pi": 0.552161,
+   "sign": 1,
+   "support": 13
+  },
+  "rep|ChangeZone.Exile>Hand": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 10
+  },
+  "rep|ChangeZone.Graveyard,Exile>Hand": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 14
+  },
+  "rep|ChangeZone.Graveyard,Exile>Hand|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "rep|ChangeZone.Graveyard>Battlefield": {
+   "pi": 0.128725,
+   "sign": 1,
+   "support": 288
+  },
+  "rep|ChangeZone.Graveyard>Battlefield|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 87
+  },
+  "rep|ChangeZone.Graveyard>Battlefield|tgt_Artifact": {
+   "pi": 0.578651,
+   "sign": 1,
+   "support": 17
+  },
+  "rep|ChangeZone.Graveyard>Battlefield|tgt_Creature": {
+   "pi": 0.339964,
+   "sign": 1,
+   "support": 91
+  },
+  "rep|ChangeZone.Graveyard>Battlefield|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 71
+  },
+  "rep|ChangeZone.Graveyard>Exile": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 171
+  },
+  "rep|ChangeZone.Graveyard>Exile|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 41
+  },
+  "rep|ChangeZone.Graveyard>Exile|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 90
+  },
+  "rep|ChangeZone.Graveyard>Exile|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "rep|ChangeZone.Graveyard>Hand": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 236
+  },
+  "rep|ChangeZone.Graveyard>Hand|other": {
+   "pi": 0.249759,
+   "sign": 1,
+   "support": 73
+  },
+  "rep|ChangeZone.Graveyard>Hand|tgt_Artifact": {
+   "pi": 0.600887,
+   "sign": 1,
+   "support": 10
+  },
+  "rep|ChangeZone.Graveyard>Hand|tgt_Creature": {
+   "pi": 0.189106,
+   "sign": 1,
+   "support": 62
+  },
+  "rep|ChangeZone.Graveyard>Hand|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 71
+  },
+  "rep|ChangeZone.Graveyard>Library": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 41
+  },
+  "rep|ChangeZone.Graveyard>Library|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "rep|ChangeZone.Graveyard>Library|tgt_Creature": {
+   "pi": 0.193408,
+   "sign": 1,
+   "support": 19
+  },
+  "rep|ChangeZone.Hand>Battlefield": {
+   "pi": 0.056844,
+   "sign": 1,
+   "support": 91
+  },
+  "rep|ChangeZone.Hand>Battlefield|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 86
+  },
+  "rep|ChangeZone.Hand>Exile": {
+   "pi": 0.505939,
+   "sign": 1,
+   "support": 24
+  },
+  "rep|ChangeZone.Hand>Exile|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 19
+  },
+  "rep|ChangeZone.Library>Battlefield": {
+   "pi": 0.144649,
+   "sign": 1,
+   "support": 137
+  },
+  "rep|ChangeZone.Library>Battlefield|you": {
+   "pi": 0.154418,
+   "sign": 1,
+   "support": 126
+  },
+  "rep|ChangeZone.Library>Exile": {
+   "pi": 0.131601,
+   "sign": 1,
+   "support": 17
+  },
+  "rep|ChangeZone.Library>Exile|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "rep|ChangeZone.Library>Graveyard": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 11
+  },
+  "rep|ChangeZone.Library>Hand": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 80
+  },
+  "rep|ChangeZone.Library>Hand|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 19
+  },
+  "rep|ChangeZone.Library>Hand|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 61
+  },
+  "rep|ChangeZone.Library>Library": {
+   "pi": 0.372575,
+   "sign": 1,
+   "support": 13
+  },
+  "rep|ChangeZoneAll.Battlefield>Exile": {
+   "pi": 0.111947,
+   "sign": 1,
+   "support": 19
+  },
+  "rep|ChangeZoneAll.Battlefield>Exile|you": {
+   "pi": 0.110746,
+   "sign": 1,
+   "support": 19
+  },
+  "rep|ChangeZoneAll.Battlefield>Hand": {
+   "pi": 0.304764,
+   "sign": 1,
+   "support": 10
+  },
+  "rep|ChangeZoneAll.Graveyard>Battlefield": {
+   "pi": 0.179757,
+   "sign": 1,
+   "support": 20
+  },
+  "rep|ChangeZoneAll.Graveyard>Battlefield|you": {
+   "pi": 0.178557,
+   "sign": 1,
+   "support": 20
+  },
+  "rep|ChangeZoneAll.Graveyard>Exile": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 13
+  },
+  "rep|ChangeZoneAll.Graveyard>Library": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 11
+  },
+  "rep|ChangeZoneAll.Library>Library": {
+   "pi": 0.556211,
+   "sign": 1,
+   "support": 12
+  },
+  "rep|ChangeZoneAll.Library>Library|you": {
+   "pi": 0.555011,
+   "sign": 1,
+   "support": 12
+  },
+  "rep|Cleanup": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 15
+  },
+  "rep|Cleanup|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "rep|Clone": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 62
+  },
+  "rep|Clone|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 26
+  },
+  "rep|Clone|tgt_Creature": {
+   "pi": 0.037353,
+   "sign": 1,
+   "support": 26
+  },
+  "rep|Connive": {
+   "pi": 0.230247,
+   "sign": 1,
+   "support": 24
+  },
+  "rep|Connive|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "rep|CopyPermanent": {
+   "pi": 0.39405,
+   "sign": 1,
+   "support": 157
+  },
+  "rep|CopyPermanent|other": {
+   "pi": 0.124083,
+   "sign": 1,
+   "support": 106
+  },
+  "rep|CopyPermanent|tgt_Creature": {
+   "pi": 0.217002,
+   "sign": 1,
+   "support": 22
+  },
+  "rep|CopyPermanent|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "rep|CopySpellAbility": {
+   "pi": 0.086983,
+   "sign": 1,
+   "support": 122
+  },
+  "rep|CopySpellAbility|other": {
+   "pi": 0.327637,
+   "sign": 1,
+   "support": 90
+  },
+  "rep|CopySpellAbility|tgt_Creature": {
+   "pi": 0.526921,
+   "sign": 1,
+   "support": 13
+  },
+  "rep|CopySpellAbility|tgt_Instant": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "rep|Counter": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 77
+  },
+  "rep|Counter|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 34
+  },
+  "rep|Counter|tgt_Creature": {
+   "pi": 0.092462,
+   "sign": 1,
+   "support": 39
+  },
+  "rep|DamageAll": {
+   "pi": 0.240963,
+   "sign": 1,
+   "support": 98
+  },
+  "rep|DamageAll|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 95
+  },
+  "rep|DamageResolve": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 18
+  },
+  "rep|DamageResolve|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "rep|DealDamage": {
+   "pi": 0.054608,
+   "sign": 1,
+   "support": 935
+  },
+  "rep|DealDamage|each_opp": {
+   "pi": 0.064683,
+   "sign": 1,
+   "support": 109
+  },
+  "rep|DealDamage|other": {
+   "pi": 0.018466,
+   "sign": 1,
+   "support": 225
+  },
+  "rep|DealDamage|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 451
+  },
+  "rep|DealDamage|tgt_Opponent": {
+   "pi": 0.118766,
+   "sign": 1,
+   "support": 46
+  },
+  "rep|DealDamage|tgt_Player": {
+   "pi": 0.221868,
+   "sign": 1,
+   "support": 62
+  },
+  "rep|DealDamage|you": {
+   "pi": 0.212339,
+   "sign": -1,
+   "support": 69
+  },
+  "rep|Debuff": {
+   "pi": 0.261136,
+   "sign": 1,
+   "support": 33
+  },
+  "rep|Debuff|other": {
+   "pi": 0.349738,
+   "sign": 1,
+   "support": 24
+  },
+  "rep|DelayedTrigger": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 176
+  },
+  "rep|DelayedTrigger|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 171
+  },
+  "rep|Destroy": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 294
+  },
+  "rep|DestroyAll": {
+   "pi": 0.40053,
+   "sign": 1,
+   "support": 50
+  },
+  "rep|DestroyAll|you": {
+   "pi": 0.08768,
+   "sign": 1,
+   "support": 48
+  },
+  "rep|Destroy|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 80
+  },
+  "rep|Destroy|tgt_Artifact": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 57
+  },
+  "rep|Destroy|tgt_Creature": {
+   "pi": 0.362013,
+   "sign": 1,
+   "support": 118
+  },
+  "rep|Destroy|tgt_Enchantment": {
+   "pi": 0.051379,
+   "sign": 1,
+   "support": 11
+  },
+  "rep|Destroy|tgt_Land": {
+   "pi": 0.280566,
+   "sign": 1,
+   "support": 17
+  },
+  "rep|Dig": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 372
+  },
+  "rep|DigUntil": {
+   "pi": 0.311275,
+   "sign": 1,
+   "support": 65
+  },
+  "rep|DigUntil|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "rep|DigUntil|you": {
+   "pi": 0.164409,
+   "sign": 1,
+   "support": 44
+  },
+  "rep|Dig|each_player": {
+   "pi": 0.15493,
+   "sign": 1,
+   "support": 10
+  },
+  "rep|Dig|other": {
+   "pi": 0.078415,
+   "sign": 1,
+   "support": 40
+  },
+  "rep|Dig|tgt_Opponent": {
+   "pi": 0.029849,
+   "sign": 1,
+   "support": 17
+  },
+  "rep|Dig|tgt_Player": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "rep|Dig|you": {
+   "pi": 0.007545,
+   "sign": 1,
+   "support": 294
+  },
+  "rep|Discard": {
+   "pi": 0.098253,
+   "sign": 1,
+   "support": 353
+  },
+  "rep|Discard|each_opp": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "rep|Discard|each_player": {
+   "pi": 0.038089,
+   "sign": 1,
+   "support": 14
+  },
+  "rep|Discard|other": {
+   "pi": 0.01646,
+   "sign": 1,
+   "support": 85
+  },
+  "rep|Discard|tgt_Opponent": {
+   "pi": 0.445995,
+   "sign": 1,
+   "support": 11
+  },
+  "rep|Discard|tgt_Player": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 33
+  },
+  "rep|Discard|you": {
+   "pi": 0.192701,
+   "sign": -1,
+   "support": 197
+  },
+  "rep|Discover": {
+   "pi": 0.235941,
+   "sign": 1,
+   "support": 12
+  },
+  "rep|Discover|you": {
+   "pi": 0.234741,
+   "sign": 1,
+   "support": 12
+  },
+  "rep|Draw": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 1302
+  },
+  "rep|Draw-gift": {
+   "pi": 0.05,
+   "sign": -1,
+   "support": 10
+  },
+  "rep|Draw|each_player": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 26
+  },
+  "rep|Draw|other": {
+   "pi": 0.065527,
+   "sign": 1,
+   "support": 93
+  },
+  "rep|Draw|tgt_Opponent": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "rep|Draw|tgt_Player": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 27
+  },
+  "rep|Draw|you": {
+   "pi": 0.054895,
+   "sign": 1,
+   "support": 1157
+  },
+  "rep|Effect": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 805
+  },
+  "rep|Effect|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "rep|Effect|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 149
+  },
+  "rep|Effect|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 621
+  },
+  "rep|ExchangeControl": {
+   "pi": 0.276422,
+   "sign": 1,
+   "support": 10
+  },
+  "rep|ExchangeControl|tgt_Creature": {
+   "pi": 0.275222,
+   "sign": 1,
+   "support": 10
+  },
+  "rep|Explore": {
+   "pi": 0.072569,
+   "sign": 1,
+   "support": 14
+  },
+  "rep|Explore|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "rep|Fight": {
+   "pi": 0.255086,
+   "sign": 1,
+   "support": 25
+  },
+  "rep|Fight|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 22
+  },
+  "rep|FlipCoin": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 41
+  },
+  "rep|FlipCoin|you": {
+   "pi": 0.1519,
+   "sign": 1,
+   "support": 35
+  },
+  "rep|GainControl": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 118
+  },
+  "rep|GainControl|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 33
+  },
+  "rep|GainControl|tgt_Artifact": {
+   "pi": 0.156722,
+   "sign": 1,
+   "support": 10
+  },
+  "rep|GainControl|tgt_Creature": {
+   "pi": 0.49392,
+   "sign": 1,
+   "support": 47
+  },
+  "rep|GainControl|tgt_Opponent": {
+   "pi": 0.219076,
+   "sign": 1,
+   "support": 11
+  },
+  "rep|GainControl|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "rep|GainLife": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 639
+  },
+  "rep|GainLife|other": {
+   "pi": 0.121804,
+   "sign": 1,
+   "support": 13
+  },
+  "rep|GainLife|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 618
+  },
+  "rep|GenericChoice": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 43
+  },
+  "rep|GenericChoice|you": {
+   "pi": 0.141745,
+   "sign": 1,
+   "support": 20
+  },
+  "rep|Goad": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 35
+  },
+  "rep|Goad|other": {
+   "pi": 0.113025,
+   "sign": 1,
+   "support": 17
+  },
+  "rep|Goad|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 17
+  },
+  "rep|ImmediateTrigger": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 139
+  },
+  "rep|ImmediateTrigger|you": {
+   "pi": 0.028573,
+   "sign": 1,
+   "support": 139
+  },
+  "rep|Investigate": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 51
+  },
+  "rep|Investigate|you": {
+   "pi": 0.03933,
+   "sign": 1,
+   "support": 51
+  },
+  "rep|LoseLife": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 491
+  },
+  "rep|LoseLife|each_opp": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 160
+  },
+  "rep|LoseLife|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 126
+  },
+  "rep|LoseLife|tgt_Opponent": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 39
+  },
+  "rep|LoseLife|tgt_Player": {
+   "pi": 0.082334,
+   "sign": 1,
+   "support": 40
+  },
+  "rep|LoseLife|you": {
+   "pi": 0.086045,
+   "sign": -1,
+   "support": 128
+  },
+  "rep|LosesGame": {
+   "pi": 0.060812,
+   "sign": 1,
+   "support": 12
+  },
+  "rep|Mana": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 740
+  },
+  "rep|ManaReflected": {
+   "pi": 0.24587,
+   "sign": 1,
+   "support": 29
+  },
+  "rep|ManaReflected|other": {
+   "pi": 0.160085,
+   "sign": 1,
+   "support": 10
+  },
+  "rep|ManaReflected|you": {
+   "pi": 0.084669,
+   "sign": 1,
+   "support": 19
+  },
+  "rep|Mana|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 30
+  },
+  "rep|Mana|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 707
+  },
+  "rep|Manifest": {
+   "pi": 0.343807,
+   "sign": 1,
+   "support": 12
+  },
+  "rep|Mill": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 216
+  },
+  "rep|Mill|each_opp": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "rep|Mill|each_player": {
+   "pi": 0.103644,
+   "sign": 1,
+   "support": 12
+  },
+  "rep|Mill|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 31
+  },
+  "rep|Mill|tgt_Player": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 62
+  },
+  "rep|Mill|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 94
+  },
+  "rep|MoveCounter": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 22
+  },
+  "rep|MoveCounter|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 19
+  },
+  "rep|MultiplyCounter": {
+   "pi": 0.297022,
+   "sign": 1,
+   "support": 31
+  },
+  "rep|MultiplyCounter|other": {
+   "pi": 0.090431,
+   "sign": 1,
+   "support": 23
+  },
+  "rep|MustBlock": {
+   "pi": 0.165539,
+   "sign": 1,
+   "support": 19
+  },
+  "rep|MustBlock|tgt_Creature": {
+   "pi": 0.440899,
+   "sign": 1,
+   "support": 17
+  },
+  "rep|NameCard": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 15
+  },
+  "rep|NameCard|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "rep|PeekAndReveal": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 86
+  },
+  "rep|PeekAndReveal|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 68
+  },
+  "rep|Phases": {
+   "pi": 0.08512,
+   "sign": 1,
+   "support": 22
+  },
+  "rep|Phases|other": {
+   "pi": 0.131518,
+   "sign": 1,
+   "support": 18
+  },
+  "rep|Play": {
+   "pi": 0.139846,
+   "sign": 1,
+   "support": 137
+  },
+  "rep|Play|other": {
+   "pi": 0.243982,
+   "sign": 1,
+   "support": 54
+  },
+  "rep|Play|tgt_Instant": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "rep|Play|you": {
+   "pi": 0.174386,
+   "sign": 1,
+   "support": 69
+  },
+  "rep|Poison": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 19
+  },
+  "rep|Poison|other": {
+   "pi": 0.28508,
+   "sign": 1,
+   "support": 14
+  },
+  "rep|PreventDamage": {
+   "pi": 0.375228,
+   "sign": 1,
+   "support": 67
+  },
+  "rep|PreventDamage|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 50
+  },
+  "rep|Proliferate": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 39
+  },
+  "rep|Proliferate|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 38
+  },
+  "rep|Protection": {
+   "pi": 0.274045,
+   "sign": 1,
+   "support": 28
+  },
+  "rep|Protection|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "rep|Pump": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 1190
+  },
+  "rep|Pump-": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 99
+  },
+  "rep|Pump-|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "rep|Pump-|tgt_Creature": {
+   "pi": 0.097447,
+   "sign": 1,
+   "support": 73
+  },
+  "rep|PumpAll": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 212
+  },
+  "rep|PumpAll-": {
+   "pi": 0.130121,
+   "sign": 1,
+   "support": 13
+  },
+  "rep|PumpAll-|you": {
+   "pi": 0.128921,
+   "sign": 1,
+   "support": 13
+  },
+  "rep|PumpAll|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 210
+  },
+  "rep|Pump|other": {
+   "pi": 0.019779,
+   "sign": 1,
+   "support": 723
+  },
+  "rep|Pump|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 282
+  },
+  "rep|Pump|you": {
+   "pi": 0.073959,
+   "sign": 1,
+   "support": 170
+  },
+  "rep|PutCounter": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 1707
+  },
+  "rep|PutCounterAll": {
+   "pi": 0.088368,
+   "sign": 1,
+   "support": 129
+  },
+  "rep|PutCounterAll|you": {
+   "pi": 0.023127,
+   "sign": 1,
+   "support": 128
+  },
+  "rep|PutCounter|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 1001
+  },
+  "rep|PutCounter|tgt_Creature": {
+   "pi": 0.085891,
+   "sign": 1,
+   "support": 300
+  },
+  "rep|PutCounter|tgt_Land": {
+   "pi": 0.136262,
+   "sign": 1,
+   "support": 17
+  },
+  "rep|PutCounter|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 389
+  },
+  "rep|Regenerate": {
+   "pi": 0.483935,
+   "sign": 1,
+   "support": 204
+  },
+  "rep|Regenerate|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "rep|Regenerate|tgt_Creature": {
+   "pi": 0.577078,
+   "sign": 1,
+   "support": 23
+  },
+  "rep|Regenerate|you": {
+   "pi": 0.15373,
+   "sign": 1,
+   "support": 152
+  },
+  "rep|RemoveCounter": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 82
+  },
+  "rep|RemoveCounter|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 42
+  },
+  "rep|RemoveCounter|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "rep|RemoveCounter|you": {
+   "pi": 0.303571,
+   "sign": 1,
+   "support": 29
+  },
+  "rep|RemoveFromCombat": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 13
+  },
+  "rep|RemoveFromCombat|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "rep|Repeat": {
+   "pi": 0.47601,
+   "sign": 1,
+   "support": 15
+  },
+  "rep|RepeatEach": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 72
+  },
+  "rep|RepeatEach|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 72
+  },
+  "rep|Repeat|you": {
+   "pi": 0.051142,
+   "sign": 1,
+   "support": 10
+  },
+  "rep|RevealHand": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 11
+  },
+  "rep|RingTemptsYou": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 10
+  },
+  "rep|RingTemptsYou|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "rep|RollDice": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 29
+  },
+  "rep|RollDice|you": {
+   "pi": 0.05857,
+   "sign": 1,
+   "support": 28
+  },
+  "rep|Sacrifice": {
+   "pi": 0.133664,
+   "sign": -1,
+   "support": 374
+  },
+  "rep|SacrificeAll": {
+   "pi": 0.05,
+   "sign": -1,
+   "support": 29
+  },
+  "rep|SacrificeAll|other": {
+   "pi": 0.303942,
+   "sign": 1,
+   "support": 15
+  },
+  "rep|SacrificeAll|you": {
+   "pi": 0.339143,
+   "sign": -1,
+   "support": 11
+  },
+  "rep|Sacrifice|each_opp": {
+   "pi": 0.151722,
+   "sign": 1,
+   "support": 13
+  },
+  "rep|Sacrifice|other": {
+   "pi": 0.319394,
+   "sign": 1,
+   "support": 65
+  },
+  "rep|Sacrifice|you": {
+   "pi": 0.251648,
+   "sign": -1,
+   "support": 291
+  },
+  "rep|Scry": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 129
+  },
+  "rep|Scry|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 127
+  },
+  "rep|SetState": {
+   "pi": 0.137148,
+   "sign": 1,
+   "support": 12
+  },
+  "rep|Surveil": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 70
+  },
+  "rep|Surveil|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 70
+  },
+  "rep|Tap": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 316
+  },
+  "rep|TapAll": {
+   "pi": 0.184802,
+   "sign": 1,
+   "support": 23
+  },
+  "rep|TapAll|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "rep|TapOrUntap": {
+   "pi": 0.213762,
+   "sign": 1,
+   "support": 27
+  },
+  "rep|TapOrUntap|tgt_Creature": {
+   "pi": 0.008214,
+   "sign": 1,
+   "support": 20
+  },
+  "rep|Tap|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 67
+  },
+  "rep|Tap|tgt_Artifact": {
+   "pi": 0.242396,
+   "sign": 1,
+   "support": 19
+  },
+  "rep|Tap|tgt_Creature": {
+   "pi": 0.109777,
+   "sign": 1,
+   "support": 213
+  },
+  "rep|Token": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 1254
+  },
+  "rep|Token-gift": {
+   "pi": 0.05,
+   "sign": -1,
+   "support": 49
+  },
+  "rep|Token-gift|creature": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 34
+  },
+  "rep|Token-gift|pt": {
+   "pi": 0.05,
+   "sign": -1,
+   "support": 34
+  },
+  "rep|Token|blood": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 15
+  },
+  "rep|Token|creature": {
+   "pi": 0.011733,
+   "sign": 1,
+   "support": 913
+  },
+  "rep|Token|food": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 38
+  },
+  "rep|Token|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 140
+  },
+  "rep|Token|pt": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 900
+  },
+  "rep|Token|treasure": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 139
+  },
+  "rep|Untap": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 259
+  },
+  "rep|UntapAll": {
+   "pi": 0.166272,
+   "sign": 1,
+   "support": 50
+  },
+  "rep|UntapAll|you": {
+   "pi": 0.078977,
+   "sign": 1,
+   "support": 49
+  },
+  "rep|Untap|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 116
+  },
+  "rep|Untap|tgt_Artifact": {
+   "pi": 0.011724,
+   "sign": 1,
+   "support": 14
+  },
+  "rep|Untap|tgt_Creature": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 64
+  },
+  "rep|Untap|tgt_Land": {
+   "pi": 0.178267,
+   "sign": 1,
+   "support": 25
+  },
+  "rep|Untap|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 40
+  },
+  "rep|Venture": {
+   "pi": 0.050767,
+   "sign": 1,
+   "support": 22
+  },
+  "rep|Venture|you": {
+   "pi": 0.049497,
+   "sign": 1,
+   "support": 22
+  },
+  "rep|WinsGame": {
+   "pi": 0.160496,
+   "sign": 1,
+   "support": 31
+  },
+  "rep|WinsGame|you": {
+   "pi": 0.071642,
+   "sign": 1,
+   "support": 30
+  },
+  "speed|instant": {
+   "pi": 0.15,
+   "sign": 1,
+   "support": 3075
+  },
+  "static|AssignCombatDamageAsUnblocked|self": {
+   "pi": 0.448842,
+   "sign": 0,
+   "support": 10
+  },
+  "static|CanAttackDefender|self|?": {
+   "pi": -0.20649,
+   "sign": 0,
+   "support": 12
+  },
+  "static|CantAttack,CantBlock,CantBeActivated|attached": {
+   "pi": 0.218481,
+   "sign": 0,
+   "support": 20
+  },
+  "static|CantAttack,CantBlock|attached": {
+   "pi": 0.136653,
+   "sign": 0,
+   "support": 26
+  },
+  "static|CantAttack,CantBlock|self|?": {
+   "pi": -1.49853,
+   "sign": 0,
+   "support": 21
+  },
+  "static|CantAttackUnless|all": {
+   "pi": 0.761841,
+   "sign": 0,
+   "support": 14
+  },
+  "static|CantAttack|all": {
+   "pi": 0.774584,
+   "sign": 0,
+   "support": 20
+  },
+  "static|CantAttack|attached": {
+   "pi": 0.127077,
+   "sign": 0,
+   "support": 21
+  },
+  "static|CantAttack|self": {
+   "pi": 0.135492,
+   "sign": -1,
+   "support": 64
+  },
+  "static|CantBeActivated|all": {
+   "pi": -0.251331,
+   "sign": 0,
+   "support": 19
+  },
+  "static|CantBeCast|all": {
+   "pi": 0.230702,
+   "sign": 0,
+   "support": 52
+  },
+  "static|CantBeCast|self|?": {
+   "pi": -1.287198,
+   "sign": 0,
+   "support": 13
+  },
+  "static|CantBlockBy|all": {
+   "pi": -0.055374,
+   "sign": 0,
+   "support": 270
+  },
+  "static|CantBlockBy|all|?": {
+   "pi": 0.283334,
+   "sign": 0,
+   "support": 33
+  },
+  "static|CantBlock|attached": {
+   "pi": -0.713888,
+   "sign": 0,
+   "support": 12
+  },
+  "static|CantBlock|self": {
+   "pi": 0.301838,
+   "sign": -1,
+   "support": 99
+  },
+  "static|CantGainLife|all": {
+   "pi": 0.028441,
+   "sign": 0,
+   "support": 16
+  },
+  "static|CantTarget|all": {
+   "pi": 0.1169,
+   "sign": 0,
+   "support": 26
+  },
+  "static|CastWithFlash|all": {
+   "pi": 0.135044,
+   "sign": 0,
+   "support": 28
+  },
+  "static|CombatDamageToughness|yours": {
+   "pi": 0.416984,
+   "sign": 0,
+   "support": 10
+  },
+  "static|Continuous|all": {
+   "pi": 0.278852,
+   "sign": 0,
+   "support": 472
+  },
+  "static|Continuous|all|?": {
+   "pi": 0.212422,
+   "sign": 0,
+   "support": 29
+  },
+  "static|Continuous|attached": {
+   "pi": -0.073796,
+   "sign": 0,
+   "support": 291
+  },
+  "static|Continuous|self": {
+   "pi": 0.201626,
+   "sign": 0,
+   "support": 79
+  },
+  "static|Continuous|self|?": {
+   "pi": -0.153662,
+   "sign": 0,
+   "support": 103
+  },
+  "static|Continuous|theirs": {
+   "pi": 0.010082,
+   "sign": 0,
+   "support": 11
+  },
+  "static|Continuous|yours": {
+   "pi": 0.238743,
+   "sign": 0,
+   "support": 162
+  },
+  "static|Continuous|yours|?": {
+   "pi": 0.09651,
+   "sign": 0,
+   "support": 17
+  },
+  "static|IgnoreLandWalk|all": {
+   "pi": 0.660446,
+   "sign": 0,
+   "support": 10
+  },
+  "static|MinMaxBlocker|self": {
+   "pi": 0.247354,
+   "sign": 0,
+   "support": 25
+  },
+  "static|MustAttack|all": {
+   "pi": -0.217336,
+   "sign": 0,
+   "support": 82
+  },
+  "static|OptionalAttackCost|self": {
+   "pi": 0.106676,
+   "sign": 0,
+   "support": 27
+  },
+  "static|OptionalCost|self": {
+   "pi": -0.542647,
+   "sign": 0,
+   "support": 28
+  },
+  "static|Panharmonicon|yours": {
+   "pi": 0.317119,
+   "sign": 0,
+   "support": 26
+  },
+  "static|RaiseCost|all": {
+   "pi": -0.133399,
+   "sign": 0,
+   "support": 51
+  },
+  "static|RaiseCost|self": {
+   "pi": -0.162319,
+   "sign": 0,
+   "support": 16
+  },
+  "static|ReduceCost|all": {
+   "pi": 0.070229,
+   "sign": 0,
+   "support": 176
+  },
+  "static|ReduceCost|all|?": {
+   "pi": -0.047222,
+   "sign": 0,
+   "support": 15
+  },
+  "static|ReduceCost|yours": {
+   "pi": -0.282838,
+   "sign": 0,
+   "support": 10
+  },
+  "static|kw|all": {
+   "pi": -0.004126,
+   "sign": 0,
+   "support": 237
+  },
+  "static|kw|all|?": {
+   "pi": 0.292011,
+   "sign": 0,
+   "support": 14
+  },
+  "static|kw|attached": {
+   "pi": -0.149194,
+   "sign": 0,
+   "support": 526
+  },
+  "static|kw|attached|?": {
+   "pi": -0.342617,
+   "sign": 0,
+   "support": 26
+  },
+  "static|kw|self": {
+   "pi": 0.059274,
+   "sign": 0,
+   "support": 17
+  },
+  "static|kw|self|?": {
+   "pi": 0.079267,
+   "sign": 0,
+   "support": 243
+  },
+  "static|kw|yours": {
+   "pi": 0.231017,
+   "sign": 0,
+   "support": 409
+  },
+  "static|kw|yours|?": {
+   "pi": 0.259629,
+   "sign": 0,
+   "support": 51
+  },
+  "static|pt|all": {
+   "pi": 0.115288,
+   "sign": 1,
+   "support": 90
+  },
+  "static|pt|all|?": {
+   "pi": 0.211953,
+   "sign": 1,
+   "support": 10
+  },
+  "static|pt|all|X": {
+   "pi": 0.412892,
+   "sign": 0,
+   "support": 10
+  },
+  "static|pt|attached": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 735
+  },
+  "static|pt|attached|?": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 17
+  },
+  "static|pt|attached|X": {
+   "pi": -0.014938,
+   "sign": 0,
+   "support": 90
+  },
+  "static|pt|self|?": {
+   "pi": 0.05,
+   "sign": 1,
+   "support": 222
+  },
+  "static|pt|self|X": {
+   "pi": 0.429086,
+   "sign": 0,
+   "support": 112
+  },
+  "static|pt|theirs": {
+   "pi": 0.55416,
+   "sign": 1,
+   "support": 11
+  },
+  "static|pt|yours": {
+   "pi": 0.118957,
+   "sign": 1,
+   "support": 324
+  },
+  "static|pt|yours|?": {
+   "pi": 0.091453,
+   "sign": 1,
+   "support": 41
+  },
+  "static|pt|yours|X": {
+   "pi": 0.898227,
+   "sign": 0,
+   "support": 31
+  },
+  "turn_any|DealDamage|other": {
+   "pi": 0.1734,
+   "sign": 1,
+   "support": 15
+  },
+  "turn_any|DealDamage|other|?": {
+   "pi": 0.012988,
+   "sign": 1,
+   "support": 35
+  },
+  "turn_any|DealDamage|other|X": {
+   "pi": 0.039521,
+   "sign": 1,
+   "support": 20
+  },
+  "turn_any|DealDamage|other|X|?": {
+   "pi": 0.527518,
+   "sign": 1,
+   "support": 21
+  },
+  "turn_any|Draw|other": {
+   "pi": 0.122914,
+   "sign": 1,
+   "support": 15
+  },
+  "turn_any|Draw|other|?": {
+   "pi": 0.170728,
+   "sign": 1,
+   "support": 18
+  },
+  "turn_any|LoseLife|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "turn_any|Sacrifice|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "turn_any|Sacrifice|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "turn|AlterAttribute|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "turn|Animate|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "turn|Animate|other|?": {
+   "pi": 0.462074,
+   "sign": 1,
+   "support": 17
+  },
+  "turn|ChangeZone.All>Battlefield|other|?": {
+   "pi": 0.113074,
+   "sign": 1,
+   "support": 10
+  },
+  "turn|ChangeZone.Battlefield>Hand|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "turn|ChangeZone.Battlefield>Hand|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "turn|ChangeZone.Battlefield>Hand|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 18
+  },
+  "turn|ChangeZone.Graveyard>Battlefield|other|?": {
+   "pi": 0.14417,
+   "sign": 1,
+   "support": 10
+  },
+  "turn|ChangeZone.Graveyard>Battlefield|tgt_Creature|?": {
+   "pi": 0.412648,
+   "sign": 1,
+   "support": 15
+  },
+  "turn|ChangeZone.Graveyard>Exile|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "turn|ChangeZone.Graveyard>Hand|other|?": {
+   "pi": 0.054863,
+   "sign": 1,
+   "support": 15
+  },
+  "turn|ChangeZone.Graveyard>Hand|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "turn|Charm|modes": {
+   "pi": 0.245931,
+   "sign": 1,
+   "support": 26
+  },
+  "turn|CopyPermanent|other|?": {
+   "pi": 0.609212,
+   "sign": 1,
+   "support": 17
+  },
+  "turn|DealDamage|you": {
+   "pi": 0.24698,
+   "sign": -1,
+   "support": 10
+  },
+  "turn|DealDamage|you|?": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 25
+  },
+  "turn|Destroy|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "turn|Dig|you|?": {
+   "pi": 0.492918,
+   "sign": 1,
+   "support": 10
+  },
+  "turn|Dig|you|X": {
+   "pi": 0.05807,
+   "sign": 1,
+   "support": 21
+  },
+  "turn|Dig|you|X|?": {
+   "pi": 0.368653,
+   "sign": 1,
+   "support": 27
+  },
+  "turn|Discard|you": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 15
+  },
+  "turn|Discard|you|?": {
+   "pi": 0.133008,
+   "sign": -1,
+   "support": 20
+  },
+  "turn|Draw|other": {
+   "pi": 0.151943,
+   "sign": 1,
+   "support": 11
+  },
+  "turn|Draw|other|?": {
+   "pi": 0.028893,
+   "sign": 1,
+   "support": 12
+  },
+  "turn|Draw|you": {
+   "pi": 0.296331,
+   "sign": 1,
+   "support": 28
+  },
+  "turn|Draw|you|?": {
+   "pi": 0.24763,
+   "sign": 1,
+   "support": 89
+  },
+  "turn|Draw|you|X": {
+   "pi": 0.002576,
+   "sign": 1,
+   "support": 16
+  },
+  "turn|Draw|you|X|?": {
+   "pi": 0.739899,
+   "sign": 1,
+   "support": 21
+  },
+  "turn|Effect|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 45
+  },
+  "turn|Effect|you|?": {
+   "pi": 0.010226,
+   "sign": 1,
+   "support": 56
+  },
+  "turn|GainControl|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "turn|GainLife|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "turn|GainLife|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 31
+  },
+  "turn|GainLife|you|X": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "turn|GainLife|you|X|?": {
+   "pi": 0.101698,
+   "sign": 1,
+   "support": 16
+  },
+  "turn|ImmediateTrigger|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 24
+  },
+  "turn|ImmediateTrigger|you|?": {
+   "pi": 0.352093,
+   "sign": 1,
+   "support": 36
+  },
+  "turn|LoseLife|each_opp|?": {
+   "pi": 0.201299,
+   "sign": 1,
+   "support": 16
+  },
+  "turn|LoseLife|each_opp|X": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 10
+  },
+  "turn|LoseLife|each_opp|X|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "turn|LoseLife|you": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 22
+  },
+  "turn|LoseLife|you|?": {
+   "pi": 0.120987,
+   "sign": -1,
+   "support": 33
+  },
+  "turn|LoseLife|you|X": {
+   "pi": 0.203414,
+   "sign": -1,
+   "support": 11
+  },
+  "turn|LoseLife|you|X|?": {
+   "pi": 0.400489,
+   "sign": -1,
+   "support": 13
+  },
+  "turn|Mana|you|X|?": {
+   "pi": 0.189079,
+   "sign": 1,
+   "support": 10
+  },
+  "turn|Mill|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 20
+  },
+  "turn|Mill|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 21
+  },
+  "turn|PeekAndReveal|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 25
+  },
+  "turn|PeekAndReveal|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 27
+  },
+  "turn|Pump|tgt_Creature": {
+   "pi": 0.220852,
+   "sign": 1,
+   "support": 19
+  },
+  "turn|Pump|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 25
+  },
+  "turn|Pump|tgt_Creature|X|?": {
+   "pi": 0.597429,
+   "sign": 1,
+   "support": 10
+  },
+  "turn|PutCounterAll|you": {
+   "pi": 0.077448,
+   "sign": 1,
+   "support": 16
+  },
+  "turn|PutCounterAll|you|?": {
+   "pi": 0.128228,
+   "sign": 1,
+   "support": 23
+  },
+  "turn|PutCounter|other": {
+   "pi": 0.062477,
+   "sign": 1,
+   "support": 100
+  },
+  "turn|PutCounter|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 153
+  },
+  "turn|PutCounter|other|X": {
+   "pi": 0.146424,
+   "sign": 1,
+   "support": 10
+  },
+  "turn|PutCounter|other|X|?": {
+   "pi": 0.554808,
+   "sign": 1,
+   "support": 12
+  },
+  "turn|PutCounter|tgt_Creature": {
+   "pi": 0.06548,
+   "sign": 1,
+   "support": 20
+  },
+  "turn|PutCounter|tgt_Creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 37
+  },
+  "turn|PutCounter|you": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 20
+  },
+  "turn|PutCounter|you|?": {
+   "pi": 0.184285,
+   "sign": 1,
+   "support": 30
+  },
+  "turn|RemoveCounter|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "turn|RemoveCounter|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 14
+  },
+  "turn|RepeatEach|you": {
+   "pi": 0.385026,
+   "sign": 1,
+   "support": 22
+  },
+  "turn|RepeatEach|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 26
+  },
+  "turn|Sacrifice|you": {
+   "pi": 0.326682,
+   "sign": -1,
+   "support": 48
+  },
+  "turn|Sacrifice|you|?": {
+   "pi": 0.0,
+   "sign": -1,
+   "support": 158
+  },
+  "turn|Scry|you|?": {
+   "pi": 0.247022,
+   "sign": 1,
+   "support": 11
+  },
+  "turn|Surveil|you": {
+   "pi": 0.114919,
+   "sign": 1,
+   "support": 11
+  },
+  "turn|Surveil|you|?": {
+   "pi": 0.024513,
+   "sign": 1,
+   "support": 14
+  },
+  "turn|Tap|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 20
+  },
+  "turn|Token|creature": {
+   "pi": 0.48665,
+   "sign": 1,
+   "support": 47
+  },
+  "turn|Token|creature|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 103
+  },
+  "turn|Token|creature|X": {
+   "pi": 0.294297,
+   "sign": 1,
+   "support": 22
+  },
+  "turn|Token|creature|X|?": {
+   "pi": 0.531249,
+   "sign": 1,
+   "support": 26
+  },
+  "turn|Token|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 12
+  },
+  "turn|Token|other|?": {
+   "pi": 0.306942,
+   "sign": 1,
+   "support": 19
+  },
+  "turn|Token|pt": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 67
+  },
+  "turn|Token|pt|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 59
+  },
+  "turn|Token|treasure|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 11
+  },
+  "turn|UntapAll|you": {
+   "pi": 0.082467,
+   "sign": 1,
+   "support": 11
+  },
+  "turn|UntapAll|you|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "turn|Untap|other": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 13
+  },
+  "turn|Untap|other|?": {
+   "pi": 0.0,
+   "sign": 1,
+   "support": 16
+  },
+  "turn|WinsGame|you|?": {
+   "pi": 0.302335,
+   "sign": 1,
+   "support": 23
+  },
+  "type|Artifact": {
+   "pi": 0.079009,
+   "sign": 0,
+   "support": 3276
+  },
+  "type|Creature": {
+   "pi": -1.238959,
+   "sign": 0,
+   "support": 15855
+  },
+  "type|Enchantment": {
+   "pi": 0.162529,
+   "sign": 0,
+   "support": 3345
+  },
+  "type|Kindred": {
+   "pi": 0.102592,
+   "sign": 0,
+   "support": 61
+  },
+  "type|Legendary": {
+   "pi": -0.128292,
+   "sign": 0,
+   "support": 3457
+  },
+  "type|Planeswalker": {
+   "pi": 1.120754,
+   "sign": 0,
+   "support": 243
+  },
+  "type|Spell": {
+   "pi": -0.373667,
+   "sign": 0,
+   "support": 5855
+  }
+ },
+ "intercepts": {
+  "b0": 2.465898,
+  "era|1993–96|set": -0.052944,
+  "era|1997–02|set": -0.07114,
+  "era|2003–08|set": 0.14607,
+  "era|2009–14|commander": 0.298017,
+  "era|2009–14|set": -0.016617,
+  "era|2015–19|commander": 0.195885,
+  "era|2015–19|set": -0.151135,
+  "era|2020–22|commander": 0.088267,
+  "era|2020–22|set": -0.279971,
+  "era|2023+|commander": -0.136352,
+  "era|2023+|set": -0.434858
+ },
+ "calibration": {
+  "mana_value": [
+   0.9848,
+   2.0,
+   3.0,
+   4.0,
+   5.0,
+   6.0,
+   7.0,
+   8.0,
+   9.0,
+   10.3902
+  ],
+  "bias": [
+   1.534369,
+   0.776323,
+   0.134562,
+   -0.390659,
+   -0.867469,
+   -1.208931,
+   -1.425519,
+   -1.993937,
+   -2.026978,
+   -2.400773
+  ]
+ }
+}

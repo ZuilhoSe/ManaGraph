@@ -161,6 +161,7 @@ class ClockCard:
     trample: bool = False
     double_strike: bool = False
     infect: bool = False
+    lifelink: bool = False
     mana: int = 0              # mana per turn from a permanent (rock, dork)
     ramp_lands: int = 0        # lands put onto the battlefield when it resolves
     draw: int = 0              # cards drawn when it resolves
@@ -368,6 +369,7 @@ def clock_features(card: CardOps) -> ClockCard:
         trample="Trample" in keywords,
         double_strike="Double Strike" in keywords,
         infect=bool(keywords & {"Infect", "Toxic"}),
+        lifelink="Lifelink" in keywords,
         types=frozenset(card.types),
         subtypes=frozenset(card.subtypes),
         pips=tuple(card.mana_cost.pips),
@@ -520,8 +522,10 @@ class ClockParams:
     horizon: int = 10                  # T
     samples: int = 300
     seed: int = 7
-    p_evasive: float = 0.85            # P_conectar of an evasive attacker
-    blocker_toughness: int = 2         # what a trampler pushes through
+    p_evasive: float = 0.85            # P_conectar of an evasive attacker the table would block
+    # Toughness of the blocker a creature meets: a trampler pushes the excess through,
+    # and a blocker dies (chump) when the attacker's power reaches its toughness.
+    blocker_toughness: tuple[tuple[int, float], ...] = ((1, 0.25), (2, 0.35), (3, 0.25), (4, 0.15))
     # b_t: the defenders' pool of blockers. Base rate until Fase 8: from turn
     # `blockers_start` the table adds `blocker_rate` blockers per turn; a chump
     # block (attacker power ≥ blocker toughness) spends the blocker.
@@ -608,6 +612,7 @@ class _Game:
         self.drawn = 0
         self.depth = 0
         self.looped = False
+        self._deaths = 0.0  # expected chump-blocker deaths not yet emitted
         self.wasted = 0.0
         self.t = 0
 
@@ -1113,19 +1118,27 @@ class _Game:
             return b.power + b.bonus + self.anthem + overrun
 
         attackers = [b for b in self.bodies if not b.sick and id(b) not in tapped and power(b) > 0]
-        ground = sorted((b for b in attackers if not b.card.evasive), key=lambda b: -power(b))
-        blocked = ground[:int(self.pool)]
-        blocked_ids = set(map(id, blocked))
-        for b in blocked:
-            if power(b) >= p.blocker_toughness:
-                self.pool -= 1
-                self.emit("dies_any")  # the chump blocker dies
+        # Blockers are assigned as if every attacker were on the ground (the biggest are
+        # chump-blocked first), so a keyword never changes who is blocked or how many
+        # blockers the table spends: adding Flying, Trample, Double Strike or Lifelink to
+        # a creature can only add damage (monotone in every keyword).
+        blocked_ids = {id(b) for b in sorted(attackers, key=lambda b: -power(b))[:int(self.pool)]}
+        for b in attackers:
+            if id(b) in blocked_ids:
+                dies = sum(w for t, w in p.blocker_toughness if power(b) >= t)
+                self.pool -= dies
+                self._deaths += dies
+                while self._deaths >= 1:
+                    self._deaths -= 1
+                    self.emit("dies_any")  # a chump blocker died
         for b in attackers:
             hit = power(b) * (2 if b.card.double_strike else 1)
             if id(b) in blocked_ids:
-                hit = max(0, hit - p.blocker_toughness) if (b.card.trample or overrun_trample) else 0
-            elif b.card.evasive:
-                hit *= p.p_evasive
+                through = sum(w * max(0, hit - t) for t, w in p.blocker_toughness)                     if (b.card.trample or overrun_trample) else 0.0
+                # an evasive creature is blocked only by the blockers that can block it
+                hit = p.p_evasive * hit + (1 - p.p_evasive) * through if b.card.evasive else through
+            if b.card.lifelink and hit > 0:
+                self.gain(hit)
             if b.card.infect:
                 self.poison += hit
             else:

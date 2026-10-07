@@ -1,6 +1,6 @@
 # Economia de operadores — sinergia deduzida das regras
 
-> Status: em execução — Fases 0, 1, 2, 2.5 (com 2.5b: todas as rotas de vitória) e 3 aceitas;
+> Status: em execução — Fases 0, 1, 2, 2.5 (com 2.5b: todas as rotas de vitória), 3 e 4 aceitas;
 > relógio de dano, taxonomia de arquétipos e exploração adicionados (2026-10-05). Substitui a ideia de "sinergia =
 > similaridade textual" e o score linear com pesos escolhidos à mão. Convive com
 > [`ONTOLOGY.md`](../ONTOLOGY.md): a ontologia vira a interface tipada desta
@@ -321,6 +321,43 @@ Os `π` inferidos precisam prever os Δ medidos nos micro-experimentos do Forge
 - **Estabilidade:** o deck ótimo muda pouco quando `π` varia dentro do
   intervalo de confiança.
 - **Concordância** entre as três âncoras.
+
+### 3.5 Dois contextos de valor: o fichário e a mesa
+
+O valor de uma carta existe em dois momentos diferentes, e o modelo precisa dos
+dois sem confundi-los.
+
+| | Fichário (design e deckbuilding) | Mesa (partida) |
+|---|---|---|
+| Pergunta | quanto efeito a carta entrega pelo mana? | quanto a carta muda a chance de vencer **neste** turno? |
+| Natureza do valor | estrutural, estático | dinâmico, situacional |
+| O que é o custo de mana | o preço do efeito | **a partir de que turno** a carta age |
+| Depende do estado? | não | sim: turno, mana dos oponentes, mesa |
+| Objeto matemático | `π` e `s_k` (seção 3.1, Fase 4) | `v_k(t) = Σ_{u≥t} γ^u · π · e_k(u \| s_u)` (Fase 5) |
+| Analogia | valor justo de uma ação pelos fundamentos | o preço no pregão de hoje |
+
+**Fichário: teoria de precificação.** Comparadas à economia inteira do jogo,
+algumas cartas entregam recurso muito abaixo do preço tabelado. Comprar 3 cartas
+por 1 mana (Ancestral Recall), quando comprar 3 costuma custar 4–5, é uma falha
+de mercado que o modelo estático vê sem simular nada. `π` varre as ~27 mil
+cartas atrás dessas assimetrias e dá as relações que não dependem do turno:
+mesmo efeito mais barato é melhor; carta + benefício é estritamente melhor;
+instantâneo domina feitiço.
+
+**Mesa: o tempo.** O mesmo efeito vale coisas diferentes conforme o turno em
+que entra:
+- uma mágica de custo 8 é inútil no turno 2 sem mana;
+- um efeito repetível vale mais quanto mais turnos restam (Sol Ring no T1 ≫ T6);
+- um efeito que depende da mesa varia com ela. Uma taxa como a do Rhystic Study
+  vale `P(oponente não paga | turno)`: ótima no T2, quando ninguém tem mana
+  sobrando, muito boa no T3 e fraca no T10.
+
+**Como os dois se ligam.** `π` dá o preço **por unidade de efeito**: uma carta,
+3 de dano, um corpo 2/2. Na mesa, esse preço é aplicado ao efeito no turno em
+que ele acontece e ponderado pelo estado da mesa. Em `V(D)` o custo de mana
+entra como restrição de tempo (quando a carta age), não convertido por `π`. O
+modelo estático fica como prior e como verificador de consistência (dominância,
+positividade); o temporal é o que escolhe as 99.
 
 ## 4. Interação: valor de negação
 
@@ -674,15 +711,82 @@ gatilhos, estáticos e 2ª ordem ainda não são medidos.
 
 ### Fase 4 — Preços latentes π e força de carta (≈ 1–2 semanas)
 
-- [ ] Montar `C_k`, `E_k` para todas as cartas abstraíveis.
-- [ ] Ajustar `π*` (Huber, `π_mana = 1`, efeito de era).
-- [ ] Ranking de força `s_k`; validação fora da amostra (cmc de cartas
-      retidas) e intervalos via bootstrap.
-- [ ] Ajustes de Commander derivados das regras: "each opponent" ×3, vida 40,
-      dano de comandante.
+- [x] Montar `C_k`, `E_k` para todas as cartas abstraíveis. → `src/operators/pricing.py`:
+      feature "contexto|api|alvo" com a magnitude do passo (saturada em 10),
+      contextos once/dies/turn/combat/event/act/loyalty/static/etb; ativadas
+      descontadas por `1/(1 + custo)`, lealdade pelo que a habilidade gasta;
+      custos adicionais, drawbacks e presentes ao oponente no lado do custo.
+      Cadeia de back-off por efeito com **todas as variantes mais fracas**
+      (condicional, alvo mais estreito): efeito mais forte = mais fraco +
+      incrementos ≥ 0, então dominância no efeito implica dominância no preço.
+      Fora do ajuste: terrenos, custo X, custo alternativo/reduzido, várias faces.
+- [x] Ajustar `π*` (Huber, `π_mana = 1`, efeito de era). → L-BFGS-B com π ≥ 0
+      nas features de sinal conhecido; era = época da primeira impressão (edições
+      do Forge) × produto (set / Commander). Power creep aparece sozinho: −0,46
+      de mana para os mesmos efeitos em sets de 2023+.
+- [x] Ranking de força `s_k`; validação fora da amostra (cmc de cartas
+      retidas) e intervalos via bootstrap. → `s_k` absoluta (sem era nem pips,
+      que são incômodos do ajuste) e centrada por mana value: prever custo a
+      partir de efeitos regride à média (cartas de 1 saíam +1,45, de 9 −2,5); a
+      centralização com média monótona por faixa tira o viés. Bootstrap
+      bayesiano. `scripts/fit_prices.py` → `data/ontology/PRICES.md`,
+      `prices_v1.json`.
+- [x] Ajustes de Commander derivados das regras: "each opponent" ×3, vida 40,
+      dano de comandante. → efeitos "cada oponente" e gatilhos em ações dos
+      oponentes × 3 sobre a cadeia inteira; vida × ½; efeitos simétricos ("cada
+      jogador") não mudam. Dano de comandante fica para a Fase 5 (relógio).
 
 **Aceite:** previsão de cmc fora da amostra melhor que baseline de média por
 tipo; Mind's Eye e similares com `s_k` claramente negativo.
+
+**Resultado (2026-10-06): ACEITE.** 31.699 cartas legais compiladas, 27.287 no
+ajuste, 1.810 features com preço. Erro absoluto médio fora da amostra (5
+dobras) **0,85** de mana contra 1,23 da média por tipo (31% menor; RMSE 1,13
+contra 1,53). Mind's Eye: s_k = −1,31, intervalo 90% [−1,39; −1,28]. Critério
+extra ("similares"): nos 1.893 pares de dominância da Fase 2, o dominante tem
+s_k ≥ dominado em **99,5%**; os 9 casos restantes são alvos com vários tipos
+em que o extrator lê só o primeiro. Preços canônicos: 1 carta 0,38, 3 de dano
+em qualquer alvo 0,93, destruir criatura 0,73, Flying 0,47, 1 de poder 0,43
+(marginais; a regressão os comprime, por isso a força é centrada). Commander
+sobe edicts e drenos para cada oponente (Portal to Phyrexia +4,9) e Rhystic
+Study / Esper Sentinel / Guttersnipe. Limites: o topo da força mistura corpos
+de fato acima da curva (Gigantosaurus) com drawbacks que o extrator não lê
+(Death's Shadow, Phyrexian Dreadnought, Arixmethes); para cartas de 7+ a força
+é pouco informativa (desvio 1,6–2,5); velocidade de instantâneo e `{T}: mana`
+saem baratos no design (0,00 e 0,18) — o relógio e o oráculo (Fases 5 e 8)
+são as âncoras que podem corrigir isso.
+
+**Ajustes (2026-10-07).** Velocidade: a curva de design não cobra instantâneo
+(279 grupos instant/sorcery com as mesmas features: diferença mediana 0), mas
+nas regras instantâneo domina feitiço estritamente; `speed|instant` e
+`kw|Flash` ganharam um **piso normativo de 0,15** (decisão em aberto 3), a
+substituir pelo valor medido na Fase 8. Sensibilidade (pisos 0 / 0,15 / 0,3 /
+0,5): erro fora da amostra 0,849 → 0,863, Spearman da força ≥ 0,99. Tokens
+separados por tipo (Treasure 0,53, Food 0,25, Clue 0,17; criatura 1/1 0,60) e
+cores como incômodo do ajuste (erro 0,838). Tabela com ~70 efeitos em mana
+(design e Commander) no `PRICES.md`. Achado: palavras-chave de ~0,2 de mana
+(Trample, Lifelink, Menace, Ward) não são identificáveis pelo custo impresso
+— ≈ 0 no modelo completo, +0,2 a +0,3 em criaturas só com corpo e
+palavras-chave; o valor de combate delas virá do relógio na Fase 5.
+
+**Positividade estrita (2026-10-07).** Regra: carta + qualquer benefício é
+estritamente mais forte, com o mesmo mana e o mesmo corpo. (1) Piso ε = 0,05
+por unidade em todo efeito e todo custo (na chave mais grossa de cada cadeia e
+nas features isoladas). (2) Palavras-chave de combate (Trample, Haste, Double
+Strike, evasão) ganham um termo por ponto de poder com piso tirado do relógio
+(âncora terminal da seção 3.2): dano extra por ponto de poder, em pontos de
+poder — Trample 0,14, evasão 0,17, Haste 0,23, Double Strike 0,44 — vezes
+π_poder; ajuste em duas passadas. (3) O relógio tinha dois defeitos que
+apareceram nessa medição: Flying saía **negativo** (todo atacante evasivo era
+multiplicado por P_conectar mesmo sem bloqueador) e Trample valia 0 em corpos
+pequenos (bloqueador sempre 2 de resistência). Agora os bloqueios são
+atribuídos como se todos fossem terrestres, a evasão só atua onde haveria
+bloqueio, a resistência do bloqueador é uma distribuição (1–4) e Lifelink
+ganha vida no relógio — adicionar qualquer palavra-chave nunca tira dano.
+Testes: em todo corpo de 0/1 a 6/6, cada uma de 21 palavras-chave aumenta
+estritamente a força; drawbacks a diminuem; instantâneo > feitiço; todos os
+~70 efeitos canônicos têm preço positivo. Erro fora da amostra 0,845;
+dominância 99,6%; critérios da Fase 2.5 seguem aceitos.
 
 ### Fase 5 — Grafo e V(D) (≈ 2 semanas)
 
@@ -693,10 +797,37 @@ tipo; Mind's Eye e similares com `s_k` claramente negativo.
       Fase 0 no modelo).
 - [ ] `V(D)` analítica e decomposição explicável por aresta, com o relógio de
       dano da Fase 2.5 como numerário.
+- [ ] **Valor no tempo** (seção 3.5, contexto da mesa). O custo de
+      mana não é só "quanto poder a carta compra" (isso é o π estático da Fase
+      4, um prior de design): é **a partir de que turno a carta pode agir**.
+      O valor de uma carta que entra no turno `t` é
+
+      ```
+      v_k(t) = Σ_{u ≥ t} γ^u · π · e_k(u | s_u)
+      ```
+
+      - efeito único (remoção, compra): só em `u = t` → cedo vale mais;
+      - permanente repetível (Sol Ring, Phyrexian Arena): de `t` até `T` → o
+        valor cresce com os turnos que restam;
+      - efeito que depende do estado da mesa: `e_k(u | s_u)`. Taxas (Rhystic
+        Study, Smothering Tithe, Esper Sentinel) valem `P(oponente não paga a
+        taxa | u)`, que cai à medida que a mana dos oponentes cresce; o
+        mesmo vale para "se o oponente tiver X" e efeitos que escalam.
+      - `t` vem da curva de mana do deck (o relógio já amostra quando cada
+        carta pode ser lançada); o valor da carta no deck é `E_t[v_k(t)]`.
+
+      Em `V(D)` o custo de mana entra como **restrição de tempo** (quando a
+      carta age), não convertido por π; π só dá o preço de cada efeito por
+      unidade. A mana dos oponentes por turno é uma taxa-base (terrenos +
+      ramp médio do catálogo) até a Fase 8.
 
 **Aceite:**
 - `V` reprova os decks atuais de Krenko e Lightning em relação às versões
   reconstruídas; a decomposição explica cada carta.
+- **Tempo:** Rhystic Study vale estritamente mais no T2 que no T3, e no T3
+  que no T10; Sol Ring no T1 vale mais que no T6; um efeito único pelo mesmo
+  custo vale mais cedo que tarde; um repetível vale mais quanto mais turnos
+  restam.
 - **Teste anti-viés de engine:** com o pedido "verde, criaturas", o sistema
   monta um stomp coerente (ramp, ameaças grandes, trample/overrun) sem que
   "stomp" esteja escrito em lugar nenhum, e esse deck é competitivo em `V`
