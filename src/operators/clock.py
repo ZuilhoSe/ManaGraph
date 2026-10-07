@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import random
 import re
+from contextlib import contextmanager
 from dataclasses import dataclass, field, replace
 from statistics import mean, pvariance
 
@@ -110,15 +111,19 @@ class Effect:
 
     kind: str  # drain | gain | mill_opp | mill_self | mill_choice | draw | tokens | fetch | opp_loses | win
     amount: int = 0
-    scale: str = ""  # "trigger": amount × the event's amount (life gained); "second_cast"
+    scale: str = ""  # "trigger": amount × the event's amount (life gained); "second_cast";
+    #                  "half": half of the milled player's library (Traumatize)
     token: tuple[int, int, int, str] | None = None  # count, power, toughness, subtype
     fetch_type: str = ""
     condition: Condition | None = None  # for win / opp_loses
+    expr: str = ""  # amount × this Forge expression, evaluated when it happens (devotion, ...)
+    svars: tuple[tuple[str, str], ...] = ()
 
 
 @dataclass(frozen=True)
 class Trigger:
-    event: str  # dies_yours | dies_any | cast_spell | cast_any | landfall | lifegain | upkeep | etb_creature
+    event: str  # dies_yours | dies_any | cast_spell | cast_any | landfall | lifegain | upkeep |
+    #             etb_creature | etb_any | opp_lifeloss | token_created | sac_token
     effects: tuple[Effect, ...]
 
 
@@ -131,6 +136,7 @@ class Ability:
     sac: bool          # sacrifices another creature as a cost (sac outlet)
     return_self: bool  # Maze's End
     effects: tuple[Effect, ...]
+    sac_type: str = ""  # what a sac outlet eats: "Creature", "Goblin", ...
 
 
 @dataclass(frozen=True)
@@ -158,7 +164,7 @@ class ClockCard:
     mana: int = 0              # mana per turn from a permanent (rock, dork)
     ramp_lands: int = 0        # lands put onto the battlefield when it resolves
     draw: int = 0              # cards drawn when it resolves
-    tokens: tuple[tuple[int, int, int], ...] = ()  # (count, power, toughness) on resolve
+    tokens: tuple[tuple[int, int, int, str], ...] = ()  # (count, power, toughness, subtype) on resolve
     tokens_per_turn: tuple[tuple[int, int, int], ...] = ()  # each upkeep
     tap_tokens: tuple[int, int, int] | None = None  # {T}: create tokens
     tap_tokens_scale: bool = False  # count = creatures you control (Krenko)
@@ -176,6 +182,7 @@ class ClockCard:
     life_gain: int = 0         # life you gain on resolve
     self_mill: int = 0         # your cards milled on resolve
     mill_choice: int = 0       # "target player mills N": you or an opponent, by plan
+    on_resolve: tuple[Effect, ...] = ()  # effects with amounts read off the state (Gray Merchant)
     triggers: tuple[Trigger, ...] = ()
     abilities: tuple[Ability, ...] = ()
     wins: tuple[WinRule, ...] = ()
@@ -249,11 +256,25 @@ def _effects(steps, svars: dict[str, str]) -> list[Effect]:
                 out.append(Effect("drain", amount=n, scale="trigger"))
             elif _int(amount):
                 out.append(Effect("drain", amount=_int(amount) * n))
+            elif amount.startswith("var:Count$"):
+                out.append(Effect("drain", amount=n, expr=amount[4:], svars=tuple(sorted(svars.items()))))
         elif api == "GainLife" and s.get("Defined", "You") in ("", "You"):
-            if _int(m.get("LifeAmount")):
-                out.append(Effect("gain", amount=_int(m.get("LifeAmount"))))
+            amount = m.get("LifeAmount", "")
+            if amount.startswith("var:TriggerCount$LifeAmount"):
+                out.append(Effect("gain", amount=1, scale="trigger"))
+            elif _int(amount):
+                out.append(Effect("gain", amount=_int(amount)))
         elif api == "Mill":
-            n = _int(m.get("NumCards"), 1)
+            raw = m.get("NumCards", "1")
+            half = "CardsInLibrary/Half" in raw
+            if not (half or _int(raw)):
+                continue  # a count the clock cannot read
+            n, scale = (1, "half") if half else (_int(raw), "")
+            if half and step.target:
+                out.append(Effect("mill_choice", amount=1, scale="half"))
+                continue
+            if half:
+                continue
             defined = s.get("Defined", "")
             if defined == "You":
                 out.append(Effect("mill_self", amount=n))
@@ -279,6 +300,21 @@ def _effects(steps, svars: dict[str, str]) -> list[Effect]:
     return out
 
 
+_NOT_CREATURES = {"Land", "Artifact", "Enchantment", "Planeswalker", "Card", "CARDNAME",
+                  "Treasure", "Food", "Clue", "Blood"}
+
+
+def _sac_fodder(cost: str) -> str:
+    """Creature type a "Sac<N/Type>" cost eats ("" if it does not eat creatures)."""
+    m = re.match(r"Sac<\d+/([^>/]+)", cost)
+    if not m:
+        return ""
+    base = m.group(1).split(".")[0].split(";")[0]
+    if base in _NOT_CREATURES or not base[:1].isupper():
+        return ""
+    return "Creature" if base == "Permanent" else base
+
+
 def _trigger_event(op) -> str | None:
     shape = dict(op.shape)
     mode = op.kind
@@ -289,8 +325,8 @@ def _trigger_event(op) -> str | None:
             return "dies_yours" if ("YouCtrl" in valid or "YouOwn" in valid) else "dies_any"
         if dest == "Battlefield" and valid.startswith("Land") and "YouCtrl" in valid:
             return "landfall"
-        if dest == "Battlefield" and valid.startswith("Creature") and "YouCtrl" in valid:
-            return "etb_creature"
+        if dest == "Battlefield" and valid.startswith("Creature"):
+            return "etb_creature" if "YouCtrl" in valid else ("etb_any" if "Opp" not in valid else None)
         return None
     if mode in ("SpellCast", "SpellCastOrCopy"):
         if "Opponent" in shape.get("ValidActivatingPlayer", ""):
@@ -303,6 +339,14 @@ def _trigger_event(op) -> str | None:
         return None
     if mode == "LifeGained" and shape.get("ValidPlayer", "You") in ("You", ""):
         return "lifegain"
+    if mode == "Drawn" and shape.get("ValidCard", "") in ("Card.YouCtrl", "Card.YouOwn"):
+        return "drawn"
+    if mode == "LifeLost" and shape.get("ValidPlayer", "").startswith("Opponent"):
+        return "opp_lifeloss"
+    if mode == "TokenCreated" and shape.get("ValidPlayer", "You") in ("You", ""):
+        return "token_created"
+    if mode == "Sacrificed" and "YouCtrl" in shape.get("ValidCard", "") and "token" in shape.get("ValidCard", ""):
+        return "sac_token"
     if mode == "Phase" and shape.get("Phase") == "Upkeep" and shape.get("ValidPlayer", "You") in ("You", ""):
         return "upkeep"
     return None
@@ -330,7 +374,8 @@ def clock_features(card: CardOps) -> ClockCard:
     )
     acc = dict(mana=0, ramp_lands=0, draw=0, mill=0, anthem=0, overrun=0, burn=0, life_gain=0,
                self_mill=0, mill_choice=0, attach_power=0, equip_cost=0)
-    tokens: list[tuple[int, int, int]] = []
+    tokens: list[tuple[int, int, int, str]] = []
+    on_resolve: list[Effect] = []
     per_turn: list[tuple[int, int, int]] = []
     flags = dict(overrun_per_creature=False, overrun_trample=False, alt_win=False,
                  attach_per_land=False, tap_tokens_scale=False)
@@ -347,6 +392,8 @@ def clock_features(card: CardOps) -> ClockCard:
                 flags["alt_win"] = True
             elif e.kind in ("win", "opp_loses"):
                 wins.append(WinRule("resolve", e.condition, opponents_lose=e.kind == "opp_loses"))
+            elif e.expr or e.scale == "half":
+                on_resolve.append(e)
             elif e.kind == "drain" and not e.scale:
                 acc["burn"] += e.amount
             elif e.kind == "gain":
@@ -360,7 +407,7 @@ def clock_features(card: CardOps) -> ClockCard:
             elif e.kind == "draw":
                 acc["draw"] += e.amount
             elif e.kind == "tokens":
-                tokens.append(e.token[:3])
+                tokens.append(e.token)
 
     for op in card.operators:
         shape = dict(op.shape)
@@ -405,13 +452,15 @@ def clock_features(card: CardOps) -> ClockCard:
             effects = _effects(op.steps, svars)
             costs = op.cost_other
             self_sac = any(c.startswith("Sac<") and "CARDNAME" in c for c in costs)
-            if effects and not self_sac:
+            sac_type = next((t for t in map(_sac_fodder, costs) if t), "")
+            if (effects or sac_type) and not self_sac:  # an outlet counts even if its effect does not
                 abilities.append(Ability(
                     mana=op.cost.mana_value if op.cost else 0,
                     tap="T" in costs,
-                    sac=any(c.startswith("Sac<") and "Creature" in c for c in costs),
+                    sac=bool(sac_type),
                     return_self=any("Return<1/CARDNAME>" in c for c in costs),
                     effects=tuple(effects),
+                    sac_type=sac_type,
                 ))
             continue
         if op.source == "static" and op.kind == "Continuous":
@@ -457,6 +506,7 @@ def clock_features(card: CardOps) -> ClockCard:
                 flags["overrun_trample"] = flags["overrun_trample"] or "Trample" in s.get("KW", "")
         absorb([e for e in _effects(op.steps, svars) if e.kind != "fetch"])
     return ClockCard(**f, **acc, **flags, tokens=tuple(tokens), tokens_per_turn=tuple(per_turn),
+                     on_resolve=tuple(on_resolve),
                      tap_tokens=tap_tokens, triggers=tuple(triggers), abilities=tuple(abilities),
                      wins=tuple(wins))
 
@@ -479,6 +529,10 @@ class ClockParams:
     blocker_rate: float = 0.75
     blockers_cap: int = 6
     mulligan_lands: tuple[int, int] = (2, 5)
+    # Our life also moves (base rate until Fase 8): the table deals `incoming_damage`
+    # to us per turn from turn `blockers_start` + 1. It only matters for conditions
+    # on our life (Felidar Sovereign: ≥ 40 at upkeep, and we start at 40).
+    incoming_damage: float = 3.0
 
 
 @dataclass
@@ -503,7 +557,11 @@ class ClockResult:
     wasted_mana: float          # mean unspent mana per turn
     terminals: dict[str, float]  # share of samples won by each terminal
     life_sources: dict[str, float] = field(default_factory=dict)  # life removed by T: combat vs direct
+    routes: dict[str, float] = field(default_factory=dict)  # mean fraction of each terminal reached by T
     turns: list[int] = field(default_factory=list, repr=False)
+
+
+_EVENT_ALIASES = {("cast_any", "cast_spell"), ("dies_any", "dies_yours"), ("etb_any", "etb_creature")}
 
 
 def _token_card(power: int, toughness: int, subtype: str = "") -> ClockCard:
@@ -549,6 +607,7 @@ class _Game:
         self.overrun_trample = False
         self.drawn = 0
         self.depth = 0
+        self.looped = False
         self.wasted = 0.0
         self.t = 0
 
@@ -627,6 +686,9 @@ class _Game:
             return len({t for c in self.lands for t in c.subtypes if t in BASIC_TYPES})
         if expr in ("Count$InYourHand", "Count$CardsInYourHand"):
             return len(self.hand)
+        m = re.fullmatch(r"Count\$Kicked\.(\d+)\.(\d+)", expr)
+        if m:
+            return int(m.group(2))  # the clock never pays kicker
         if expr.startswith("TriggerCount$"):
             return ctx.get("amount")
         return None
@@ -652,11 +714,15 @@ class _Game:
             self.win = (how, self.t)
 
     def drain(self, amount: float, combat: bool = False) -> None:
+        amount = min(amount, max(0.0, self.opp_life))  # the table cannot lose more than it has
+        if amount <= 0:
+            return
         self.opp_life -= amount
         if combat:
             self.combat_damage += amount
         else:
             self.direct_damage += amount
+        self.emit("opp_lifeloss", amount=amount)
 
     def gain(self, amount: float) -> None:
         if amount > 0:
@@ -673,6 +739,7 @@ class _Game:
                 return
             self.hand.append(self.library.pop(0))
             self.drawn += 1
+            self.emit("drawn")
 
     def mill_self(self, n: int) -> None:
         k = min(n, len(self.library))
@@ -685,6 +752,8 @@ class _Game:
             if self.win or self.lost:
                 return
             amount = e.amount * (ctx.get("amount", 0) if e.scale == "trigger" else 1)
+            if e.expr:
+                amount *= self._eval(e.expr, dict(e.svars), ctx) or 0
             if e.kind == "drain":
                 self.drain(amount)
             elif e.kind == "gain":
@@ -693,6 +762,11 @@ class _Game:
                 self.milled += amount
             elif e.kind == "mill_self":
                 self.mill_self(amount)
+            elif e.kind == "mill_choice" and e.scale == "half":
+                if self.self_mill_plan:
+                    self.mill_self(len(self.library) // 2)
+                else:
+                    self.milled += (OPP_LIBRARY_TOTAL - self.milled) / OPPONENTS / 2
             elif e.kind == "mill_choice":
                 if self.self_mill_plan:
                     self.mill_self(amount)
@@ -721,20 +795,30 @@ class _Game:
 
     def emit(self, event: str, **ctx) -> None:
         if self.depth >= MAX_TRIGGER_DEPTH:
+            self.looped = True
             return
+        top = self.depth == 0
+        if top:
+            self.looped, life_before = False, self.opp_life
         self.depth += 1
         try:
             for card in self.permanents():
                 for trig in card.triggers:
-                    if trig.event == event or (event == "cast_spell" and trig.event == "cast_any") \
-                            or (event == "dies_yours" and trig.event == "dies_any"):
+                    if trig.event == event or (trig.event, event) in _EVENT_ALIASES:
                         self.apply(trig.effects, ctx)
         finally:
             self.depth -= 1
+        if top and self.looped and self.opp_life < life_before and not (self.win or self.lost):
+            # A chain that only the depth guard stopped and that drains each lap is an
+            # unbounded loop (Sanguine Bond + Exquisite Blood): it drains the table.
+            self.direct_damage += self.opp_life
+            self.opp_life = 0.0
 
     def add_body(self, card: ClockCard, token: bool = False, commander: bool = False) -> None:
         self.bodies.append(_Body(card, sick=not card.haste, commander=commander, token=token))
         self.emit("etb_creature")
+        if token:
+            self.emit("token_created")
 
     def enter(self, card: ClockCard, commander: bool = False) -> None:
         """A permanent enters the battlefield (lands too, via fetch)."""
@@ -752,11 +836,13 @@ class _Game:
         if card.tokens_per_turn:
             self.per_turn_makers.append(card)
 
-    def kill(self, body: _Body) -> None:
+    def kill(self, body: _Body, sacrificed: bool = False) -> None:
         self.bodies.remove(body)
         if not body.token:
             self.graveyard += 1
         self.emit("dies_yours")
+        if sacrificed and body.token:
+            self.emit("sac_token")
 
     # -- casting -------------------------------------------------------------------
     def resolve(self, card: ClockCard) -> None:
@@ -770,9 +856,10 @@ class _Game:
             self.graveyard += 1
         self.emit("cast_spell" if {"Instant", "Sorcery"} & card.types else "cast_any")
         self.pending_lands += card.ramp_lands
-        for n, pw, tg in card.tokens:
+        for n, pw, tg, sub in card.tokens:
             for _ in range(n):
-                self.add_body(_token_card(pw, tg), token=True)
+                self.add_body(_token_card(pw, tg, sub), token=True)
+        self.apply(card.on_resolve)
         if card.overrun or card.overrun_per_creature:
             self.overrun += card.overrun + (board if card.overrun_per_creature else 0)
             self.overrun_trample = self.overrun_trample or card.overrun_trample
@@ -803,7 +890,11 @@ class _Game:
     def _progress(self, e: Effect) -> float:
         """Damage-equivalent progress of one effect (terminals priced by their totals)."""
         if e.kind == "drain":
+            if e.expr:
+                return e.amount * (self._eval(e.expr, dict(e.svars), {}) or 0)
             return e.amount * (3 if e.scale == "trigger" else 1)
+        if e.scale == "half":
+            return 40.0 if self.self_mill_plan else (OPP_LIBRARY_TOTAL - self.milled) / 6 * LIFE_TOTAL / OPP_LIBRARY_TOTAL
         if e.kind == "mill_opp" or (e.kind == "mill_choice" and not self.self_mill_plan):
             return e.amount * LIFE_TOTAL / OPP_LIBRARY_TOTAL
         if e.kind in ("mill_self", "mill_choice") and self.self_mill_plan:
@@ -812,18 +903,28 @@ class _Game:
             return e.token[0] * e.token[1] * 0.5
         if e.kind == "draw":
             return self.rho * 2
+        if e.kind == "gain":  # one step through "whenever you gain life" drains (Sanguine Bond)
+            per_life = sum(x.amount for c in self.permanents() for t in c.triggers if t.event == "lifegain"
+                           for x in t.effects if x.kind == "drain" and x.scale == "trigger")
+            return e.amount * (3 if e.scale == "trigger" else 1) * per_life
         return 0.0
 
     def impact(self, c: ClockCard) -> float:
         """Expected future damage-equivalent of casting c now (policy only, not V)."""
         p = self.p
         remaining = max(0, p.horizon - self.t)
+        if any(r.when == "resolve" and not self._would_win(c, r) for r in c.wins):
+            return 0.0  # hold a conditional win until it wins (Thassa's Oracle, Coalition Victory)
         value = 0.0
         if c.creature:
             conn = p.p_evasive if c.evasive else 1.0
             value += c.power * conn * (2 if c.double_strike else 1) * (remaining + (1 if c.haste else 0))
-        for n, pw, _ in c.tokens:
+        for n, pw, *_ in c.tokens:
             value += n * pw * remaining
+        with self._pretend(c):
+            value += sum(self._progress(e) for e in c.on_resolve)
+            value += sum(sum(self._progress(e) for e in trig.effects) * self.rates.get(trig.event, 0.5) * remaining
+                         for trig in c.triggers)
         for n, pw, _ in c.tokens_per_turn:
             value += n * pw * remaining * max(0, remaining - 1) / 2
         if c.tap_tokens:
@@ -836,9 +937,6 @@ class _Game:
         value += c.burn + c.mill * LIFE_TOTAL / OPP_LIBRARY_TOTAL
         value += self._progress(Effect("mill_self", amount=c.self_mill)) if self.self_mill_plan else 0
         value += self._progress(Effect("mill_choice", amount=c.mill_choice))
-        for trig in c.triggers:
-            per_event = sum(self._progress(e) for e in trig.effects)
-            value += per_event * self.rates.get(trig.event, 0.5) * remaining
         for ab in c.abilities:
             per_use = sum(self._progress(e) for e in ab.effects if e.kind != "draw")
             value += per_use * (self.rates.get("sac_fodder", 1.0) if ab.sac else 1.0) * remaining
@@ -851,23 +949,30 @@ class _Game:
             value += 1000
         for rule in c.wins:
             if rule.when == "resolve":
-                value += 1000 if self._would_win(c, rule) else 0  # hold it until it wins
+                value += 1000  # only reached when it wins now (see the hold above)
             elif rule.when == "second_cast":
                 value += 60 if self.casts.get(c.name, 0) else 20
             else:
                 value += 40
         return value
 
-    def _would_win(self, c: ClockCard, rule: WinRule) -> bool:
-        """Would a resolve-time condition hold right after c enters?"""
+    @contextmanager
+    def _pretend(self, c: ClockCard):
+        """The board as if c had just entered (for policy look-ahead)."""
         if not _is_permanent(c):
-            return self.holds(rule.condition)
+            yield
+            return
         body = _Body(c, sick=True) if c.creature else None
         (self.bodies.append(body) if body else self.others.append(c))
         try:
-            return self.holds(rule.condition)
+            yield
         finally:
             (self.bodies.remove(body) if body else self.others.remove(c))
+
+    def _would_win(self, c: ClockCard, rule: WinRule) -> bool:
+        """Would a resolve-time condition hold right after c enters?"""
+        with self._pretend(c):
+            return self.holds(rule.condition)
 
     def choose(self, castable: list[ClockCard], mana: int) -> list[int]:
         items = []
@@ -902,6 +1007,11 @@ class _Game:
             for n, pw, tg in maker.tokens_per_turn:
                 for _ in range(n):
                     self.add_body(_token_card(pw, tg), token=True)
+        if t > self.p.blockers_start:
+            self.our_life -= self.p.incoming_damage
+            if self.our_life <= 0:
+                self.lost = True
+                return
         self.emit("upkeep")
         for card in self.permanents():
             for rule in card.wins:
@@ -912,7 +1022,9 @@ class _Game:
         self.draw_cards(1)  # house rule: everyone draws on turn 1
         if self.win or self.lost:
             return
-        land = next((c for c in self.hand if c.land), None)
+        in_play = {c.name for c in self.lands}
+        land = max((c for c in self.hand if c.land), default=None,
+                   key=lambda c: (bool(c.abilities), c.name not in in_play))  # Maze's End, new Gate names
         if land:
             self.hand.remove(land)
             self.enter(land)
@@ -941,7 +1053,7 @@ class _Game:
         mana = self._activate(mana)
         if not (self.win or self.lost):
             self._combat()
-            self._sacrifice()
+            mana = self._sacrifice(mana)
         self.wasted += max(0, mana)
 
     def _attach(self, mana: int) -> int:
@@ -1021,20 +1133,25 @@ class _Game:
                 if b.commander:
                     self.cmd_damage += hit
 
-    def _sacrifice(self) -> None:
-        """Free sac outlets eat tokens after combat when deaths pay off."""
-        outlets = [ab for c in self.permanents() for ab in c.abilities if ab.sac and ab.mana == 0]
+    def _sacrifice(self, mana: int) -> int:
+        """Sac outlets eat tokens after combat when a death is worth more than the body."""
+        outlets = [ab for c in self.permanents() for ab in c.abilities if ab.sac]
         if not outlets:
-            return
-        outlet = max(outlets, key=lambda ab: sum(self._progress(e) for e in ab.effects))
-        payoff = any(t.event in ("dies_yours", "dies_any") for c in self.permanents() for t in c.triggers)
-        if not (payoff or any(e.kind in ("drain", "mill_opp") for e in outlet.effects)):
-            return
-        for body in [b for b in self.bodies if b.token and not b.commander]:
-            if self.win or self.lost:
-                return
-            self.kill(body)
-            self.apply(outlet.effects)
+            return mana
+        per_death = sum(self._progress(e) for c in self.permanents() for t in c.triggers
+                        if t.event in ("dies_yours", "dies_any", "sac_token") for e in t.effects)
+        remaining = self.p.horizon - self.t
+        for outlet in sorted(outlets, key=lambda ab: (ab.mana, -sum(self._progress(e) for e in ab.effects))):
+            gain = per_death + sum(self._progress(e) for e in outlet.effects)
+            for body in [b for b in self.bodies if b.token and not b.commander
+                         and (outlet.sac_type == "Creature" or outlet.sac_type in b.card.subtypes)]:
+                keep = (body.power + body.bonus + self.anthem) * min(remaining, 3) * 0.5
+                if self.win or self.lost or outlet.mana > mana or gain <= keep:
+                    break
+                mana -= outlet.mana
+                self.kill(body, sacrificed=True)
+                self.apply(outlet.effects)
+        return mana
 
     def _check_totals(self) -> None:
         if self.win or self.lost:
@@ -1056,7 +1173,10 @@ class _Game:
             dmg_by[t] = LIFE_TOTAL - self.opp_life
         return {"win": None if self.lost else self.win, "damage_by": dmg_by,
                 "wasted": self.wasted / self.p.horizon, "combat": self.combat_damage,
-                "direct": self.direct_damage, "lost": self.lost}
+                "direct": self.direct_damage, "lost": self.lost,
+                "routes": {"damage": (LIFE_TOTAL - self.opp_life) / LIFE_TOTAL, "poison": self.poison / POISON_TOTAL,
+                           "commander": self.cmd_damage / COMMANDER_TOTAL,
+                           "mill": min(1.0, self.milled / OPP_LIBRARY_TOTAL)}}
 
 
 def _shuffle_with_mulligan(deck: list[ClockCard], rng: random.Random, p: ClockParams) -> list[ClockCard]:
@@ -1088,6 +1208,8 @@ def _deck_context(cards: list[ClockCard], p: ClockParams) -> tuple[dict[str, flo
         "dies_any": deaths + 0.6 * p.blocker_rate,
         "lifegain": 1.0 if lifegain else 0.2,
         "sac_fodder": 1 + 3 * token_makers,
+        "opp_lifeloss": 1.5,
+        "drawn": 1.2,
     }
     threats = [c.power * (p.p_evasive if c.evasive else 1.0) / max(1, c.cmc)
                for c in cards if c.creature and c.power > 0]
@@ -1121,6 +1243,7 @@ def simulate(deck: list[ClockCard], commander: ClockCard | None = None,
         wasted_mana=mean(r["wasted"] for r in runs),
         terminals=terminals,
         life_sources={"combat": mean(r["combat"] for r in runs), "direct": mean(r["direct"] for r in runs)},
+        routes={k: mean(r["routes"][k] for r in runs) for k in runs[0]["routes"]},
         turns=turns,
     )
 

@@ -21,6 +21,7 @@ import json
 import re
 import sqlite3
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -89,12 +90,14 @@ def deck_from_file(path: Path, generated: bool) -> tuple[list[ClockCard], ClockC
 
 def _row(name: str, r) -> str:
     terminals = ", ".join(f"{k} {v:.0%}" for k, v in sorted(r.terminals.items(), key=lambda kv: -kv[1]))
+    sources = f"{r.life_sources.get('combat', 0):.0f} / {r.life_sources.get('direct', 0):.0f}"
     return (f"| {name} | T{r.turn:.2f} | {r.turn_var:.2f} | {r.censored:.0%} | {r.damage_by[6]:.1f} | "
-            f"{r.damage_by[8]:.1f} | {r.wasted_mana:.2f} | {terminals} |")
+            f"{r.damage_by[8]:.1f} | {sources} | {r.routes.get('mill', 0):.0%} | {r.wasted_mana:.2f} | {terminals} |")
 
 
-HEADER = ["| deck | relógio médio | variância | sem vitória até T | dano T6 | dano T8 | mana desperdiçada/turno | terminais |",
-          "|---|---:|---:|---:|---:|---:|---:|---|"]
+HEADER = ["| deck | relógio médio | variância | sem vitória até T | dano T6 | dano T8 | vida tirada até T: combate / direto "
+          "| mill até T | mana desperdiçada/turno | terminais |",
+          "|---|---:|---:|---:|---:|---:|---:|---:|---:|---|"]
 
 
 def criterion_ramp(p: ClockParams) -> tuple[bool, list[str]]:
@@ -136,6 +139,11 @@ def criterion_overrun(p: ClockParams) -> tuple[bool, list[str]]:
     return ok, lines
 
 
+def _bare(f: ClockCard) -> ClockCard:
+    """The card without its type line and cost colours (they carry no clock value by themselves)."""
+    return replace(f, types=frozenset(), subtypes=frozenset(), pips=())
+
+
 def _green_pool() -> tuple[dict[int, list[ClockCard]], list[ClockCard]]:
     """Mono-green creatures by mana value and green non-clock spells, from the catalog,
     in name order — a deterministic deck, no hand-picking."""
@@ -161,7 +169,7 @@ def _green_pool() -> tuple[dict[int, list[ClockCard]], list[ClockCard]]:
                 continue
             f = clock_features(compiled)
             # A plain body: power, nothing else the clock reads (no tokens, ramp, draw, ...).
-            if f.power > 0 and f == ClockCard(name=f.name, cmc=f.cmc, creature=True, power=f.power,
+            if f.power > 0 and _bare(f) == ClockCard(name=f.name, cmc=f.cmc, creature=True, power=f.power,
                                                 toughness=f.toughness, haste=f.haste, evasive=f.evasive,
                                                 trample=f.trample, double_strike=f.double_strike):
                 creatures[cmc].append(f)
@@ -170,7 +178,7 @@ def _green_pool() -> tuple[dict[int, list[ClockCard]], list[ClockCard]]:
             if compiled is None:
                 continue
             f = clock_features(compiled)
-            if f == ClockCard(name=f.name, cmc=f.cmc):
+            if _bare(f) == ClockCard(name=f.name, cmc=f.cmc):
                 utility.append(f)
     return creatures, utility
 
@@ -231,6 +239,128 @@ def sensitivity(decks: dict) -> list[str]:
     return lines
 
 
+# ---------------------------------------------------------------------------
+# Routes beyond combat (Fase 2.5b)
+# ---------------------------------------------------------------------------
+
+# Neutral filler: a real card with no effect the clock reads, so each scenario shows
+# its own route instead of a pile of attacking bodies.
+FILLER = "Cancel"
+BASICS_BRW = ["Swamp"] * 13 + ["Mountain"] * 12 + ["Plains"] * 12
+TOKENS = ["Raise the Alarm", "Dragon Fodder", "Krenko's Command", "Bitterblossom", "Spectral Procession",
+          "Lingering Souls", "Siege-Gang Commander", "Hordeling Outburst", "Beetleback Chief", "Battle Screech",
+          "Midnight Haunting"]
+OUTLETS = ["Goblin Bombardment", "Viscera Seer", "Carrion Feeder", "Ashnod's Altar", "Phyrexian Altar",
+           "Bloodthrone Vampire"]
+DEATH_PAYOFFS = ["Blood Artist", "Zulaport Cutthroat", "Cruel Celebrant", "Falkenrath Noble", "Bastion of Remembrance",
+                 "Mirkwood Bats", "Judith, the Scourge Diva", "Elas il-Kor, Sadistic Pilgrim", "Syr Konrad, the Grim"]
+CHEAP_SPELLS = ["Opt", "Lightning Bolt", "Shock", "Brainstorm", "Ponder", "Preordain", "Consider", "Chain Lightning",
+                "Burst Lightning", "Expedite", "Gitaxian Probe", "Manamorphose", "Thought Scour"] * 2
+SPELL_PAYOFFS = ["Guttersnipe", "Electrostatic Field", "Firebrand Archer", "Kessig Flamebreather", "Thermo-Alchemist",
+                 "Young Pyromancer", "Talrand, Sky Summoner"]
+GATES = ["Azorius Guildgate", "Boros Guildgate", "Dimir Guildgate", "Golgari Guildgate", "Gruul Guildgate",
+         "Izzet Guildgate", "Orzhov Guildgate", "Rakdos Guildgate", "Selesnya Guildgate", "Simic Guildgate",
+         "Gond Gate", "Black Dragon Gate", "Citadel Gate", "Heap Gate", "Baldur's Gate"]
+MILL = ["Hedron Crab", "Ruin Crab", "Psychic Corrosion", "Jace's Erasure", "Tome Scour", "Archive Trap",
+        "Traumatize", "Glimpse the Unthinkable", "Thought Scour", "Altar of Dementia"]
+SELF_MILL = ["Hedron Crab", "Ruin Crab", "Jace's Erasure", "Tome Scour", "Glimpse the Unthinkable", "Traumatize",
+             "Stitcher's Supplier", "Armored Skaab", "Archive Trap", "Psychic Corrosion"]
+EMPTY_LIBRARY_WINS = ["Thassa's Oracle", "Laboratory Maniac", "Jace, Wielder of Mysteries"]
+LOOP = ["Sanguine Bond", "Exquisite Blood"]
+
+
+def _deck(groups: list[list[str]], lands: list[str], n: int = 99) -> list[ClockCard]:
+    cards = [card(x) for names in groups for x in names] + [card(x) for x in lands]
+    return (cards + [card(FILLER)] * n)[:n]
+
+
+def routes_beyond_combat(p: ClockParams) -> tuple[bool, list[str]]:
+    long = replace(p, horizon=15)
+    runs = {
+        "aristocrats": (_deck([TOKENS, OUTLETS, DEATH_PAYOFFS], BASICS_BRW), p),
+        "aristocrats sem payoffs de morte": (_deck([TOKENS, OUTLETS], BASICS_BRW), p),
+        "spellslinger": (_deck([SPELL_PAYOFFS, CHEAP_SPELLS], ["Island"] * 18 + ["Mountain"] * 18), p),
+        "spellslinger sem payoffs": (_deck([CHEAP_SPELLS], ["Island"] * 18 + ["Mountain"] * 18), p),
+        "Maze's End + 15 Gates (T15)": (_deck([["Maze's End"]], GATES + ["Forest"] * 21), long),
+        "Maze's End + 3 Gates (T15)": (_deck([["Maze's End"]], GATES[:3] + ["Forest"] * 33), long),
+        "mill": (_deck([MILL], ["Island"] * 20 + ["Swamp"] * 16), p),
+        "self-mill + Oracle/Maniac/Jace (T15)": (_deck([SELF_MILL, EMPTY_LIBRARY_WINS], ["Island"] * 36), long),
+        "self-mill sem as vitórias (T15)": (_deck([SELF_MILL], ["Island"] * 36), long),
+        "Sanguine Bond + Exquisite Blood": (_deck([LOOP * 3, DEATH_PAYOFFS], ["Swamp"] * 36), p),
+        "só Sanguine Bond": (_deck([LOOP[:1] * 3, DEATH_PAYOFFS], ["Swamp"] * 36), p),
+    }
+    r = {name: simulate(deck, params=q) for name, (deck, q) in runs.items()}
+    T, T15 = p.horizon, long.horizon
+
+    def dmg(name: str) -> float:
+        return r[name].damage_by[max(r[name].damage_by)]
+
+    def direct_share(name: str) -> float:
+        src = r[name].life_sources
+        return src["direct"] / max(1e-9, src["direct"] + src["combat"])
+
+    checks = [
+        ("aristocrats: os payoffs de morte multiplicam o dano (≥ 2×) e a maior parte vem de fora do combate (≥ 40%)",
+         dmg("aristocrats") >= 2 * dmg("aristocrats sem payoffs de morte") and direct_share("aristocrats") >= 0.4),
+        ("spellslinger: os payoffs transformam mágicas em dano direto (direto > combate, e mais dano que sem eles)",
+         direct_share("spellslinger") > 0.5 and dmg("spellslinger") > dmg("spellslinger sem payoffs")),
+        ("Maze's End vence por vitória alternativa com ≥ 10 Gates de nomes diferentes, e nunca com 3",
+         r["Maze's End + 15 Gates (T15)"].terminals.get("alt_win", 0) > 0
+         and r["Maze's End + 3 Gates (T15)"].terminals.get("alt_win", 0) == 0),
+        ("mill: o progresso vem da biblioteca dos oponentes, não da vida",
+         r["mill"].routes["mill"] > r["mill"].routes["damage"]),
+        ("self-mill: com Oracle/Maniac/Jace no deck, os \"jogador-alvo mói N\" passam a moer a própria biblioteca",
+         r["self-mill + Oracle/Maniac/Jace (T15)"].routes["mill"] < r["self-mill sem as vitórias (T15)"].routes["mill"]),
+        ("loop Sanguine Bond + Exquisite Blood fecha o jogo pelo dano direto (e só o Bond não)",
+         r["Sanguine Bond + Exquisite Blood"].terminals.get("damage", 0)
+         > r["só Sanguine Bond"].terminals.get("damage", 0)),
+    ]
+    ok = all(passed for _, passed in checks)
+    lines = [
+        f"Decks de 99 com cartas reais; o resto é `{FILLER}` (nenhum efeito que o relógio lê), para cada",
+        f"cenário mostrar a própria rota. Horizonte T{T} (T{T15} onde indicado), {p.samples} ordens de compra.",
+        "",
+        *HEADER, *[_row(name, res) for name, res in r.items()], "",
+        *[f"- {'ok' if passed else '**falhou**'}: {text}" for text, passed in checks], "",
+        "Leitura: as rotas fora do combate são lentas em goldfish de 99 cartas com uma cópia de cada",
+        "peça (o Maze's End é 1 carta em 99 e não há tutores aqui); o que o critério mede é a direção",
+        "(a peça certa acelera a rota certa), não que o arquétipo vença sozinho até T12. O self-mill",
+        "sem cartas que moem a biblioteca inteira (Hermit Druid etc., ainda não lidas) não esvazia 85",
+        "cartas até T15; as vitórias de Oracle/Maniac/Jace estão cobertas por testes determinísticos",
+        "(`tests/test_clock.py`).",
+    ]
+    return ok, lines
+
+
+def alt_win_coverage() -> list[str]:
+    """How many Commander-legal cards with WinsGame/LosesGame the clock can evaluate."""
+    from operators.catalog import DEFAULT_CARDSFOLDER
+    from operators.compile import compile_file
+    from forge_ability_inventory import commander_legal_names
+
+    legal = commander_legal_names(DB_NAME)
+    read, unread = [], []
+    for path in sorted(Path(DEFAULT_CARDSFOLDER).rglob("*.txt")):
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if "WinsGame" not in text and "LosesGame" not in text:
+            continue
+        compiled = compile_file(path, Path(DEFAULT_CARDSFOLDER))
+        if compiled is None or compiled.name.lower() not in legal:
+            continue
+        f = clock_features(compiled)
+        hit = f.alt_win or f.wins or any(e.kind in ("win", "opp_loses") for a in f.abilities for e in a.effects)
+        (read if hit else unread).append(compiled.name)
+    total = len(read) + len(unread)
+    return [
+        f"Cartas legais em Commander com `WinsGame`/`LosesGame` no script: **{total}**. O relógio avalia "
+        f"a condição de **{len(read)}** ({len(read) / max(1, total):.0%}) no estado simulado; as outras "
+        "{0} ficam sem promessa (condição que o avaliador não lê, ou que depende do oponente).".format(len(unread)),
+        "",
+        f"- Lidas: {', '.join(read)}.",
+        f"- Não lidas: {', '.join(unread)}.",
+    ]
+
+
 def real_decks(p: ClockParams) -> list[str]:
     lines = [*HEADER]
     sources = sorted((PROJECT_ROOT / "data").glob("deck_*.txt")) + sorted((PROJECT_ROOT / "lucas_plans" / "Decks").glob("*.txt"))
@@ -254,15 +384,18 @@ def main() -> int:
     ok1, l1 = criterion_ramp(p)
     ok2, l2 = criterion_overrun(p)
     ok3, l3, decks = criterion_swap(p)
-    verdict = "ACEITE" if ok1 and ok2 and ok3 else "NÃO ACEITE"
+    ok4, l4 = routes_beyond_combat(p)
+    verdict = "ACEITE" if ok1 and ok2 and ok3 and ok4 else "NÃO ACEITE"
     lines = [
         "# Relógio de dano (Fase 2.5)",
         "",
         "Gerado por `scripts/clock_report.py`. Cartas reais compiladas dos scripts do Forge;",
         f"{p.samples} ordens de compra por deck, horizonte T{p.horizon}, oponentes como estoque de",
         f"bloqueadores ({p.blocker_rate}/turno a partir do T{p.blockers_start}; bloqueio chump gasta o bloqueador).",
-        "Vitória: 120 de dano, 30 de veneno, 63 de dano de comandante ou biblioteca vazia",
-        "(3 oponentes). Goldfish abstrato: os oponentes não jogam, só bloqueiam.",
+        "Vitória: 120 de vida tirada (combate, dano direto e drenos somam), 30 de veneno, 63 de dano",
+        "de comandante, 255 cartas moídas (3 oponentes) ou vitória alternativa / \"oponentes perdem\"",
+        "com a condição do script avaliada no estado. Goldfish abstrato: os oponentes não jogam, só",
+        f"bloqueiam e nos tiram {p.incoming_damage:g} de vida por turno a partir do T{p.blockers_start + 1}.",
         "",
         f"**Veredito:** {verdict}.",
         "",
@@ -274,6 +407,10 @@ def main() -> int:
         "", *l3, "",
         "### Achado: a primeira versão deste teste",
         "", *finding_expensive_swap(p), "",
+        f"## 4. Rotas além do combate — {'ok' if ok4 else 'falhou'}",
+        "", *l4, "",
+        "### Cobertura das vitórias alternativas",
+        "", *alt_win_coverage(), "",
         "## Sensibilidade aos parâmetros do oponente",
         "",
         "`P_conectar` e a capacidade de bloqueio são parâmetros até a Fase 8 (risco do plano).",
@@ -282,12 +419,12 @@ def main() -> int:
         "## Decks do repositório",
         "",
         "Decks gerados pelo sistema antigo (`data/`) e decks humanos (`lucas_plans/Decks/`).",
-        "O relógio mede só a rota de dano/veneno/comandante/mill em goldfish: um deck de",
-        "controle ou combo condicional aparece lento aqui por construção.",
+        "Todas as rotas contam, mas em goldfish: um deck de controle aparece lento aqui por",
+        "construção (remoção e interação só ganham valor com oponentes que jogam, Fase 8).",
         "", *real_decks(p), "",
     ]
     OUT.write_text("\n".join(lines), encoding="utf-8")
-    print(f"{verdict} (ramp {ok1}, overrun {ok2}, swap {ok3}) -> {OUT}")
+    print(f"{verdict} (ramp {ok1}, overrun {ok2}, swap {ok3}, routes {ok4}) -> {OUT}")
     return 0
 
 

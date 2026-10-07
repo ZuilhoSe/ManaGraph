@@ -1,6 +1,6 @@
 # Economia de operadores — sinergia deduzida das regras
 
-> Status: em execução — Fases 0, 1, 2, 2.5 e 3 aceitas;
+> Status: em execução — Fases 0, 1, 2, 2.5 (com 2.5b: todas as rotas de vitória) e 3 aceitas;
 > relógio de dano, taxonomia de arquétipos e exploração adicionados (2026-10-05). Substitui a ideia de "sinergia =
 > similaridade textual" e o score linear com pesos escolhidos à mão. Convive com
 > [`ONTOLOGY.md`](../ONTOLOGY.md): a ontologia vira a interface tipada desta
@@ -580,8 +580,25 @@ produzida); **não depende da Fase 3**. Detalhes na seção 2.6.
       (+X por criatura), fábricas de token por virar (Krenko), equipamentos e
       auras (voltron), tokens de ETB e por manutenção.
 - [x] Relógios paralelos para os outros terminais (veneno, dano de
-      comandante, biblioteca, vitória alternativa). Efeitos condicionais
-      ("se você controla seis terrenos", "se tiver 50 de vida") não contam.
+      comandante, biblioteca, vitória alternativa). → Na primeira entrega só
+      havia combate, veneno, comandante e mill/vitória **incondicionais** ao
+      resolver; marcado como feito antes da hora. Completo na Fase 2.5b abaixo.
+- [x] **Fase 2.5b — todas as rotas de vitória.** O relógio virou uma máquina
+      de eventos (criatura morre, mágica lançada, landfall, compra, ganho de
+      vida, perda de vida do oponente, token criado/sacrificado, manutenção):
+      dano direto e drenos tiram dos mesmos 120 pontos do combate; outlets de
+      sacrifício (inclusive sem efeito próprio, como Viscera Seer, e por tipo,
+      como Siege-Gang); quantidades lidas do estado (devoção do Gray Merchant);
+      mill por gatilho e "jogador-alvo mói N" decidido pelo plano (oponentes ou
+      a própria biblioteca, se o deck tem vitória por biblioteca vazia); loops
+      sem limite (Sanguine Bond + Exquisite Blood) drenam a mesa. Vitória
+      alternativa e "oponentes perdem" com a condição do script avaliada no
+      estado (`Count$` do Forge): Gates de nomes diferentes ≥ 10, biblioteca ≤
+      devoção, comprar com a biblioteca vazia, segunda conjuração do Approach,
+      vida ≥ 40, domínio + cores. A política segura uma vitória condicional até
+      ela valer. Nossa vida também cai a uma taxa-base (3/turno), senão o
+      Felidar venceria na primeira manutenção (começamos com 40).
+      Efeitos condicionais que o avaliador não lê continuam não contando.
 - [x] Métricas: turno médio e variância do relógio, dano até T6/T8, mana
       desperdiçada por turno. → `scripts/clock_report.py` → `data/ontology/CLOCK.md`.
 
@@ -605,6 +622,22 @@ do Lightning humano; Krenko gerado é o mais rápido (T≈10) pelo próprio Kren
 não pelas 99. Custo: ~0,35 ms por partida (≈ 20 ms por deck com 50 amostras).
 Limites: oponentes só bloqueiam (sem remoção nem corrida), habilidades
 ativadas que não sejam mana/token não contam, contagens variáveis aproximadas.
+
+**Resultado 2.5b (2026-10-06): ACEITE** (critério 4 do `CLOCK.md`, decks de 99
+com cartas reais e o resto neutro): os payoffs de morte multiplicam o dano do
+aristocrats por 3,5× e metade dele vem de fora do combate; o spellslinger tira
+2/3 da vida por dano direto; o Maze's End vence por vitória alternativa em 14%
+das partidas até T15 com 15 Gates e nunca com 3; o deck de mill progride só
+pela biblioteca; com Oracle/Maniac/Jace no deck as cartas "jogador-alvo mói"
+passam a moer a própria biblioteca; o loop Sanguine + Exquisite fecha 9% das
+partidas pela vida e só o Bond nenhuma. Testes determinísticos em
+`tests/test_clock.py` cobrem Maze's End (nomes diferentes), aristocrats, o
+loop, Laboratory Maniac, Thassa's Oracle (espera a devoção cobrir a
+biblioteca), Approach e Guttersnipe. Cobertura: das 84 cartas legais com
+`WinsGame`/`LosesGame`, o relógio avalia 28 (33%); as outras não prometem
+nada. Limites: terrenos que entram virados não são modelados (Maze's End e
+Gates ficam um pouco rápidos); Hermit Druid, Mesmeric Orb, Door to Nothingness
+e mill de "metade da biblioteca" por repetição ainda não são lidos.
 
 ### Fase 3 — Forge como oráculo: micro-experimentos (≈ 2–3 semanas)
 

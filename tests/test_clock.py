@@ -109,5 +109,133 @@ class ClockTests(unittest.TestCase):
         self.assertIn("poison", result.terminals)
 
 
+SCRIPTS = {
+    "maze": "Name:Maze's End\nManaCost:no cost\nTypes:Land\n"
+            "A:AB$ Mana | Cost$ T | Produced$ C\n"
+            "A:AB$ ChangeZone | Cost$ 3 T Return<1/CARDNAME> | ChangeType$ Gate | ChangeNum$ 1 | Origin$ Library"
+            " | Destination$ Battlefield | SubAbility$ DBWin\n"
+            "SVar:DBWin:DB$ WinsGame | Defined$ You | ConditionCheckSVar$ MazeGate | ConditionSVarCompare$ GE10\n"
+            "SVar:MazeGate:Count$Valid Gate.YouCtrl$DifferentCardNames",
+    "artist": "Name:Blood Artist\nManaCost:1 B\nTypes:Creature Vampire\nPT:0/1\n"
+              "T:Mode$ ChangesZone | Origin$ Battlefield | Destination$ Graveyard | ValidCard$ Card.Self,Creature.Other"
+              " | TriggerZones$ Battlefield | Execute$ TrigLoseLife\n"
+              "SVar:TrigLoseLife:DB$ LoseLife | ValidTgts$ Player | LifeAmount$ 1 | SubAbility$ DBGainLife\n"
+              "SVar:DBGainLife:DB$ GainLife | Defined$ You | LifeAmount$ 1",
+    "bombardment": "Name:Goblin Bombardment\nManaCost:1 R\nTypes:Enchantment\n"
+                   "A:AB$ DealDamage | Cost$ Sac<1/Creature> | ValidTgts$ Any | NumDmg$ 1",
+    "seer": "Name:Viscera Seer\nManaCost:B\nTypes:Creature Vampire Wizard\nPT:1/1\n"
+            "A:AB$ Scry | Cost$ Sac<1/Creature> | ScryNum$ 1",
+    "siege": "Name:Siege-Gang\nManaCost:3 R R\nTypes:Creature Goblin\nPT:2/2\n"
+             "A:AB$ DealDamage | Cost$ 1 R Sac<1/Goblin> | ValidTgts$ Any | NumDmg$ 2",
+    "bond": "Name:Sanguine Bond\nManaCost:3 B B\nTypes:Enchantment\n"
+            "T:Mode$ LifeGained | ValidPlayer$ You | TriggerZones$ Battlefield | Execute$ TrigDrain\n"
+            "SVar:TrigDrain:DB$ LoseLife | ValidTgts$ Opponent | LifeAmount$ X\nSVar:X:TriggerCount$LifeAmount",
+    "blood": "Name:Exquisite Blood\nManaCost:4 B\nTypes:Enchantment\n"
+             "T:Mode$ LifeLost | ValidPlayer$ Opponent | TriggerZones$ Battlefield | Execute$ TrigLifeGain\n"
+             "SVar:TrigLifeGain:DB$ GainLife | Defined$ You | LifeAmount$ X\nSVar:X:TriggerCount$LifeAmount",
+    "maniac": "Name:Laboratory Maniac\nManaCost:2 U\nTypes:Creature Human Wizard\nPT:2/2\n"
+              "R:Event$ Draw | ActiveZones$ Battlefield | ValidPlayer$ You | IsPresent$ Card.YouOwn | PresentZone$ Library"
+              " | PresentCompare$ EQ0 | ReplaceWith$ Win\nSVar:Win:DB$ WinsGame | Defined$ You",
+    "oracle": "Name:Thassa's Oracle\nManaCost:U U\nTypes:Creature Merfolk Wizard\nPT:1/3\n"
+              "T:Mode$ ChangesZone | ValidCard$ Card.Self | Origin$ Any | Destination$ Battlefield | Execute$ TrigDig\n"
+              "SVar:TrigDig:DB$ Dig | DigNum$ X | ChangeNum$ 1 | DestinationZone$ Library | SubAbility$ DBWin\n"
+              "SVar:DBWin:DB$ WinsGame | Defined$ You | ConditionCheckSVar$ Y | ConditionSVarCompare$ LEX\n"
+              "SVar:X:Count$Devotion.Blue\nSVar:Y:Count$ValidLibrary Card.YouOwn",
+    "approach": "Name:Approach of the Second Sun\nManaCost:6 W\nTypes:Sorcery\n"
+                "A:SP$ Branch | BranchConditionSVar$ X | BranchConditionSVarCompare$ EQ3 | TrueSubAbility$ WinGame"
+                " | FalseSubAbility$ GainLife\nSVar:WinGame:DB$ WinsGame | Defined$ You\n"
+                "SVar:GainLife:DB$ GainLife | LifeAmount$ 7 | Defined$ You | SubAbility$ Reapproach\n"
+                "SVar:Reapproach:DB$ ChangeZone | Origin$ Stack | Destination$ Library | LibraryPosition$ 6 | Defined$ Parent",
+    "guttersnipe": "Name:Guttersnipe\nManaCost:2 R\nTypes:Creature Goblin Shaman\nPT:2/2\n"
+                   "T:Mode$ SpellCast | ValidCard$ Instant,Sorcery | ValidActivatingPlayer$ You | TriggerZones$ Battlefield"
+                   " | Execute$ TrigDamage\nSVar:TrigDamage:DB$ DealDamage | Defined$ Player.Opponent | NumDmg$ 2",
+    "merchant": "Name:Gray Merchant\nManaCost:3 B B\nTypes:Creature Zombie\nPT:2/4\n"
+                "T:Mode$ ChangesZone | Origin$ Any | Destination$ Battlefield | ValidCard$ Card.Self | Execute$ TrigLoseLife\n"
+                "SVar:TrigLoseLife:DB$ LoseLife | Defined$ Player.Opponent | LifeAmount$ X\nSVar:X:Count$Devotion.Black",
+}
+ISLAND, SWAMP = basic_land("Island"), basic_land("Swamp")
+LONG = ClockParams(horizon=30, blockers_cap=0)
+
+
+def card(key):
+    return features(SCRIPTS[key])
+
+
+def gate(name):
+    return ClockCard(name=name, land=True, types=frozenset({"Land"}), subtypes=frozenset({"Gate"}))
+
+
+def instant(name="Opt", cmc=1, **kw):
+    return ClockCard(name=name, cmc=cmc, types=frozenset({"Instant"}), **kw)
+
+
+class RouteFeatureTests(unittest.TestCase):
+    def test_sac_outlets_count_even_without_a_clock_effect(self):
+        self.assertEqual([(a.sac, a.sac_type, a.effects) for a in card("seer").abilities], [(True, "Creature", ())])
+        siege = card("siege").abilities[0]
+        self.assertEqual((siege.sac_type, siege.mana, siege.effects[0].amount), ("Goblin", 2, 2))
+
+    def test_loop_pieces_read_the_event_amount(self):
+        (bond,), (blood,) = card("bond").triggers, card("blood").triggers
+        self.assertEqual((bond.event, bond.effects[0].kind, bond.effects[0].scale), ("lifegain", "drain", "trigger"))
+        self.assertEqual((blood.event, blood.effects[0].kind), ("opp_lifeloss", "gain"))
+
+    def test_variable_amount_is_evaluated_on_the_board(self):
+        merchant = card("merchant")
+        order = [SWAMP] * 5 + [merchant] + [SWAMP] * 10
+        result = simulate([], params=ClockParams(horizon=5, blockers_cap=0), order=order)
+        self.assertEqual(result.life_sources["direct"], 6)  # devotion 2 × 3 opponents
+
+
+class RouteTests(unittest.TestCase):
+    def test_mazes_end_needs_ten_gates_with_different_names(self):
+        distinct = [gate(f"Gate {i}") for i in range(10)]
+        same = [gate("Gate") for _ in range(10)]
+        for gates, wins in ((distinct, True), (same, False)):
+            order = [card("maze")] + [FOREST] * 6 + gates + [FOREST] * 30
+            result = simulate([], params=LONG, order=order)
+            self.assertEqual(result.terminals.get("alt_win", 0) == 1, wins)
+
+    def test_aristocrats_drain_through_deaths(self):
+        maker = ClockCard(name="Swarm", cmc=2, tokens=((3, 1, 1, ""),), types=frozenset({"Sorcery"}))
+        base = [card("bombardment")] + [SWAMP] * 6 + [maker] * 6 + [SWAMP] * 20
+        with_artist = base[:1] + [card("artist")] + base[2:]
+        p = ClockParams(horizon=10, blockers_cap=0)
+        plain, drained = simulate([], params=p, order=base), simulate([], params=p, order=with_artist)
+        self.assertGreater(drained.life_sources["direct"], plain.life_sources["direct"])
+        self.assertGreater(drained.life_sources["direct"], drained.life_sources["combat"])
+
+    def test_unbounded_loop_drains_the_table(self):
+        bolt = instant("Bolt", burn=3)
+        order = [SWAMP] * 7 + [card("bond"), card("blood")] + [SWAMP] * 4 + [bolt] + [SWAMP] * 10
+        result = simulate([], params=ClockParams(horizon=10, blockers_cap=0), order=order)
+        self.assertEqual(result.terminals, {"damage": 1.0})
+        self.assertEqual(result.life_sources["direct"], 120)
+
+    def test_laboratory_maniac_wins_instead_of_decking(self):
+        for hand, terminal in (([card("maniac")] + [ISLAND] * 6, "alt_win"), ([ISLAND] * 7, "decked")):
+            result = simulate([], params=LONG, order=hand + [ISLAND] * 3)
+            self.assertEqual(result.terminals, {terminal: 1.0})
+
+    def test_thassas_oracle_waits_until_devotion_covers_the_library(self):
+        order = [card("oracle")] + [ISLAND] * 6 + [ISLAND] * 6
+        result = simulate([], params=LONG, order=order)
+        self.assertEqual(result.terminals, {"alt_win": 1.0})
+        self.assertEqual(result.turns, [4])  # library 6 → 2 cards = devotion UU
+
+    def test_approach_wins_on_the_second_cast(self):
+        order = [card("approach")] + [ISLAND] * 6 + [ISLAND] * 30
+        result = simulate([], params=LONG, order=order)
+        self.assertEqual(result.terminals, {"alt_win": 1.0})
+
+    def test_guttersnipe_turns_spells_into_direct_damage(self):
+        spells = [instant(f"Opt {i}", draw=1) for i in range(12)]
+        order = [card("guttersnipe")] + [FOREST] * 6 + [x for pair in zip(spells, [FOREST] * 12) for x in pair]
+        hit = simulate([], params=NO_BLOCKS, order=order)
+        miss = simulate([], params=NO_BLOCKS, order=[FOREST] + order[1:])
+        self.assertGreater(hit.life_sources["direct"], 0)
+        self.assertEqual(miss.life_sources["direct"], 0)
+
+
 if __name__ == "__main__":
     unittest.main()
